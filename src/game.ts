@@ -3,8 +3,12 @@ import "@pixi/sound";
 import { Application, Assets } from "pixi.js";
 
 import { assets } from "./assets.ts";
+import { ItemFactory } from "./core/inventory/item.ts";
+import { catalog } from "./data/items.ts";
+import { createStarterInventory } from "./data/starter.ts";
 import { gameReady, initPlatform, setLoadingProgress } from "./platform.ts";
 import { SceneManager } from "./ui/SceneManager.ts";
+import { InventoryScene } from "./ui/scenes/InventoryScene.ts";
 import { TitleScene } from "./ui/scenes/TitleScene.ts";
 import { theme } from "./ui/theme.ts";
 
@@ -38,7 +42,11 @@ export async function startGame(container: HTMLElement) {
   );
   app.ticker.add((ticker) => scenes.update(ticker.deltaMS));
 
-  scenes.change(new TitleScene());
+  const inventory = createStarterInventory(new ItemFactory(catalog));
+
+  scenes.change(
+    new TitleScene(() => scenes.change(new InventoryScene(inventory))),
+  );
 
   gameReady(app);
 

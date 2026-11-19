@@ -16,15 +16,18 @@ Cada fase entrega algo jogável/testável. Em todas as fases valem as regras do 
 
 **Pronto quando:** `npm run test:coverage` passa e a aplicação abre uma tela com o título.
 
-## Fase 1 — Inventário em grade ("tetris")
+## Fase 1 — Inventário em grade ("tetris") ✅
 
 O coração do jogo; vem primeiro porque quase tudo depende dele.
 
-- **Modelo de item:** `id`, `defId`, tamanho `w×h`, empilhável (`stack`/`maxStack`), rotação, durabilidade, valor base, categoria.
-- **Grade (`Grid`):** largura × altura, ocupação por célula, `canPlace`, `place`, `remove`, `move`, `rotate`, `findFreeSpot` (auto-encaixe), merge de pilhas, split de pilhas.
-- **Contêineres aninhados:** itens que têm grades internas (mochila, colete, caixas de munição/itens). Proibir colocar um contêiner dentro dele mesmo; colete pode ter grades múltiplas de tamanhos diferentes.
-- **Slots de equipamento:** arma primária/secundária, coldre, capacete, armadura, colete tático, mochila, contêiner seguro, bolsos.
-- **UI PixiJS:** renderização da grade, drag & drop, prévia verde/vermelha de encaixe, tecla `R` para girar durante o arraste, tooltip com informações, ordenação automática do estoque.
+- [x] **Modelo de item:** `ItemDef` (catálogo) + `Item` (instância com uid, quantidade, grades internas e localização). Tamanho `w×h`, `maxStack`, preço base, categoria, slot de equipamento.
+- [x] **Grade (`Grid`):** ocupação por célula, `canPlace`, `place`, `remove`, `findFreeSpot` (com rotação), filtros por categoria.
+- [x] **Operações:** mover entre grades e slots, girar, somar e separar pilhas, auto-encaixe (`autoPlace`), soltar sobre item (`dropOnItem`), organizar (`sortGrid`, que desfaz se não couber).
+- [x] **Contêineres aninhados:** grades internas (mochila, colete com várias grades, caixa de munição, contêiner seguro); um contêiner nunca entra nele mesmo.
+- [x] **Slots de equipamento:** arma primária/secundária, coldre, capacete, colete balístico, colete tático, mochila, contêiner seguro, 4 bolsos.
+- [x] **UI PixiJS:** grade, drag & drop, prévia verde/vermelha, `R` para girar, `Esc` para cancelar, tooltip, botão "Organizar", janela de contêiner por duplo clique.
+- [x] Catálogo inicial de itens originais (`src/data/items.ts`) e kit inicial (`src/data/starter.ts`).
+- [ ] Pendências para fases futuras: durabilidade dos itens (Fase 2/3), separar pilha pela UI (ex.: Shift + arrastar), mover item com Ctrl+clique, rolagem do estoque quando ele crescer (Fase 7), janela de contêiner arrastável.
 
 **Pronto quando:** dá para mover, girar, empilhar e guardar itens entre estoque, mochila e equipamento.
 

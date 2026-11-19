@@ -1,0 +1,41 @@
+{
+  "name": "shikoku_matsuyama",
+  "version": "0.0.0",
+  "private": true,
+  "description": "RPG idle 2D de extração feito com PixiJS. Gerencie seu PMC, equipe-o, mande-o para raids, organize o loot no esconderijo e complete as quests para escapar da cidade.",
+  "type": "module",
+  "scripts": {
+    "start": "npm run dev",
+    "dev": "vite",
+    "build": "oxlint && tsc && vite build",
+    "preview": "node dist/server/server.mjs",
+    "lint": "oxlint",
+    "format": "oxfmt",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc",
+    "format:check": "oxfmt --check"
+  },
+  "dependencies": {
+    "@colyseus/schema": "^5.0.43",
+    "@colyseus/sdk": "^0.18.9",
+    "@esotericsoftware/spine-pixi-v8": "~4.3.13",
+    "@pixi/sound": "^6.0.2",
+    "@pixi/ui": "^2.4.1",
+    "colyseus": "^0.18.10",
+    "express": "^5.3.0",
+    "gsap": "^3.15.0",
+    "pixi-filters": "^6.1.5",
+    "pixi.js": "^8.23.0"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^5.1.1",
+    "jsdom": "^31.0.1",
+    "oxfmt": "^0.75.0",
+    "oxlint": "^1.90.0",
+    "typescript": "~7.0.2",
+    "vite": "^8.3.5",
+    "vitest": "^5.1.1"
+  }
+}

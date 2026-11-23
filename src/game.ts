@@ -4,9 +4,10 @@ import { Application, Assets } from "pixi.js";
 
 import { assets } from "./assets.ts";
 import { ItemFactory } from "./core/inventory/item.ts";
-import { catalog } from "./data/items.ts";
+import { ITEM_DEFS, catalog } from "./data/items.ts";
 import { createStarterInventory } from "./data/starter.ts";
 import { gameReady, initPlatform, setLoadingProgress } from "./platform.ts";
+import { loadItemTextures } from "./ui/inventory/textures.ts";
 import { SceneManager } from "./ui/SceneManager.ts";
 import { InventoryScene } from "./ui/scenes/InventoryScene.ts";
 import { TitleScene } from "./ui/scenes/TitleScene.ts";
@@ -28,8 +29,11 @@ export async function startGame(container: HTMLElement) {
   });
 
   container.appendChild(app.canvas);
+  // O botão direito abre o menu do jogo, não o do navegador
+  app.canvas.addEventListener("contextmenu", (e) => e.preventDefault());
 
   await Assets.load(assets, setLoadingProgress);
+  await loadItemTextures(ITEM_DEFS);
 
   const scenes = new SceneManager(
     app.stage,
@@ -42,10 +46,15 @@ export async function startGame(container: HTMLElement) {
   );
   app.ticker.add((ticker) => scenes.update(ticker.deltaMS));
 
-  const inventory = createStarterInventory(new ItemFactory(catalog));
+  const factory = new ItemFactory(catalog);
+  const inventory = createStarterInventory(factory);
 
   scenes.change(
-    new TitleScene(() => scenes.change(new InventoryScene(inventory))),
+    new TitleScene(() =>
+      scenes.change(
+        new InventoryScene(inventory, { tooltipDelayMs: 300, factory }),
+      ),
+    ),
   );
 
   gameReady(app);

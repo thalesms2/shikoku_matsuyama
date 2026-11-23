@@ -27,17 +27,63 @@ O coração do jogo; vem primeiro porque quase tudo depende dele.
 - [x] **Slots de equipamento:** arma primária/secundária, coldre, capacete, colete balístico, colete tático, mochila, contêiner seguro, 4 bolsos.
 - [x] **UI PixiJS:** grade, drag & drop, prévia verde/vermelha, `R` para girar, `Esc` para cancelar, tooltip, botão "Organizar", janela de contêiner por duplo clique.
 - [x] Catálogo inicial de itens originais (`src/data/items.ts`) e kit inicial (`src/data/starter.ts`).
-- [ ] Pendências para fases futuras: durabilidade dos itens (Fase 2/3), separar pilha pela UI (ex.: Shift + arrastar), mover item com Ctrl+clique, rolagem do estoque quando ele crescer (Fase 7), janela de contêiner arrastável.
+- [ ] Pendências para fases futuras: durabilidade dos itens (Fase 2/3), mover item com Ctrl+clique (separar pilha já existe no menu de contexto), rolagem do estoque quando ele crescer (Fase 7), janela de contêiner arrastável.
 
 **Pronto quando:** dá para mover, girar, empilhar e guardar itens entre estoque, mochila e equipamento.
 
 ## Fase 2 — Dados do jogo e PMC
 
-- Catálogo inicial de itens (original): armas, munições (penetração/dano), armaduras (classe, durabilidade), meds, comida/bebida, loot de valor (barter), chaves.
+### 2A — Base de dados local de itens (sincronizada da API tarkov.dev) ✅ (falta ligar os itens à API)
+
+**Estado:** pipeline completo e testado (`scripts/items/`, comando `npm run items`). Os 22 itens atuais foram migrados para o banco como overrides completos, ainda sem `sourceId`, porque a API estava fora do ar ("GraphQL server unavailable") quando a fase foi implementada. **Próximo passo, assim que a API voltar:** `items -- sync`, ligar cada item ao seu `sourceId` (`override <id> --source ...`, limpando com `--clear` os campos que devem vir da API), `items -- images` e `items -- export`. Itens novos entram com o mesmo fluxo.
+
+Decisões de implementação: SQLite nativo do Node (`node:sqlite`) no lugar de `better-sqlite3`, que dispensa compilação nativa; `tsx` para rodar os scripts; uma CLI única (`npm run items -- <comando>`) no lugar de vários scripts npm.
+
+O jogo **nunca consulta a API durante a execução**. A API ([tarkov.dev](https://tarkov.dev), GraphQL em `https://api.tarkov.dev/graphql`) só é usada em desenvolvimento, por um script, para puxar itens novos ou atualizar dados. Tudo fica salvo no repositório.
+
+- **Sincronização** `npm run items -- sync`: consulta a API, normaliza os dados e grava na base local. Roda só manualmente, nunca no build nem no CI.
+  - Campos de referência: `width`/`height` em células, categoria/tipos, `basePrice`, limite de pilha, calibre, capacidade de carregador, dano/penetração da munição, classe/durabilidade de armadura, slots e grades de contêineres (`grids` de mochilas e coletes táticos).
+  - O id externo (tarkov.dev) é guardado como `sourceId`, para correlacionar em sincronizações futuras sem duplicar itens.
+- **Banco de dados:** SQLite (`data/items.db`, via `node:sqlite`, só em desenvolvimento, commitado) como fonte da verdade da curadoria:
+  - `items`: id do jogo, `sourceId`, dados de referência vindos da API.
+  - `item_overrides`: nome, nome curto, descrição e ajustes de balanceamento próprios do jogo (sobrescrevem a referência).
+  - `item_assets`: correlação item ↔ imagem (`public/assets/items/<id>.webp`), com origem, licença e `status` (`placeholder` ou `final`).
+  - `sync_runs`: histórico de sincronizações (data, itens novos, itens alterados).
+- **Exportação para o jogo** `npm run items -- export`: gera `src/data/generated/items.json` (dados) a partir do banco. O jogo importa esse JSON no build; o navegador não precisa de SQLite.
+- **Validação:** testes garantem que o JSON exportado é válido para o `Catalog` (tamanhos, pilhas, grades), que todo item tem imagem correlacionada (ou placeholder) e que nenhum id se repete. Testes do sync usam respostas da API gravadas como fixtures (sem rede nos testes).
+- **Imagens:** o carregamento é por id (`assets/items/<id>.webp`, com um placeholder por categoria quando a imagem faltar); a `ItemView` desenha o sprite escalado para as células do item.
+- **Imagens placeholder do tarkov.dev (temporárias):** `npm run items -- images` baixa a imagem de grade de cada item (`gridImageLink`, que já vem no tamanho certo em células) para `public/assets/items/`, registrada em `item_assets` com `source = "tarkov.dev"` e `status = "placeholder"`.
+  - Ficam **fora do git** (`public/assets/items/` no `.gitignore`): cada desenvolvedor baixa localmente e elas não são redistribuídas pelo repositório.
+  - Ao colocar uma arte própria em `public/assets/items/<id>.webp` e rodar `npm run items -- final <id>`, o item é marcado `status = "final"` e o download não a sobrescreve mais.
+  - `npm run items -- placeholders` lista os itens que ainda usam placeholder.
+- **Restrição de conteúdo** (ver "Direção criativa" no `CLAUDE.md`): da API vêm dados factuais e de balanceamento e, só durante o desenvolvimento, as imagens placeholder. **Nomes e descrições são próprios do jogo**, cadastrados em `item_overrides`; os textos do Escape from Tarkov não são copiados. Armas e calibres reais (ex.: 5.45x39, 9x19) podem usar a nomenclatura técnica real.
+
+### 2B — Descrição dos itens no hover ✅
+
+**Estado:** feito. Os 24 itens têm descrição própria (no banco, `item_overrides.description`). O atraso de 300 ms é uma opção da cena (`tooltipDelayMs`), com padrão 0 para manter o comportamento testado na Fase 1. Ficha de contêiner (células internas) já existia na linha de dados básicos.
+
+- Campo `description` no `ItemDef`.
+- Tooltip com atraso curto (~300 ms), mostrando: imagem, nome, descrição (com quebra de linha) e uma ficha conforme a categoria (munição: calibre, dano, penetração; arma: calibre, carregador; armadura: classe, durabilidade; contêiner: células internas; carregador: munição carregada/capacidade).
+- O tooltip se reposiciona para não sair da tela.
+
+### 2C — Carregadores e munição ✅
+
+**Estado:** feito, com duas pendências: (1) a **câmara** da arma (um cartucho a mais fora do carregador) ainda não existe; (2) a escopeta M-12 usa tubo interno e ainda não tem como ser carregada; fica para quando a raid (Fase 3) consumir munição. Dados técnicos próprios (calibre, capacidade, dano, penetração) ficam em `item_overrides.stats` e são mesclados por cima dos da API. Itens novos: `mag_vk74` (30 × 5.45) e `mag_pk9` (12 × 9mm); a pistola inicial já vem com um carregador cheio.
+
+- Nova categoria `magazine`: `capacity` e `caliber`; armas têm `caliber` e aceitam carregadores compatíveis.
+- O carregador guarda a munição como uma **pilha ordenada de cartuchos** (`{ ammoDefId, count }[]`): munição de tipos diferentes fica na ordem em que foi carregada, e o último cartucho carregado é o primeiro a ser disparado.
+- **Carregar:** soltar uma pilha de munição compatível sobre o carregador carrega até `capacity` (o resto continua na pilha). Calibre incompatível fica com a prévia vermelha.
+- **Descarregar:** ação no carregador (menu de contexto ou atalho) que devolve a munição como pilhas para o inventário, usando `autoPlace`; se não couber, o que sobrar fica no carregador.
+- **Tempo de carga:** carregar/descarregar leva tempo por cartucho (ex.: 0,5 s, reduzido pela skill "Manuseio de carregador"), feito de forma idle com barra de progresso; pode ser cancelado.
+- **Arma ↔ carregador:** a arma tem um slot de carregador (a câmara fica para depois); arrastar o carregador para a arma (na grade ou equipada) o encaixa; "Remover carregador" no menu de contexto tira. Na raid (Fase 3), a munição disponível = carregadores na arma, no colete tático e nos bolsos; o tipo de cartucho usado afeta o combate.
+- Valor do carregador = valor dele + valor da munição dentro dele.
+
+### 2D — PMC, skills e save
+
 - **PMC:** nível/XP, vida por parte do corpo (cabeça, tórax, estômago, braços, pernas), energia e hidratação.
-- **Skills:** resistência, força, saúde, vitalidade, percepção, furtividade, mira, etc. Cada skill tem XP próprio e dá bônus pequenos e cumulativos.
-- Kit inicial básico.
-- **Save/load:** serialização versionada no `localStorage` com migrações.
+- **Skills:** resistência, força, saúde, vitalidade, percepção, furtividade, mira, manuseio de carregador etc. Cada skill tem XP próprio e dá bônus pequenos e cumulativos.
+- Kit inicial básico, montado a partir do catálogo gerado.
+- **Save/load:** serialização versionada no `localStorage` com migrações (inclui `ItemFactory.nextId`, munição dentro dos carregadores e o estado de carregamentos em andamento).
 
 ## Fase 3 — Raid do PMC (simulação idle)
 
@@ -95,6 +141,8 @@ O coração do jogo; vem primeiro porque quase tudo depende dele.
 
 ## Estratégia de testes
 
+- **Scripts de dados (`scripts/`)**: testados com fixtures das respostas da API e um banco SQLite em memória; nenhum teste acessa a rede.
+
 - **Core (`src/core`)**: testes unitários puros com Vitest; RNG e relógio injetados tornam tudo determinístico. Testes de propriedade para a grade (nenhuma célula ocupada duas vezes, itens sempre dentro dos limites).
 - **UI (`src/ui`)**: lógica de interação (drag & drop, cálculo de célula sob o cursor, prévias) separada em funções puras testáveis; componentes PixiJS testados com o ambiente `jsdom` e PixiJS mockado onde necessário.
 - **Simulação**: testes estatísticos com seed fixa para garantir que taxas de sobrevivência ficam dentro das faixas de balanceamento.
@@ -106,5 +154,7 @@ O coração do jogo; vem primeiro porque quase tudo depende dele.
 2. `Grid` + testes (sem UI).
 3. Itens e contêineres aninhados + testes.
 4. UI da grade com drag & drop.
-5. PMC + skills + save.
-6. Primeira raid simulada ponta a ponta.
+5. ✅ Base de dados local de itens (2A) e tooltip com descrição (2B).
+6. ✅ Carregadores e munição (2C).
+7. PMC + skills + save (2D).
+8. Primeira raid simulada ponta a ponta.

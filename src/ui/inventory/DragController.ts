@@ -2,6 +2,14 @@ import type { Container, PointData } from "pixi.js";
 
 import type { GridLocation, Item } from "../../core/inventory/item.ts";
 import {
+  attachMagazine,
+  canAttachMagazine,
+  canLoad,
+  isMagazine,
+  isWeapon,
+  loadRounds,
+} from "../../core/inventory/magazine.ts";
+import {
   canStack,
   dropOnItem,
   moveToGrid,
@@ -21,8 +29,21 @@ export interface DropTargets {
 /** Onde o item seria solto na posição atual do ponteiro */
 export type Drop =
   | { kind: "grid"; view: GridView; x: number; y: number; ok: boolean }
+  /** Somar à pilha ou guardar dentro de um contêiner */
   | { kind: "item"; view: GridView; target: Item; ok: boolean }
+  /** Carregar munição no carregador `target` */
+  | { kind: "load"; view: GridView; target: Item; ok: boolean }
+  /** Encaixar o carregador na arma `target` (na grade ou equipada) */
+  | { kind: "attach"; view: GridView | SlotView; target: Item; ok: boolean }
   | { kind: "slot"; view: SlotView; ok: boolean };
+
+export interface DragHooks {
+  /**
+   * Munição solta sobre um carregador compatível. Sem este hook, a munição
+   * é carregada na hora.
+   */
+  onLoad?: (magazine: Item, ammo: Item) => void;
+}
 
 interface DragState {
   item: Item;
@@ -46,6 +67,7 @@ export class DragController {
     private readonly targets: () => DropTargets,
     /** Chamado depois que o inventário mudou */
     private readonly onChange: () => void,
+    private readonly hooks: DragHooks = {},
   ) {}
 
   get dragging(): Item | null {
@@ -85,12 +107,13 @@ export class DragController {
     this.clearHighlights();
     const drop = this.resolve(global);
     if (!drop) return;
-    if (drop.kind === "slot") {
-      drop.view.showHighlight(drop.ok);
-    } else if (drop.kind === "grid") {
+    if (drop.kind === "grid") {
       const { w, h } = footprint(s.item.def, s.rotated);
       drop.view.showHighlight(drop.x, drop.y, w, h, drop.ok);
+    } else if (drop.kind === "slot" || "equipment" in drop.view) {
+      (drop.view as SlotView).showHighlight(drop.ok);
     } else {
+      // Destaca as células do item alvo
       const loc = drop.target.location as GridLocation;
       const { w, h } = footprint(drop.target.def, loc.rotated);
       drop.view.showHighlight(loc.x, loc.y, w, h, drop.ok);
@@ -123,6 +146,15 @@ export class DragController {
       changed = moveToGrid(s.item, drop.view.grid, drop.x, drop.y, s.rotated);
     } else if (drop.kind === "item") {
       changed = dropOnItem(s.item, drop.target);
+    } else if (drop.kind === "load") {
+      if (this.hooks.onLoad) {
+        this.hooks.onLoad(drop.target, s.item);
+        changed = true;
+      } else {
+        changed = loadRounds(drop.target, s.item) > 0;
+      }
+    } else if (drop.kind === "attach") {
+      changed = attachMagazine(drop.target, s.item);
     } else if (drop.view.equipment.get(drop.view.slot) === s.item) {
       changed = false;
     } else {
@@ -161,6 +193,14 @@ export class DragController {
           const ok = hovered.grids.some((g) => g.findFreeSpot(s.item) !== null);
           return { kind: "item", view, target: hovered, ok };
         }
+        if (isMagazine(hovered) && s.item.def.category === "ammo") {
+          const ok = canLoad(hovered, s.item);
+          return { kind: "load", view, target: hovered, ok };
+        }
+        if (isWeapon(hovered) && isMagazine(s.item)) {
+          const ok = canAttachMagazine(hovered, s.item);
+          return { kind: "attach", view, target: hovered, ok };
+        }
       }
       const { x, y } = dropCell(local.x, local.y, s.grabX, s.grabY);
       const ok = view.grid.canPlace(s.item, x, y, s.rotated);
@@ -170,9 +210,13 @@ export class DragController {
     for (const view of slots) {
       const local = view.toLocal(global);
       if (!view.containsLocal(local.x, local.y)) continue;
+      const equipped = view.equipment.get(view.slot);
+      if (equipped && isWeapon(equipped) && isMagazine(s.item)) {
+        const ok = canAttachMagazine(equipped, s.item);
+        return { kind: "attach", view, target: equipped, ok };
+      }
       const ok =
-        view.equipment.get(view.slot) === s.item ||
-        view.equipment.canEquip(view.slot, s.item);
+        equipped === s.item || view.equipment.canEquip(view.slot, s.item);
       return { kind: "slot", view, ok };
     }
     return null;

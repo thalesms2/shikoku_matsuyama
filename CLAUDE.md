@@ -31,6 +31,9 @@ O jogador gerencia seu **PMC** (o personagem principal), preso em uma cidade iso
 ### Direção criativa
 
 - O jogo é **original**: nomes de vendedores, mapas, cidade, facções e itens devem ser próprios — não usar nomes, personagens, arte ou marcas de Escape from Tarkov. Apenas as mecânicas do gênero servem de inspiração.
+- A API do tarkov.dev pode ser usada **só em desenvolvimento** e **só para dados factuais e de balanceamento** (tamanho em células, pilha, calibre, capacidade, dano, penetração, preço de referência). Nomes e descrições dos itens são próprios (os textos do Escape from Tarkov não entram no projeto).
+- As imagens dos itens do tarkov.dev podem ser usadas **só como placeholder temporário em desenvolvimento**: ficam fora do git (`public/assets/items/` no `.gitignore`), são marcadas `status = "placeholder"` no banco e serão todas substituídas por arte própria.
+- O jogo **nunca acessa a API em execução**: os dados ficam no banco local (`data/items.db`, SQLite) e são exportados para `src/data/generated/items.json`. Veja a Fase 2A do `PLANO.md`.
 
 ## Stack técnica
 
@@ -51,12 +54,15 @@ O jogador gerencia seu **PMC** (o personagem principal), preso em uma cidade iso
 - `src/ui/SceneManager.ts` — troca de cenas; toda tela implementa a interface `Scene` (`view`, `resize?`, `update?`, `destroy?`).
 - `src/core/rng.ts`, `src/core/events.ts`, `src/core/clock.ts` — `Rng` com seed, `EventBus` tipado e `Clock` injetável (use `ManualClock` nos testes).
 - `server/` — servidor Colyseus (sala `game`).
+- `scripts/items/` — pipeline de dados de itens, que só roda em desenvolvimento (`npm run items -- <comando>`, via `tsx`): API do tarkov.dev → banco SQLite `data/items.db` (`node:sqlite`, commitado) → `src/data/generated/items.json` (commitado, importado por `src/data/items.ts`). As imagens ficam em `public/assets/items/<id>.webp`, fora do git.
 - `tests/` — espelha a estrutura de `src/` e `server/`. Testes que usam PixiJS rodam com `// @vitest-environment jsdom` no topo; a `Application` deve ser mockada (o jsdom não tem WebGL).
 
 ### Armadilhas conhecidas nos testes
 
 - Não devolva valor em `beforeEach`/`beforeAll` (ex.: `beforeEach(() => mock.mockReset())`): o Vitest trata a função retornada como teardown e a executa depois do teste. Use chaves: `beforeEach(() => { mock.mockReset(); })`.
 - Variáveis usadas dentro de `vi.mock(...)` precisam vir de `vi.hoisted(...)`.
+- Não importe helpers de um arquivo `*.test.ts` em outro: os testes do arquivo importado rodam de novo. Coloque fixtures compartilhadas em arquivos sem `.test` (ex.: `tests/core/inventory/magFixtures.ts`).
+- `view.emit(...)` do Pixi não propaga o evento para os pais; para testar handlers no container pai (ex.: fechar o menu de contexto), emita o evento no pai com o `target` desejado.
 
 Veja o plano completo em [`PLANO.md`](./PLANO.md).
 
@@ -70,6 +76,13 @@ Veja o plano completo em [`PLANO.md`](./PLANO.md).
 6. Aleatoriedade sempre via RNG injetável com seed (nunca `Math.random()` direto no core).
 7. Mudanças no formato do save exigem incremento de versão e migração testada.
 
+## Base de dados de itens
+
+- **Nunca edite `src/data/generated/items.json` à mão.** Altere o banco com `npm run items -- override <id> ...` (ou `import <arquivo.json>`) e rode `npm run items -- export`.
+- Fluxo para trazer um item da API: `items -- sync` → `items -- search <termo>` (acha o `sourceId`) → `items -- override <id-do-jogo> --source <sourceId> --name "..." --short "..."` → `items -- images` → `items -- export`.
+- Campos definidos no override têm prioridade sobre a API; `--clear width,height` volta a usar a referência.
+- Os testes dos scripts usam respostas da API gravadas (`tests/scripts/items/fixtures.ts`) e bancos em memória ou temporários; nenhum teste acessa a rede.
+
 ## Comandos
 
 - `npm run dev` — servidor de desenvolvimento (cliente + servidor Colyseus)
@@ -79,6 +92,7 @@ Veja o plano completo em [`PLANO.md`](./PLANO.md).
 - `npm run lint` — oxlint
 - `npm run typecheck` — checagem de tipos
 - `npm run format` / `npm run format:check` — oxfmt
+- `npm run items -- help` — comandos da base de dados de itens (sync, search, show, override, import, images, final, placeholders, export)
 
 Antes de concluir qualquer tarefa: `npm run lint && npm run typecheck && npm run format:check && npm run test:coverage`.
 
@@ -103,5 +117,29 @@ Modelo de entrada para novas mecânicas:
 - **Operações:** `moveToGrid`/`moveToSlot` não mudam nada se o destino for inválido. `mergeStack` move `min(origem, maxStack − destino)`; se a origem esvaziar, ela é removida. `splitStack(item, n)` exige `1 ≤ n < count`. `autoPlace` completa pilhas iguais primeiro e depois usa o primeiro espaço livre nas grades, na ordem dada. `dropOnItem`: se for pilha igual, soma; se o alvo for um contêiner, guarda dentro dele.
 - **Organizar (`sortGrid`):** recoloca os itens por área (maior primeiro), depois por categoria, nome e quantidade (maior primeiro). Se não couber tudo, a grade volta exatamente como estava e a função devolve `false`.
 - **Valor:** `totalValue` = `basePrice × count` + valor de tudo que está dentro do item, recursivamente.
-- **UI:** arrastar com o botão esquerdo; prévia verde/vermelha; `R` gira durante o arraste; `Esc` cancela; soltar sobre uma pilha igual soma; soltar sobre um contêiner guarda dentro dele; duplo clique (≤ 350 ms) abre a janela do contêiner; o tooltip mostra nome, tamanho, categoria, quantidade e valor; o botão "Organizar" ordena o estoque. Soltar no mesmo lugar não conta como mudança (senão a view é recriada e o clique se perde).
+- **UI:** arrastar com o botão esquerdo; prévia verde/vermelha; `R` gira durante o arraste; `Esc` cancela; soltar sobre uma pilha igual soma; soltar sobre um contêiner guarda dentro dele; duplo clique (≤ 350 ms) abre a janela do contêiner; o botão "Organizar" ordena o estoque. Soltar no mesmo lugar não conta como mudança (senão a view é recriada e o clique se perde).
+- **Menu de contexto (botão direito):** `src/ui/inventory/actions.ts` monta as opções por item: "Abrir" (contêiner), "Descarregar"/"Cancelar carregamento" (carregador), "Remover carregador" (arma), "Separar pilha pela metade" (pilhas; a metade vai para o primeiro espaço livre de `storageFor`, ou volta para a pilha se não couber). `storageFor(item)` = grade do item, depois `carryGrids()`, depois o estoque, sem repetir. O menu do navegador é bloqueado no canvas.
 - **Estoque inicial:** 10x14, com o kit de `src/data/starter.ts`.
+
+### Descrição e ficha no hover (tooltip)
+
+- Arquivos: `src/ui/inventory/Tooltip.ts`, `ItemDef.description`, `ItemDef.stats`.
+- Mostra: imagem (se houver textura, até 96px de altura), linhas básicas (`describeItem`: nome, tamanho, categoria, quantidade, valor, células de contêiner), ficha técnica (`itemSheet`: calibre, dano, penetração, classe, durabilidade, capacidade + `ammoSheet`) e a descrição em itálico.
+- A quebra de linha da descrição é calculada por `wrapText` (36 caracteres por linha), sem medir texto no canvas, para a altura ser conhecida e testável.
+- **Reposicionamento:** fica 16px abaixo e à direita do ponteiro; se passar da borda direita da área visível, abre à esquerda do ponteiro; se passar da borda de baixo, sobe até caber; nunca sai pela esquerda nem por cima (`InventoryScene.visibleBounds()`).
+- **Atraso:** `InventoryScene` aceita `tooltipDelayMs` (o jogo usa 300 ms; padrão 0). Sair do item ou começar a arrastar cancela o tooltip pendente.
+- `formatCaliber` converte o calibre da fonte (`Caliber545x39`) para o nome legível (`5.45x39`).
+
+### Carregadores e munição
+
+- Arquivos: `src/core/inventory/magazine.ts`, `src/core/inventory/loading.ts`; UI em `DragController`, `ItemView`, `Tooltip`, `actions.ts` e `InventoryScene`.
+- **Modelo:** categoria `magazine` com `stats.caliber` e `stats.capacity`; armas têm `stats.caliber` e o campo `magazine` (carregador encaixado, com `location = { kind: "weapon", weapon }`). O carregador guarda `rounds: { def, count }[]`: tipos diferentes ficam em sequência na ordem carregada; o **último é o topo** (próximo a disparar, primeiro a sair ao descarregar).
+- **Compatibilidade:** munição ↔ carregador e carregador ↔ arma exigem o mesmo `stats.caliber`. Uma arma aceita um carregador por vez.
+- **Carregar** (`loadRounds`): move `min(máx. pedido, pilha, espaço livre)` cartuchos; junta com o topo se for o mesmo tipo; pilha vazia sai de onde estava.
+- **Descarregar** (`unloadRounds`): tira do topo e guarda com `autoPlace` (completa pilhas iguais primeiro); para quando não couber, e o resto fica no carregador.
+- **Tempo** (`MagazineLoader`): `MS_PER_ROUND = 500` ms por cartucho (configurável, para a skill de manuseio de carregador na 2D). O progresso é calculado pelo relógio (`Clock`): cartuchos devidos = `floor((agora − início) / msPorCartucho) − feitos`, então recupera atraso de uma vez (idle/offline). Termina sozinho quando acaba a munição, enche o carregador ou não há espaço para descarregar; `start` substitui o trabalho anterior; `cancel` para.
+- **Interface:** soltar munição sobre carregador inicia o carregamento (prévia vermelha se o calibre não bater ou estiver cheio); soltar carregador sobre arma (na grade ou equipada no slot) encaixa; carregadores e armas mostram `carregados/capacidade` no canto; barra de progresso na view do carregador durante o trabalho; tooltip lista a munição do topo para baixo ou o carregador da arma.
+- **Valor:** `totalValue` inclui os cartuchos (`basePrice × count`) e o carregador encaixado na arma.
+- Pendências: câmara da arma e carregamento da escopeta (tubo interno).
+
+- **Imagens dos itens:** `loadItemTextures` carrega a `image` de cada `ItemDef` no início do jogo (`src/ui/inventory/textures.ts`). Se a textura existir, a `ItemView` desenha o sprite do tamanho das células (girado 90° quando o item está rotacionado); se o arquivo faltar, o item continua sendo um retângulo colorido pela categoria.

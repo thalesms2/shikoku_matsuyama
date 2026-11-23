@@ -1,13 +1,19 @@
 import { Container, Text } from "pixi.js";
-import type { FederatedPointerEvent } from "pixi.js";
+import type { FederatedPointerEvent, PointData } from "pixi.js";
 
 import { systemClock } from "../../core/clock.ts";
 import type { Clock } from "../../core/clock.ts";
 import type { SlotName } from "../../core/inventory/equipment.ts";
+import type { Grid } from "../../core/inventory/grid.ts";
+import { ItemFactory } from "../../core/inventory/item.ts";
 import type { Item } from "../../core/inventory/item.ts";
+import { MagazineLoader } from "../../core/inventory/loading.ts";
 import { sortGrid } from "../../core/inventory/operations.ts";
+import { catalog } from "../../data/items.ts";
 import type { InventoryState } from "../../data/starter.ts";
 import { Button } from "../components/Button.ts";
+import { ContextMenu } from "../components/ContextMenu.ts";
+import { itemActions } from "../inventory/actions.ts";
 import { ContainerWindow } from "../inventory/ContainerWindow.ts";
 import { DragController } from "../inventory/DragController.ts";
 import type { DropTargets } from "../inventory/DragController.ts";
@@ -16,6 +22,7 @@ import type { ItemView } from "../inventory/ItemView.ts";
 import { CELL } from "../inventory/layout.ts";
 import { SlotView } from "../inventory/SlotView.ts";
 import { Tooltip } from "../inventory/Tooltip.ts";
+import type { TooltipBounds } from "../inventory/Tooltip.ts";
 import type { Scene } from "../SceneManager.ts";
 import { theme } from "../theme.ts";
 
@@ -47,6 +54,9 @@ export class InventoryScene implements Scene {
   readonly content = new Container({ label: "content" });
   readonly overlay = new Container({ label: "overlay" });
   readonly tooltip = new Tooltip();
+  readonly contextMenu = new ContextMenu();
+  readonly loader: MagazineLoader;
+  readonly factory: ItemFactory;
   readonly stashView: GridView;
   readonly slotViews = new Map<SlotName, SlotView>();
   readonly pocketViews: GridView[];
@@ -60,16 +70,37 @@ export class InventoryScene implements Scene {
   private contentHeight = 0;
   private lastSize = { width: 0, height: 0 };
   private readonly clock: Clock;
+  /** Tempo com o mouse parado sobre o item antes de mostrar o tooltip */
+  readonly tooltipDelayMs: number;
+  private pendingTooltip: {
+    item: Item;
+    x: number;
+    y: number;
+    remaining: number;
+  } | null = null;
 
   constructor(
     readonly state: InventoryState,
-    options: { clock?: Clock } = {},
+    options: {
+      clock?: Clock;
+      tooltipDelayMs?: number;
+      /** Cria itens novos (munição descarregada, pilhas separadas) */
+      factory?: ItemFactory;
+    } = {},
   ) {
     this.clock = options.clock ?? systemClock;
+    this.tooltipDelayMs = options.tooltipDelayMs ?? 0;
+    this.factory = options.factory ?? new ItemFactory(catalog);
+    this.loader = new MagazineLoader(this.clock);
     this.drag = new DragController(
       this.overlay,
       () => this.targets(),
       () => this.refresh(),
+      {
+        onLoad: (magazine, ammo) => {
+          this.loader.start({ kind: "load", magazine, ammo });
+        },
+      },
     );
 
     this.content.addChild(this.heading("Equipamento", 0, 0));
@@ -117,7 +148,14 @@ export class InventoryScene implements Scene {
 
     this.view.addChild(this.content);
     this.content.addChild(this.overlay);
-    this.overlay.addChild(this.tooltip);
+    this.overlay.addChild(this.tooltip, this.contextMenu);
+    // Clique fora do menu fecha o menu
+    this.view.on("pointerdown", (e: FederatedPointerEvent) => {
+      if (e.button === 2) return;
+      let target = e.target as Container | null;
+      while (target && target !== this.contextMenu) target = target.parent;
+      if (!target) this.contextMenu.hide();
+    });
 
     this.view.on("globalpointermove", (e: FederatedPointerEvent) => {
       this.lastPointer = { x: e.global.x, y: e.global.y };
@@ -155,6 +193,7 @@ export class InventoryScene implements Scene {
     if (this.window && this.window.item.location === null) this.closeWindow();
     this.window?.refresh();
     this.wireItems();
+    this.showLoadingProgress();
     this.layout();
   }
 
@@ -182,6 +221,92 @@ export class InventoryScene implements Scene {
   resize(width: number, height: number): void {
     this.lastSize = { width, height };
     this.layout();
+  }
+
+  /** Conta o atraso do tooltip e avança o carregamento de carregadores */
+  update(deltaMs: number): void {
+    this.updateLoader();
+    const pending = this.pendingTooltip;
+    if (!pending) return;
+    pending.remaining -= deltaMs;
+    if (pending.remaining > 0) return;
+    this.pendingTooltip = null;
+    this.showTooltip(pending.item, pending.x, pending.y);
+  }
+
+  private updateLoader(): void {
+    if (!this.loader.job) return;
+    const processed = this.loader.advance();
+    if (processed > 0 || !this.loader.job) this.refresh();
+    else this.showLoadingProgress();
+  }
+
+  /** Barra de progresso na view do carregador em carregamento */
+  private showLoadingProgress(): void {
+    const job = this.loader.job;
+    const progress = this.loader.progress();
+    if (!job || !progress) return;
+    for (const grid of this.targets().grids) {
+      grid.itemViews
+        .get(job.magazine)
+        ?.setProgress(progress.done / Math.max(1, progress.total));
+    }
+  }
+
+  /**
+   * Onde guardar o que sai de um item (munição descarregada, carregador
+   * removido, metade de pilha): a grade do próprio item, o equipamento e o
+   * estoque, sem repetir.
+   */
+  storageFor(item: Item): Grid[] {
+    const grids: Grid[] = [];
+    if (item.location?.kind === "grid") grids.push(item.location.grid);
+    for (const grid of [
+      ...this.state.equipment.carryGrids(),
+      this.state.stash,
+    ]) {
+      if (!grids.includes(grid)) grids.push(grid);
+    }
+    return grids;
+  }
+
+  /** Abre o menu de contexto do item na posição global */
+  openContextMenu(item: Item, global: PointData): void {
+    this.hideTooltip();
+    const p = this.overlay.toLocal(global);
+    this.contextMenu.show(
+      p.x,
+      p.y,
+      itemActions(item, {
+        loader: this.loader,
+        factory: this.factory,
+        storageFor: (i) => this.storageFor(i),
+        openWindow: (i) => this.openWindow(i),
+        changed: () => this.refresh(),
+      }),
+    );
+  }
+
+  /** Área visível da tela em coordenadas do conteúdo, ou `undefined` */
+  visibleBounds(): TooltipBounds | undefined {
+    const { width, height } = this.lastSize;
+    if (width === 0 || height === 0) return undefined;
+    const scale = this.content.scale.x;
+    return {
+      x: -this.content.x / scale,
+      y: -this.content.y / scale,
+      width: width / scale,
+      height: height / scale,
+    };
+  }
+
+  private showTooltip(item: Item, x: number, y: number): void {
+    this.tooltip.show(item, x, y, this.visibleBounds());
+  }
+
+  private hideTooltip(): void {
+    this.pendingTooltip = null;
+    this.tooltip.hide();
   }
 
   destroy(): void {
@@ -250,8 +375,12 @@ export class InventoryScene implements Scene {
       view.eventMode = "static";
       view.cursor = "grab";
       view.on("pointerdown", (e: FederatedPointerEvent) => {
+        if (e.button === 2) {
+          this.openContextMenu(view.item, e.global);
+          return;
+        }
         if (e.button !== 0) return;
-        this.tooltip.hide();
+        this.hideTooltip();
         this.drag.begin(view, e.global);
       });
       const release = (e: FederatedPointerEvent) => this.drag.end(e.global);
@@ -261,9 +390,18 @@ export class InventoryScene implements Scene {
       view.on("pointerover", (e: FederatedPointerEvent) => {
         if (this.drag.dragging) return;
         const p = this.overlay.toLocal(e.global);
-        this.tooltip.show(view.item, p.x, p.y);
+        if (this.tooltipDelayMs <= 0) {
+          this.showTooltip(view.item, p.x, p.y);
+        } else {
+          this.pendingTooltip = {
+            item: view.item,
+            x: p.x,
+            y: p.y,
+            remaining: this.tooltipDelayMs,
+          };
+        }
       });
-      view.on("pointerout", () => this.tooltip.hide());
+      view.on("pointerout", () => this.hideTooltip());
     }
   }
 

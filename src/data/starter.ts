@@ -1,6 +1,7 @@
 import { Equipment } from "../core/inventory/equipment.ts";
 import { Grid } from "../core/inventory/grid.ts";
 import type { ItemFactory } from "../core/inventory/item.ts";
+import { attachMagazine, loadRounds } from "../core/inventory/magazine.ts";
 import { autoPlace } from "../core/inventory/operations.ts";
 
 /** Tamanho inicial do estoque do esconderijo, em células */
@@ -32,6 +33,8 @@ export const STASH_ITEMS: readonly [string, number][] = [
   ["barter_bolts", 1],
   ["barter_goldchain", 1],
   ["key_garage", 1],
+  ["mag_vk74", 1],
+  ["mag_vk74", 1],
   ["money_rub", 150000],
 ];
 
@@ -43,7 +46,11 @@ export function createStarterInventory(
   const stash = new Grid(STASH_WIDTH, STASH_HEIGHT);
   const equipment = new Equipment();
 
-  equipment.equip("holster", factory.create("pistol_pk9"));
+  const pistol = factory.create("pistol_pk9");
+  equipment.equip("holster", pistol);
+  const pistolMag = factory.create("mag_pk9");
+  loadRounds(pistolMag, factory.create("ammo_9mm", 12));
+  attachMagazine(pistol, pistolMag);
   equipment.equip("rig", factory.create("rig_cargo"));
   equipment.equip("backpack", factory.create("backpack_sack"));
   equipment.equip("secure", factory.create("secure_pouch"));

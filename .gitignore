@@ -25,3 +25,6 @@ dist
 # Testes
 coverage
 .vitest
+
+# Imagens placeholder baixadas do tarkov.dev (não redistribuir)
+public/assets/items/

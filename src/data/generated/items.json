@@ -1,0 +1,363 @@
+[
+  {
+    "id": "ammo_12g",
+    "name": "Cartucho 12 Chumbo",
+    "shortName": "12g",
+    "category": "ammo",
+    "width": 1,
+    "height": 1,
+    "maxStack": 20,
+    "basePrice": 60,
+    "description": "Cartuchos de chumbo grosso para escopeta. Espalham bastante e param qualquer um de perto.",
+    "stats": {
+      "caliber": "Caliber12g",
+      "damage": 200,
+      "penetration": 3
+    }
+  },
+  {
+    "id": "ammo_545",
+    "name": "Cartucho 5.45 FMJ",
+    "shortName": "5.45",
+    "category": "ammo",
+    "width": 1,
+    "height": 1,
+    "maxStack": 60,
+    "basePrice": 90,
+    "description": "Munição de fuzil com ponta de chumbo encamisada. Barata e fácil de achar, mas sofre contra coletes mais pesados.",
+    "stats": {
+      "caliber": "Caliber545x39",
+      "damage": 45,
+      "penetration": 25
+    }
+  },
+  {
+    "id": "ammo_9mm",
+    "name": "Cartucho 9mm",
+    "shortName": "9mm",
+    "category": "ammo",
+    "width": 1,
+    "height": 1,
+    "maxStack": 50,
+    "basePrice": 45,
+    "description": "Cartucho de pistola padrão. Encontrado em quase toda gaveta de delegacia abandonada.",
+    "stats": {
+      "caliber": "Caliber9x19PARA",
+      "damage": 54,
+      "penetration": 18
+    }
+  },
+  {
+    "id": "ammo_case",
+    "name": "Caixa de munição",
+    "shortName": "Cx. mun.",
+    "category": "container",
+    "width": 2,
+    "height": 2,
+    "basePrice": 25000,
+    "grids": [
+      {
+        "width": 5,
+        "height": 5,
+        "allow": [
+          "ammo"
+        ]
+      }
+    ],
+    "description": "Caixa metálica com divisórias para organizar munição. Só aceita cartuchos."
+  },
+  {
+    "id": "armor_civil",
+    "name": "Colete balístico civil",
+    "shortName": "Civil",
+    "category": "armor",
+    "width": 3,
+    "height": 3,
+    "basePrice": 12000,
+    "equipSlot": "armor",
+    "description": "Colete de proteção vendido para seguranças particulares. Para tiros de pistola, mas pesa nos ombros."
+  },
+  {
+    "id": "backpack_hiker",
+    "name": "Mochila de trilha",
+    "shortName": "Trilha",
+    "category": "backpack",
+    "width": 4,
+    "height": 5,
+    "basePrice": 15000,
+    "equipSlot": "backpack",
+    "grids": [
+      {
+        "width": 5,
+        "height": 6,
+        "deny": [
+          "backpack"
+        ]
+      }
+    ],
+    "description": "Mochila de trilha com armação interna. Espaçosa e confortável para longas caminhadas pela cidade."
+  },
+  {
+    "id": "backpack_sack",
+    "name": "Saco de lona",
+    "shortName": "Saco",
+    "category": "backpack",
+    "width": 3,
+    "height": 3,
+    "basePrice": 4000,
+    "equipSlot": "backpack",
+    "grids": [
+      {
+        "width": 4,
+        "height": 4,
+        "deny": [
+          "backpack"
+        ]
+      }
+    ],
+    "description": "Saco de lona costurado à mão com alças improvisadas. Pouco espaço, mas melhor do que nada."
+  },
+  {
+    "id": "barter_bolts",
+    "name": "Parafusos",
+    "shortName": "Paraf.",
+    "category": "barter",
+    "width": 1,
+    "height": 1,
+    "basePrice": 2500,
+    "description": "Punhado de parafusos e porcas variados. Mecânicos e artesãos sempre pagam por eles."
+  },
+  {
+    "id": "barter_goldchain",
+    "name": "Corrente de ouro",
+    "shortName": "Ouro",
+    "category": "barter",
+    "width": 1,
+    "height": 1,
+    "basePrice": 20000,
+    "description": "Corrente de ouro maciço. Pequena, leve e valiosa: o loot preferido de quem sabe o que procura."
+  },
+  {
+    "id": "barter_gpu",
+    "name": "Placa de vídeo",
+    "shortName": "GPU",
+    "category": "barter",
+    "width": 2,
+    "height": 1,
+    "basePrice": 120000,
+    "description": "Placa de vídeo de alto desempenho. Muito procurada por quem ainda mantém servidores funcionando."
+  },
+  {
+    "id": "food_can",
+    "name": "Lata de carne",
+    "shortName": "Lata",
+    "category": "food",
+    "width": 1,
+    "height": 1,
+    "basePrice": 1500,
+    "description": "Lata de carne em conserva com validade duvidosa. Mata a fome por algumas horas."
+  },
+  {
+    "id": "food_water",
+    "name": "Garrafa de água",
+    "shortName": "Água",
+    "category": "food",
+    "width": 1,
+    "height": 2,
+    "basePrice": 1800,
+    "description": "Garrafa de água mineral lacrada. Na cidade isolada, vale mais do que parece."
+  },
+  {
+    "id": "helmet_tk1",
+    "name": "Capacete TK-1",
+    "shortName": "TK-1",
+    "category": "helmet",
+    "width": 2,
+    "height": 2,
+    "basePrice": 9000,
+    "equipSlot": "helmet",
+    "description": "Capacete de aço com forro de lona. Não segura tiro de fuzil, mas desvia estilhaços e pancadas."
+  },
+  {
+    "id": "key_garage",
+    "name": "Chave da garagem",
+    "shortName": "Garagem",
+    "category": "key",
+    "width": 1,
+    "height": 1,
+    "basePrice": 5000,
+    "description": "Chave de uma garagem trancada na zona industrial. Ninguém sabe ao certo o que ficou lá dentro."
+  },
+  {
+    "id": "mag_pk9",
+    "name": "Carregador PK-9 (12)",
+    "shortName": "PK 12",
+    "category": "magazine",
+    "width": 1,
+    "height": 1,
+    "basePrice": 700,
+    "description": "Carregador de aço para a PK-9. Leva doze cartuchos de 9mm.",
+    "stats": {
+      "caliber": "Caliber9x19PARA",
+      "capacity": 12
+    }
+  },
+  {
+    "id": "mag_vk74",
+    "name": "Carregador VK-74 (30)",
+    "shortName": "VK 30",
+    "category": "magazine",
+    "width": 1,
+    "height": 2,
+    "basePrice": 1500,
+    "description": "Carregador curvo de polímero para o VK-74. Arraste munição 5.45 sobre ele para carregar.",
+    "stats": {
+      "caliber": "Caliber545x39",
+      "capacity": 30
+    }
+  },
+  {
+    "id": "med_bandage",
+    "name": "Atadura",
+    "shortName": "Atadura",
+    "category": "medical",
+    "width": 1,
+    "height": 1,
+    "basePrice": 800,
+    "description": "Rolo de gaze estéril. Estanca sangramentos leves."
+  },
+  {
+    "id": "med_kit",
+    "name": "Kit de primeiros socorros",
+    "shortName": "Kit",
+    "category": "medical",
+    "width": 2,
+    "height": 1,
+    "basePrice": 4500,
+    "description": "Kit de primeiros socorros com ataduras, antisséptico e analgésicos. Recupera boa parte da saúde."
+  },
+  {
+    "id": "money_rub",
+    "name": "Rublos-velhos",
+    "shortName": "₽",
+    "category": "money",
+    "width": 1,
+    "height": 1,
+    "maxStack": 500000,
+    "basePrice": 1,
+    "description": "Notas da antiga moeda local. Ainda aceitas por vendedores, contrabandistas e quem tiver algo para vender."
+  },
+  {
+    "id": "pistol_pk9",
+    "name": "Pistola PK-9",
+    "shortName": "PK-9",
+    "category": "weapon",
+    "width": 2,
+    "height": 1,
+    "basePrice": 6500,
+    "equipSlot": "pistol",
+    "description": "Pistola compacta de uso policial. Leve, confiável e fácil de esconder no coldre.",
+    "stats": {
+      "caliber": "Caliber9x19PARA"
+    }
+  },
+  {
+    "id": "rifle_vk74",
+    "name": "Fuzil VK-74",
+    "shortName": "VK-74",
+    "category": "weapon",
+    "width": 5,
+    "height": 2,
+    "basePrice": 32000,
+    "equipSlot": "longWeapon",
+    "description": "Fuzil de assalto robusto, sobra dos arsenais do exército. Pesado e barulhento, mas raramente trava, mesmo coberto de lama.",
+    "stats": {
+      "caliber": "Caliber545x39"
+    }
+  },
+  {
+    "id": "rig_cargo",
+    "name": "Colete de carga",
+    "shortName": "Carga",
+    "category": "rig",
+    "width": 2,
+    "height": 3,
+    "basePrice": 7000,
+    "equipSlot": "rig",
+    "grids": [
+      {
+        "width": 1,
+        "height": 2,
+        "deny": [
+          "backpack",
+          "rig",
+          "armor"
+        ]
+      },
+      {
+        "width": 1,
+        "height": 2,
+        "deny": [
+          "backpack",
+          "rig",
+          "armor"
+        ]
+      },
+      {
+        "width": 1,
+        "height": 1,
+        "deny": [
+          "backpack",
+          "rig",
+          "armor"
+        ]
+      },
+      {
+        "width": 1,
+        "height": 1,
+        "deny": [
+          "backpack",
+          "rig",
+          "armor"
+        ]
+      }
+    ],
+    "description": "Colete tático com bolsos de carga para carregadores, granadas e pequenos itens ao alcance da mão."
+  },
+  {
+    "id": "secure_pouch",
+    "name": "Bolsa segura",
+    "shortName": "Segura",
+    "category": "container",
+    "width": 2,
+    "height": 2,
+    "basePrice": 0,
+    "equipSlot": "secure",
+    "grids": [
+      {
+        "width": 2,
+        "height": 2,
+        "deny": [
+          "backpack",
+          "rig",
+          "container"
+        ]
+      }
+    ],
+    "description": "Bolsa pequena e resistente presa ao corpo. O que estiver aqui dentro volta com você, aconteça o que acontecer."
+  },
+  {
+    "id": "shotgun_m12",
+    "name": "Escopeta M-12",
+    "shortName": "M-12",
+    "category": "weapon",
+    "width": 4,
+    "height": 1,
+    "basePrice": 14000,
+    "equipSlot": "longWeapon",
+    "description": "Escopeta de bomba de cano curto. Devastadora em corredores e escadas, quase inútil a mais de trinta metros.",
+    "stats": {
+      "caliber": "Caliber12g"
+    }
+  }
+]

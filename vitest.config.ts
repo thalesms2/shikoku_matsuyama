@@ -9,7 +9,7 @@ export default defineConfig({
     restoreMocks: true,
     coverage: {
       provider: "v8",
-      include: ["src/**/*.ts", "server/**/*.ts"],
+      include: ["src/**/*.ts", "server/**/*.ts", "scripts/**/*.ts"],
       exclude: ["**/*.d.ts"],
       reporter: ["text", "html", "lcov"],
       thresholds: {

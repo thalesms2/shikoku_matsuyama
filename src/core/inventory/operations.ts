@@ -3,11 +3,15 @@ import type { Grid } from "./grid.ts";
 import type { GridLocation, Item, ItemFactory } from "./item.ts";
 import { maxStack } from "./size.ts";
 
-/** Tira o item de onde ele estiver (grade ou slot), deixando-o solto */
+/** Tira o item de onde ele estiver (grade, slot ou arma), deixando-o solto */
 export function detach(item: Item): void {
   const loc = item.location;
   if (loc?.kind === "grid") loc.grid.remove(item);
   else if (loc?.kind === "slot") loc.equipment.unequip(loc.slot);
+  else if (loc?.kind === "weapon") {
+    loc.weapon.magazine = null;
+    item.location = null;
+  }
 }
 
 /** Move o item para uma posição da grade. Não faz nada se não couber. */

@@ -9,6 +9,14 @@ import { ItemFactory } from "../../core/inventory/item.ts";
 import type { Item } from "../../core/inventory/item.ts";
 import { MagazineLoader } from "../../core/inventory/loading.ts";
 import { sortGrid } from "../../core/inventory/operations.ts";
+import {
+  MAG_DRILLS_XP_PER_ROUND,
+  msPerRound,
+  useConsumable,
+} from "../../core/pmc/consumables.ts";
+import { addSkillXp } from "../../core/pmc/skills.ts";
+import { storageFor } from "../../core/state.ts";
+import type { PlayerState } from "../../core/state.ts";
 import { catalog } from "../../data/items.ts";
 import type { InventoryState } from "../../data/starter.ts";
 import { Button } from "../components/Button.ts";
@@ -57,6 +65,8 @@ export class InventoryScene implements Scene {
   readonly contextMenu = new ContextMenu();
   readonly loader: MagazineLoader;
   readonly factory: ItemFactory;
+  readonly player: PlayerState | null;
+  characterButton: Button | null = null;
   readonly stashView: GridView;
   readonly slotViews = new Map<SlotName, SlotView>();
   readonly pocketViews: GridView[];
@@ -86,12 +96,22 @@ export class InventoryScene implements Scene {
       tooltipDelayMs?: number;
       /** Cria itens novos (munição descarregada, pilhas separadas) */
       factory?: ItemFactory;
+      /**
+       * Estado do jogador: usa a fábrica e o carregamento dele (que
+       * sobrevivem à troca de cena), habilita "Usar" em remédios e comida e
+       * o XP/bônus de "Manuseio de carregador".
+       */
+      player?: PlayerState;
+      /** Mostra o botão "Personagem" */
+      onOpenCharacter?: () => void;
     } = {},
   ) {
     this.clock = options.clock ?? systemClock;
     this.tooltipDelayMs = options.tooltipDelayMs ?? 0;
-    this.factory = options.factory ?? new ItemFactory(catalog);
-    this.loader = new MagazineLoader(this.clock);
+    this.player = options.player ?? null;
+    this.factory =
+      options.player?.factory ?? options.factory ?? new ItemFactory(catalog);
+    this.loader = options.player?.loader ?? new MagazineLoader(this.clock);
     this.drag = new DragController(
       this.overlay,
       () => this.targets(),
@@ -145,6 +165,14 @@ export class InventoryScene implements Scene {
       2,
     );
     this.content.addChild(this.stashView, this.sortButton);
+    if (options.onOpenCharacter) {
+      this.characterButton = new Button("Personagem", options.onOpenCharacter);
+      this.characterButton.position.set(
+        this.sortButton.x - this.characterButton.buttonWidth - GAP,
+        2,
+      );
+      this.content.addChild(this.characterButton);
+    }
 
     this.view.addChild(this.content);
     this.content.addChild(this.overlay);
@@ -236,7 +264,12 @@ export class InventoryScene implements Scene {
 
   private updateLoader(): void {
     if (!this.loader.job) return;
+    const skills = this.player?.skills;
+    if (skills) this.loader.msPerRound = msPerRound(skills);
     const processed = this.loader.advance();
+    if (skills && processed > 0) {
+      addSkillXp(skills, "magDrills", processed * MAG_DRILLS_XP_PER_ROUND);
+    }
     if (processed > 0 || !this.loader.job) this.refresh();
     else this.showLoadingProgress();
   }
@@ -259,15 +292,7 @@ export class InventoryScene implements Scene {
    * estoque, sem repetir.
    */
   storageFor(item: Item): Grid[] {
-    const grids: Grid[] = [];
-    if (item.location?.kind === "grid") grids.push(item.location.grid);
-    for (const grid of [
-      ...this.state.equipment.carryGrids(),
-      this.state.stash,
-    ]) {
-      if (!grids.includes(grid)) grids.push(grid);
-    }
-    return grids;
+    return storageFor(this.state, item);
   }
 
   /** Abre o menu de contexto do item na posição global */
@@ -283,8 +308,15 @@ export class InventoryScene implements Scene {
         storageFor: (i) => this.storageFor(i),
         openWindow: (i) => this.openWindow(i),
         changed: () => this.refresh(),
+        ...(this.player && { use: (i: Item) => this.useItem(i) }),
       }),
     );
+  }
+
+  /** Usa um remédio ou comida no PMC */
+  useItem(item: Item): boolean {
+    if (!this.player) return false;
+    return useConsumable(item, this.player.pmc, this.player.skills) !== null;
   }
 
   /** Área visível da tela em coordenadas do conteúdo, ou `undefined` */

@@ -57,6 +57,12 @@ export interface ItemStats {
   readonly durability?: number;
   /** Capacidade de carregadores */
   readonly capacity?: number;
+  /** Consumíveis: pontos de vida curados */
+  readonly heal?: number;
+  /** Consumíveis: energia recuperada (negativo gasta) */
+  readonly energy?: number;
+  /** Consumíveis: hidratação recuperada (negativo gasta) */
+  readonly hydration?: number;
 }
 
 /** Definição estática de um tipo de item */
@@ -193,15 +199,33 @@ export class ItemFactory {
   }
 
   create(defId: string, count = 1): Item {
+    return this.build(defId, count, `i${this.counter}`, true);
+  }
+
+  /**
+   * Recria um item salvo, com o uid original, sem gastar um id novo. O
+   * `nextId` da fábrica deve vir do mesmo save.
+   */
+  restore(defId: string, count: number, uid: string): Item {
+    return this.build(defId, count, uid, false);
+  }
+
+  private build(
+    defId: string,
+    count: number,
+    uid: string,
+    fresh: boolean,
+  ): Item {
     const def = this.catalog.get(defId);
     if (!Number.isInteger(count) || count < 1 || count > maxStack(def)) {
       throw new RangeError(
         `Quantidade inválida para ${defId}: ${count} (máx. ${maxStack(def)})`,
       );
     }
+    if (fresh) this.counter++;
     const grids: Grid[] = [];
     const item: Item = {
-      uid: `i${this.counter++}`,
+      uid,
       def,
       count,
       grids,

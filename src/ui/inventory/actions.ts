@@ -7,6 +7,7 @@ import {
   removeMagazine,
 } from "../../core/inventory/magazine.ts";
 import { splitStack } from "../../core/inventory/operations.ts";
+import { isConsumable } from "../../core/pmc/consumables.ts";
 import type { MenuOption } from "../components/ContextMenu.ts";
 
 export interface ActionContext {
@@ -17,6 +18,8 @@ export interface ActionContext {
   openWindow: (item: Item) => void;
   /** Chamado depois de qualquer ação que muda o inventário */
   changed: () => void;
+  /** Usa remédio/comida no PMC (só existe quando há um PMC) */
+  use?: (item: Item) => void;
 }
 
 /** Opções do menu de contexto de um item */
@@ -30,6 +33,9 @@ export function itemActions(item: Item, ctx: ActionContext): MenuOption[] {
         ctx.changed();
       },
     });
+
+  const use = ctx.use;
+  if (use && isConsumable(item)) act("Usar", () => use(item));
 
   if (item.grids.length > 0) {
     options.push({ label: "Abrir", run: () => ctx.openWindow(item) });

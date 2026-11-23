@@ -61,6 +61,18 @@ Todo item ocupa um retângulo de células (por exemplo, 1x1 para uma atadura, 5x
 - **Menu do item:** clique com o botão direito em um item para ver as ações dele: abrir contêiner, descarregar carregador, remover o carregador da arma ou separar uma pilha pela metade.
 - **Imagens:** cada item mostra sua imagem ocupando as células dele, e ela gira junto quando você gira o item.
 
+### Personagem (PMC)
+
+- Botão **Personagem** no inventário: mostra nível e XP, a vida de cada parte do corpo (cabeça, tórax, estômago, braços e pernas), energia, hidratação e skills.
+- Se a cabeça ou o tórax chegarem a zero, o PMC morre. Dano em um braço ou perna já destruídos se espalha pelo resto do corpo.
+- **Usar itens:** botão direito em um remédio, comida ou bebida → "Usar". Remédios curam primeiro as partes mais feridas; comida e água recuperam energia e hidratação. O quadro de informações mostra o efeito de cada um.
+- **Skills:** cada skill sobe com o uso e dá 1% de bônus por nível (até 50%). Saúde melhora os remédios, Metabolismo melhora comida e bebida, e Manuseio de carregador carrega mais rápido. As outras (Resistência, Força, Vitalidade, Percepção, Furtividade e Mira) vão contar nas raids.
+
+### Save
+
+- O jogo salva sozinho a cada 5 segundos e ao fechar a página, e continua de onde parou na próxima vez, inclusive carregamentos de carregador em andamento.
+- Se um save antigo tiver itens que não existem mais, eles são descartados; o que não couber mais no lugar vai para o estoque.
+
 ### Carregadores e munição
 
 - **Carregar:** arraste uma pilha de munição e solte sobre um carregador do mesmo calibre. Os cartuchos entram um por vez (meio segundo cada), com uma barra de progresso, e o carregamento continua mesmo enquanto você faz outras coisas. Calibre errado ou carregador cheio aparece em vermelho.

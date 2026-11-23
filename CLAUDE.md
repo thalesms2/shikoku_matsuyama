@@ -52,6 +52,9 @@ O jogador gerencia seu **PMC** (o personagem principal), preso em uma cidade iso
 - `src/ui/` — telas e componentes PixiJS; apenas leem estado e disparam ações do core.
 - `src/game.ts` — `startGame()`: inicia o PixiJS, carrega assets e mostra a primeira cena. `src/main.ts` só chama `startGame`.
 - `src/ui/SceneManager.ts` — troca de cenas; toda tela implementa a interface `Scene` (`view`, `resize?`, `update?`, `destroy?`).
+- `src/core/state.ts` — `PlayerState` (inventário, PMC, skills, `ItemFactory` e `MagazineLoader`): tudo que vai para o save. `storageFor()` decide onde guardar o que sai de um item.
+- `src/core/pmc/` — PMC, skills e consumíveis. `src/core/save/` — formato, serialização, migrações e armazenamento do save.
+- `src/data/newGame.ts` — `createNewPlayer()` e `loadOrCreatePlayer()`.
 - `src/core/rng.ts`, `src/core/events.ts`, `src/core/clock.ts` — `Rng` com seed, `EventBus` tipado e `Clock` injetável (use `ManualClock` nos testes).
 - `server/` — servidor Colyseus (sala `game`).
 - `scripts/items/` — pipeline de dados de itens, que só roda em desenvolvimento (`npm run items -- <comando>`, via `tsx`): API do tarkov.dev → banco SQLite `data/items.db` (`node:sqlite`, commitado) → `src/data/generated/items.json` (commitado, importado por `src/data/items.ts`). As imagens ficam em `public/assets/items/<id>.webp`, fora do git.
@@ -141,5 +144,36 @@ Modelo de entrada para novas mecânicas:
 - **Interface:** soltar munição sobre carregador inicia o carregamento (prévia vermelha se o calibre não bater ou estiver cheio); soltar carregador sobre arma (na grade ou equipada no slot) encaixa; carregadores e armas mostram `carregados/capacidade` no canto; barra de progresso na view do carregador durante o trabalho; tooltip lista a munição do topo para baixo ou o carregador da arma.
 - **Valor:** `totalValue` inclui os cartuchos (`basePrice × count`) e o carregador encaixado na arma.
 - Pendências: câmara da arma e carregamento da escopeta (tubo interno).
+
+### PMC
+
+- Arquivos: `src/core/pmc/pmc.ts`; tela em `src/ui/scenes/CharacterScene.ts` (botão "Personagem" no inventário).
+- **Vida por parte do corpo** (máx.): cabeça 35, tórax 85, estômago 70, braços 60, pernas 65 (total 440). Cabeça ou tórax em 0 = morte.
+- **Dano** (`damage`): tira da parte atingida, sem passar de 0 (o excesso se perde). Dano em parte já destruída (não vital) se espalha: `dano × 0,7` dividido igualmente entre as partes vivas. Morto não recebe dano.
+- **Cura** (`heal`): distribui os pontos pelas partes mais feridas primeiro (menor `vida/máx.`; em empate, vitais primeiro); não cura partes destruídas (`restorePart` volta uma parte destruída para 1 PV, para a cirurgia futura).
+- **Energia e hidratação:** 0 a 100, mudadas por `changeEnergy`/`changeHydration`. Ainda não caem com o tempo (o gasto virá nas raids).
+- **Nível:** XP acumulado para o nível `n` = `1000 × n(n−1)/2` (nível 2 = 1000, nível 3 = 3000...), máximo 60.
+
+### Skills
+
+- Arquivos: `src/core/pmc/skills.ts`.
+- Skills: Resistência, Força, Saúde, Vitalidade, Metabolismo, Percepção, Furtividade, Mira, Manuseio de carregador.
+- XP acumulado para o nível `n` = `10 × n(n+1)/2` (nível 1 = 10, nível 2 = 30...), máximo 51. Bônus = `1% × nível`, limitado a 50%.
+- Efeitos já ativos: **Saúde** (+bônus na cura de remédios), **Metabolismo** (+bônus em energia/hidratação de comida e bebida), **Manuseio de carregador** (tempo por cartucho = `500 ms × (1 − bônus)`). As demais serão usadas na raid.
+- XP já ganho: +5 em Saúde por remédio usado; +5 em Metabolismo por comida/bebida; +0,5 em Manuseio de carregador por cartucho carregado/descarregado (só quando a cena tem o `PlayerState`).
+
+### Consumíveis
+
+- Arquivos: `src/core/pmc/consumables.ts`; opção "Usar" no menu de contexto (só com `PlayerState`).
+- Consumível = categoria `medical` ou `food` com `stats.heal`, `stats.energy` ou `stats.hydration`. Cada uso consome 1 unidade (o item some quando a pilha acaba).
+- Valores atuais: kit de primeiros socorros cura 120; atadura cura 15; lata de carne +45 energia / −5 hidratação; água +60 hidratação.
+
+### Save
+
+- Arquivos: `src/core/save/` (`format.ts`, `serialize.ts`, `migrations.ts`, `storage.ts`); integração em `src/game.ts` e `src/data/newGame.ts`.
+- **Formato** (`SAVE_VERSION = 1`): `nextId` da fábrica, estoque (itens com posição/rotação), slots e bolsos, conteúdo aninhado (grades, cartuchos do carregador do fundo ao topo, carregador encaixado na arma), PMC, skills e o carregamento em andamento (por uid, com `startedAt`/`done`, então continua de onde parou).
+- **Carregar save antigo/inconsistente:** item que saiu do catálogo é descartado com aviso; item que não cabe mais na posição vai para o primeiro espaço da mesma grade; se não couber nela (ou a grade não existir mais, ou o slot não aceitar mais o item, ou o carregador ficar incompatível), vai para o estoque; sem espaço no estoque, é perdido com aviso. Campos de PMC/skills que faltam recebem o valor padrão (skills novas começam em 0).
+- **Migrações:** `migrate()` aplica `MIGRATIONS[v]` de versão em versão até `SAVE_VERSION`; save sem versão, de versão mais nova ou com migração faltando lança `SaveError`.
+- **Armazenamento:** chave `escape-from-idle:save` no `localStorage`; erros do navegador são ignorados. Autosave a cada 5 s de jogo e no `beforeunload`. Save ilegível é copiado para `escape-from-idle:save:backup` e o jogo começa do zero (com aviso no console).
 
 - **Imagens dos itens:** `loadItemTextures` carrega a `image` de cada `ItemDef` no início do jogo (`src/ui/inventory/textures.ts`). Se a textura existir, a `ItemView` desenha o sprite do tamanho das células (girado 90° quando o item está rotacionado); se o arquivo faltar, o item continua sendo um retângulo colorido pela categoria.

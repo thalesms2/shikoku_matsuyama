@@ -78,7 +78,9 @@ O jogo **nunca consulta a API durante a execução**. A API ([tarkov.dev](https:
 - **Arma ↔ carregador:** a arma tem um slot de carregador (a câmara fica para depois); arrastar o carregador para a arma (na grade ou equipada) o encaixa; "Remover carregador" no menu de contexto tira. Na raid (Fase 3), a munição disponível = carregadores na arma, no colete tático e nos bolsos; o tipo de cartucho usado afeta o combate.
 - Valor do carregador = valor dele + valor da munição dentro dele.
 
-### 2D — PMC, skills e save
+### 2D — PMC, skills e save ✅
+
+**Estado:** feito. PMC (`src/core/pmc/pmc.ts`), skills (`skills.ts`), consumíveis com "Usar" no menu (`consumables.ts`), tela de personagem (`CharacterScene`) e save versionado no `localStorage` com autosave (`src/core/save/`). Energia e hidratação ainda não caem com o tempo: o gasto vai acontecer nas raids (Fase 3), e a recuperação de vida no esconderijo fica para a enfermaria (Fase 7). XP do PMC também vem das raids.
 
 - **PMC:** nível/XP, vida por parte do corpo (cabeça, tórax, estômago, braços, pernas), energia e hidratação.
 - **Skills:** resistência, força, saúde, vitalidade, percepção, furtividade, mira, manuseio de carregador etc. Cada skill tem XP próprio e dá bônus pequenos e cumulativos.
@@ -156,5 +158,5 @@ O jogo **nunca consulta a API durante a execução**. A API ([tarkov.dev](https:
 4. UI da grade com drag & drop.
 5. ✅ Base de dados local de itens (2A) e tooltip com descrição (2B).
 6. ✅ Carregadores e munição (2C).
-7. PMC + skills + save (2D).
+7. ✅ PMC + skills + save (2D).
 8. Primeira raid simulada ponta a ponta.

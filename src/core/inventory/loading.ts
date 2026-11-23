@@ -57,6 +57,16 @@ export class MagazineLoader {
     this.active = { job, startedAt: this.clock.now(), done: 0 };
   }
 
+  /** Estado do trabalho atual, para o save */
+  snapshot(): { job: LoadJob; startedAt: number; done: number } | null {
+    return this.active ? { ...this.active } : null;
+  }
+
+  /** Restaura um trabalho salvo com `snapshot` */
+  restore(job: LoadJob, startedAt: number, done: number): void {
+    this.active = { job, startedAt, done };
+  }
+
   cancel(): void {
     this.active = null;
   }

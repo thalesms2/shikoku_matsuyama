@@ -155,7 +155,11 @@
     "width": 1,
     "height": 1,
     "basePrice": 1500,
-    "description": "Lata de carne em conserva com validade duvidosa. Mata a fome por algumas horas."
+    "description": "Lata de carne em conserva com validade duvidosa. Mata a fome por algumas horas.",
+    "stats": {
+      "energy": 45,
+      "hydration": -5
+    }
   },
   {
     "id": "food_water",
@@ -165,7 +169,10 @@
     "width": 1,
     "height": 2,
     "basePrice": 1800,
-    "description": "Garrafa de água mineral lacrada. Na cidade isolada, vale mais do que parece."
+    "description": "Garrafa de água mineral lacrada. Na cidade isolada, vale mais do que parece.",
+    "stats": {
+      "hydration": 60
+    }
   },
   {
     "id": "helmet_tk1",
@@ -224,7 +231,10 @@
     "width": 1,
     "height": 1,
     "basePrice": 800,
-    "description": "Rolo de gaze estéril. Estanca sangramentos leves."
+    "description": "Rolo de gaze estéril. Estanca sangramentos leves.",
+    "stats": {
+      "heal": 15
+    }
   },
   {
     "id": "med_kit",
@@ -234,7 +244,10 @@
     "width": 2,
     "height": 1,
     "basePrice": 4500,
-    "description": "Kit de primeiros socorros com ataduras, antisséptico e analgésicos. Recupera boa parte da saúde."
+    "description": "Kit de primeiros socorros com ataduras, antisséptico e analgésicos. Recupera boa parte da saúde.",
+    "stats": {
+      "heal": 120
+    }
   },
   {
     "id": "money_rub",

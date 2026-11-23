@@ -3,15 +3,13 @@ import { Grid } from "../core/inventory/grid.ts";
 import type { ItemFactory } from "../core/inventory/item.ts";
 import { attachMagazine, loadRounds } from "../core/inventory/magazine.ts";
 import { autoPlace } from "../core/inventory/operations.ts";
+import type { InventoryState } from "../core/state.ts";
 
 /** Tamanho inicial do estoque do esconderijo, em células */
 export const STASH_WIDTH = 10;
 export const STASH_HEIGHT = 14;
 
-export interface InventoryState {
-  stash: Grid;
-  equipment: Equipment;
-}
+export type { InventoryState } from "../core/state.ts";
 
 /** Itens iniciais no estoque: [id, quantidade] */
 export const STASH_ITEMS: readonly [string, number][] = [

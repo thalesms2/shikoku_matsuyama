@@ -98,6 +98,14 @@ export function itemSheet(item: Item): string[] {
   if (stats.capacity !== undefined) {
     lines.push(`Capacidade: ${stats.capacity} cartuchos`);
   }
+  const signed = (n: number) => (n > 0 ? `+${n}` : `${n}`);
+  if (stats.heal !== undefined) lines.push(`Cura: ${stats.heal} PV`);
+  if (stats.energy !== undefined) {
+    lines.push(`Energia: ${signed(stats.energy)}`);
+  }
+  if (stats.hydration !== undefined) {
+    lines.push(`Hidratação: ${signed(stats.hydration)}`);
+  }
   return [...lines, ...ammoSheet(item)];
 }
 

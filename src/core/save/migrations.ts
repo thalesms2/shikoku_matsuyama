@@ -51,6 +51,8 @@ export const MIGRATIONS: Record<number, Migration> = {
   // v13 → v14: carregar e descarregar ficaram instantâneos; o carregamento
   // em andamento sai do save (os cartuchos ficam onde estavam)
   13: ({ loader: _loader, ...data }) => data,
+  // v14 → v15: skills novas (categorias); as que faltam começam em 0
+  14: (data) => data,
 };
 
 export class SaveError extends Error {}

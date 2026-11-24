@@ -67,7 +67,7 @@ Todo item ocupa um retângulo de células (por exemplo, 1x1 para uma atadura, 5x
 ### Personagem (PMC)
 
 - **Painel do PMC** no inventário, ao lado das armas: nível e XP, uma silhueta com a vida de cada parte do corpo (verde, amarelo, vermelho; parte destruída marcada com X), vida total, energia e hidratação. Atualiza na hora.
-- Botão **Skills** no inventário: o nível, o bônus e o progresso de cada skill.
+- Botão **Skills** no inventário: o nível, o bônus e o progresso de cada skill, separadas em Físicas, Combate, Práticas e Mentais. Muitas skills (armas por tipo, coletes, cirurgia, carisma...) ainda não têm efeito: elas vão ganhar uso nas próximas fases.
 - Se a cabeça ou o tórax chegarem a zero, o PMC morre. Dano em um braço ou perna já destruídos se espalha pelo resto do corpo.
 - **Usar itens:** botão direito em um remédio, comida ou bebida → "Usar". Remédios curam primeiro as partes mais feridas; comida e água recuperam energia e hidratação. O quadro de informações mostra o efeito de cada um.
 - **Skills:** cada skill sobe com o uso e dá 1% de bônus por nível (até 50%). Saúde melhora os remédios, Metabolismo melhora comida e bebida, e Manuseio de carregador ganha XP ao carregar e descarregar (o efeito dela vai valer na recarga em combate da raid nova). As outras contam nas raids (veja abaixo).

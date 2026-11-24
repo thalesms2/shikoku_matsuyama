@@ -2,21 +2,33 @@ import { Container, Graphics, Text } from "pixi.js";
 
 import {
   SKILLS,
+  SKILL_CATEGORY_NAMES,
   SKILL_INFO,
   skillBonus,
   skillLevel,
   skillProgress,
+  skillsIn,
 } from "../../core/pmc/skills.ts";
+import type { SkillCategory } from "../../core/pmc/skills.ts";
 import type { PlayerState } from "../../core/state.ts";
 import { Button } from "../components/Button.ts";
 import type { Scene } from "../SceneManager.ts";
 import { theme } from "../theme.ts";
 
 const BAR_WIDTH = 220;
-const SKILL_BAR_WIDTH = 320;
+const SKILL_BAR_WIDTH = 340;
 const BAR_HEIGHT = 10;
-const ROW = 30;
-const WIDTH = 760;
+const ROW = 28;
+const HEADING = 26;
+const GROUP_GAP = 12;
+const COLUMN = 400;
+const WIDTH = COLUMN + SKILL_BAR_WIDTH;
+
+/** Categorias de cada coluna da tela */
+export const SKILL_COLUMNS: readonly (readonly SkillCategory[])[] = [
+  ["physical", "practical"],
+  ["combat", "mental"],
+];
 
 export const XP_COLOR = theme.accent;
 
@@ -61,7 +73,8 @@ export class StatBar extends Container {
 }
 
 /**
- * Tela de Skills: nível, bônus e progresso de cada skill. Vida, nível do PMC,
+ * Tela de Skills: nível, bônus e progresso de cada skill, agrupadas pelas
+ * quatro categorias. Vida, nível do PMC,
  * energia e hidratação ficam no painel do inventário (`PmcPanel`).
  */
 export class SkillsScene implements Scene {
@@ -69,6 +82,7 @@ export class SkillsScene implements Scene {
   readonly content = new Container({ label: "content" });
   readonly title: Text;
   readonly skillBars = new Map<string, StatBar>();
+  readonly categoryTitles = new Map<SkillCategory, Text>();
   readonly backButton: Button;
   private contentHeight = 0;
 
@@ -89,15 +103,37 @@ export class SkillsScene implements Scene {
     this.backButton.position.set(WIDTH - 180, 2);
     this.content.addChild(this.title, this.backButton);
 
-    let y = 50;
-    for (const id of SKILLS) {
-      const bar = new StatBar(SKILL_INFO[id].name, SKILL_BAR_WIDTH);
-      bar.position.set(0, y);
-      this.skillBars.set(id, bar);
-      this.content.addChild(bar);
-      y += ROW;
-    }
-    this.contentHeight = y;
+    // Duas colunas: Físicas e Práticas à esquerda, Combate e Mentais à direita
+    let height = 0;
+    SKILL_COLUMNS.forEach((categories, column) => {
+      const x = column * COLUMN;
+      let y = 50;
+      for (const category of categories) {
+        const heading = new Text({
+          text: SKILL_CATEGORY_NAMES[category],
+          position: { x, y },
+          style: {
+            fill: theme.accent,
+            fontFamily: theme.fontFamily,
+            fontSize: 16,
+            fontWeight: "bold",
+          },
+        });
+        this.categoryTitles.set(category, heading);
+        this.content.addChild(heading);
+        y += HEADING;
+        for (const id of skillsIn(category)) {
+          const bar = new StatBar(SKILL_INFO[id].name, SKILL_BAR_WIDTH);
+          bar.position.set(x, y);
+          this.skillBars.set(id, bar);
+          this.content.addChild(bar);
+          y += ROW;
+        }
+        y += GROUP_GAP;
+      }
+      height = Math.max(height, y);
+    });
+    this.contentHeight = height;
 
     this.view.addChild(this.content);
     this.refresh();

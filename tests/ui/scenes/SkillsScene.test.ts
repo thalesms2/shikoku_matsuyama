@@ -38,7 +38,7 @@ describe("SkillsScene", () => {
   it("mostra o título e todas as skills", () => {
     const { scene } = setup();
     expect(scene.title.text).toBe("Skills");
-    expect([...scene.skillBars.keys()]).toEqual([...SKILLS]);
+    expect([...scene.skillBars.keys()].sort()).toEqual([...SKILLS].sort());
     expect(scene.skillBars.get("aim")!.value.text).toBe("nível 0 · +0%");
   });
 
@@ -69,9 +69,9 @@ describe("SkillsScene", () => {
     scene.resize(10000, 10000);
     expect(scene.content.scale.x).toBe(1.5);
     scene.resize(500, 5000);
-    expect(scene.content.scale.x).toBeCloseTo(500 / (760 + 64));
+    expect(scene.content.scale.x).toBeCloseTo(500 / (740 + 64));
     expect(scene.content.x).toBeCloseTo(
-      (500 - 760 * scene.content.scale.x) / 2,
+      (500 - 740 * scene.content.scale.x) / 2,
     );
   });
 });

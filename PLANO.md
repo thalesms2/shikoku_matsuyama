@@ -25,7 +25,7 @@ Como trabalhamos:
   - O botão "Personagem" vira "Skills", e a tela dele passa a mostrar só as skills (a vida, o nível, a energia e a hidratação ficam no painel).
   - Autorizado: a 11G conta como sistema substituído, então os testes antigos do botão "Personagem" (`InventoryScene.player.test.ts`) e da tela de personagem (`CharacterScene.test.ts`) são atualizados.
   - O botão "Organizar" do estoque vira um botão de ícone azul (com dica "Organizar" ao passar o mouse).
-- **11H — Skills por categoria:** as skills passam a ter quatro categorias, com a lista completa. Por enquanto as skills novas só acumulam XP onde já fizer sentido e aparecem na tela; o que cada uma influencia (na raid ou fora dela) será descrito depois. As skills atuais mantêm os efeitos de hoje.
+- ✅ **11H — Skills por categoria:** as skills passam a ter quatro categorias, com a lista completa. Por enquanto as skills novas só acumulam XP onde já fizer sentido e aparecem na tela; o que cada uma influencia (na raid ou fora dela) será descrito depois. As skills atuais mantêm os efeitos de hoje.
   - **Físicas:** Resistência, Força, Saúde, Metabolismo, Resistência ao estresse, Vitalidade.
   - **Combate:** Mira, Fuzis de assalto, Fuzis de ferrolho, Fuzis de precisão (DMR), Metralhadoras pesadas, Metralhadoras leves, Corpo a corpo, Pistolas, Revólveres, Lança-granadas, Escopetas, Submetralhadoras, Arremessáveis, Solução de panes.
   - **Práticas:** Furtividade, Fabricação, Coletes pesados, Coletes leves, Gestão do esconderijo, Manuseio de carregador, Busca, Cirurgia, Manutenção de armas, Manutenção de coletes.

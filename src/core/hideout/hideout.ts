@@ -1,3 +1,4 @@
+import { coreBalance } from "../balance.ts";
 import {
   BODY_PARTS,
   changeEnergy,
@@ -124,6 +125,11 @@ export function upgradeBlockers(
   return blockers;
 }
 
+/** Duração da obra do nível, com o multiplicador do balanceamento */
+export function buildDuration(level: ModuleLevelDef): number {
+  return Math.round(level.buildMs * coreBalance().hideout.buildTime);
+}
+
 /** Começa a obra do próximo nível: paga do estoque e marca o fim */
 export function startUpgrade(
   player: PlayerState,
@@ -141,7 +147,7 @@ export function startUpgrade(
   player.hideout.construction = {
     module: def.id,
     level: next.level,
-    endsAt: now + next.buildMs,
+    endsAt: now + buildDuration(next),
   };
   return { ok: true, amount: next.level };
 }
@@ -229,7 +235,8 @@ export function recipeDuration(
   recipe: RecipeDef,
 ): number {
   const cut = Math.min(0.9, effect(state, data, "productionSpeed"));
-  return Math.round(recipe.durationMs * (1 - cut));
+  const factor = coreBalance().hideout.productionTime;
+  return Math.round(recipe.durationMs * (1 - cut) * factor);
 }
 
 /** Motivos que impedem começar a receita (vazio = pode) */
@@ -298,8 +305,9 @@ export function incomeAvailable(
   data: HideoutData,
   now: number,
 ): number {
-  const perHour = effect(state, data, "incomePerHour");
-  const cap = effect(state, data, "incomeCap");
+  const factor = coreBalance().hideout.income;
+  const perHour = effect(state, data, "incomePerHour") * factor;
+  const cap = Math.floor(effect(state, data, "incomeCap") * factor);
   const earned = Math.floor(
     (perHour * Math.max(0, now - state.incomeSince)) / HOUR,
   );

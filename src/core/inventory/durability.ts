@@ -1,7 +1,8 @@
+import { CORE_DEFAULTS, coreBalance } from "../balance.ts";
 import type { Item, ItemDef } from "./item.ts";
 
 /** Fração do valor que sobra com a durabilidade em 0 */
-export const BROKEN_VALUE = 0.3;
+export const BROKEN_VALUE = CORE_DEFAULTS.durability.brokenValue;
 
 /** Durabilidade máxima do tipo (0 = o item não tem durabilidade) */
 export function maxDurability(def: ItemDef): number {
@@ -44,5 +45,6 @@ export function restoreDurability(item: Item): void {
 export function durabilityValueFactor(item: Item): number {
   const ratio = durabilityRatio(item);
   // inteira = exatamente 1 (sem erro de ponto flutuante)
-  return ratio === 1 ? 1 : BROKEN_VALUE + (1 - BROKEN_VALUE) * ratio;
+  const broken = coreBalance().durability.brokenValue;
+  return ratio === 1 ? 1 : broken + (1 - broken) * ratio;
 }

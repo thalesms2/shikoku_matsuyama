@@ -10,6 +10,7 @@ import {
   moduleLevel,
   nextModuleLevel,
   productionBlockers,
+  buildDuration,
   recipeDuration,
   startProduction,
   startUpgrade,
@@ -317,7 +318,7 @@ export class HideoutScene implements Scene {
     } else if (next) {
       lines.push(
         `Nível ${next.level}: ${describeEffects(next.effects, this.catalog)}`,
-        `Custo: ${describeItems(next.cost, this.catalog)} · obra de ${formatDuration(next.buildMs)}`,
+        `Custo: ${describeItems(next.cost, this.catalog)} · obra de ${formatDuration(buildDuration(next))}`,
       );
       const blockers = upgradeBlockers(
         this.player,

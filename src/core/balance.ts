@@ -1,0 +1,102 @@
+/**
+ * Valores de balanceamento usados pela lógica do jogo, num lugar só. O
+ * jogo começa com `CORE_DEFAULTS`; a janela de admin (e o servidor) trocam
+ * os valores em tempo de execução com `setCoreBalance`, e o core sempre lê o
+ * valor atual por `coreBalance()` no momento do cálculo.
+ *
+ * Os valores da raid nova (Fase 12) entram aqui conforme forem criados.
+ */
+export interface CoreBalance {
+  durability: {
+    /** Durabilidade perdida por ponto de dano de um acerto na armadura */
+    armorWear: number;
+    /** Fração do preço que um item quebrado ainda vale */
+    brokenValue: number;
+  };
+  xp: {
+    /** XP de Saúde/Metabolismo por consumível usado */
+    consumableSkill: number;
+    /** XP de Manuseio de carregador por cartucho carregado ou descarregado */
+    magDrillsPerRound: number;
+  };
+  trade: {
+    /** Reputação ganha a cada 100.000 ₽ negociados com um vendedor */
+    reputationPer100k: number;
+  };
+  scav: {
+    /** Espera entre raids Scav com karma 0 (ms) */
+    cooldownMs: number;
+    /** Efeito de cada ponto de karma (−10 a 10) */
+    friendlyBase: number;
+    friendlyPerKarma: number;
+    riskPerKarma: number;
+    lootPerKarma: number;
+    qualityPerKarma: number;
+    cooldownPerKarma: number;
+  };
+  hideout: {
+    /** Multiplicador da duração das obras */
+    buildTime: number;
+    /** Multiplicador da duração das produções */
+    productionTime: number;
+    /** Multiplicador da renda passiva (por hora e limite) */
+    income: number;
+  };
+}
+
+/** Valores padrão (os mesmos de antes da centralização) */
+export const CORE_DEFAULTS: CoreBalance = {
+  durability: { armorWear: 0.05, brokenValue: 0.3 },
+  xp: { consumableSkill: 5, magDrillsPerRound: 0.5 },
+  trade: { reputationPer100k: 0.02 },
+  scav: {
+    cooldownMs: 20 * 60 * 1000,
+    friendlyBase: 0.6,
+    friendlyPerKarma: 0.04,
+    riskPerKarma: 0.05,
+    lootPerKarma: 0.03,
+    qualityPerKarma: 0.05,
+    cooldownPerKarma: 0.025,
+  },
+  hideout: { buildTime: 1, productionTime: 1, income: 1 },
+};
+
+let current: CoreBalance = structuredClone(CORE_DEFAULTS);
+
+/** Valores atuais */
+export function coreBalance(): CoreBalance {
+  return current;
+}
+
+/** Troca todos os valores (uma cópia; quem passou pode continuar mexendo) */
+export function setCoreBalance(values: CoreBalance): void {
+  current = structuredClone(values);
+}
+
+/** Volta aos valores padrão */
+export function resetCoreBalance(): void {
+  setCoreBalance(CORE_DEFAULTS);
+}
+
+type Section = Record<string, number>;
+
+/**
+ * Valores vindos de fora (save do servidor, JSON): cada número precisa ser
+ * finito e ≥ 0; o que faltar ou for inválido fica com o padrão.
+ */
+export function readCoreBalance(raw: unknown): CoreBalance {
+  const result = structuredClone(CORE_DEFAULTS);
+  if (typeof raw !== "object" || raw === null) return result;
+  const input = raw as Record<string, unknown>;
+  for (const [name, section] of Object.entries(result) as [string, Section][]) {
+    const given = input[name];
+    if (typeof given !== "object" || given === null) continue;
+    for (const key of Object.keys(section)) {
+      const value = (given as Record<string, unknown>)[key];
+      if (typeof value === "number" && Number.isFinite(value) && value >= 0) {
+        section[key] = value;
+      }
+    }
+  }
+  return result;
+}

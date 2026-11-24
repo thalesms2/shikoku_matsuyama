@@ -148,9 +148,37 @@ export interface Item {
   durability?: number;
 }
 
+/** Campos numéricos de `ItemStats` que o balanceamento pode mudar */
+export const BALANCE_STAT_KEYS = [
+  "damage",
+  "penetration",
+  "armorClass",
+  "durability",
+  "capacity",
+  "heal",
+  "energy",
+  "hydration",
+  "surgery",
+] as const;
+
+export type BalanceStatKey = (typeof BALANCE_STAT_KEYS)[number];
+
+/** Ajuste de balanceamento de um item: preço e dados técnicos numéricos */
+export interface ItemOverride {
+  basePrice?: number;
+  stats?: Partial<Record<BalanceStatKey, number>>;
+}
+
+type Mutable<T> = { -readonly [K in keyof T]: T[K] };
+
 /** Conjunto de definições de itens, indexado por id */
 export class Catalog {
   private readonly defs = new Map<string, ItemDef>();
+  /** Preço e dados de cada item como vieram dos dados (sem ajustes) */
+  private readonly base = new Map<
+    string,
+    { basePrice: number; stats?: ItemStats }
+  >();
 
   constructor(defs: readonly ItemDef[]) {
     for (const def of defs) {
@@ -159,6 +187,30 @@ export class Catalog {
       }
       validateDef(def);
       this.defs.set(def.id, def);
+      this.base.set(def.id, {
+        basePrice: def.basePrice,
+        ...(def.stats && { stats: { ...def.stats } }),
+      });
+    }
+  }
+
+  /**
+   * Aplica os ajustes de balanceamento por cima dos dados originais (os itens
+   * já criados veem os valores novos na hora, porque apontam para a mesma
+   * definição). Itens sem ajuste voltam ao original; ids desconhecidos são
+   * ignorados.
+   */
+  applyOverrides(overrides: Readonly<Record<string, ItemOverride>>): void {
+    for (const [id, def] of this.defs) {
+      const base = this.base.get(id)!;
+      const override = overrides[id];
+      const target = def as Mutable<ItemDef>;
+      target.basePrice = override?.basePrice ?? base.basePrice;
+      if (base.stats || override?.stats) {
+        target.stats = { ...base.stats, ...override?.stats };
+      } else {
+        delete target.stats;
+      }
     }
   }
 

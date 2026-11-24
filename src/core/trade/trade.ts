@@ -1,3 +1,4 @@
+import { CORE_DEFAULTS, coreBalance } from "../balance.ts";
 import {
   durabilityRatio,
   isDamaged,
@@ -21,7 +22,7 @@ import type {
 } from "./types.ts";
 
 /** Reputação ganha a cada 100.000 ₽ negociados */
-export const REPUTATION_PER_100K = 0.02;
+export const REPUTATION_PER_100K = CORE_DEFAULTS.trade.reputationPer100k;
 
 /** Estado do jogador com o vendedor; cria o padrão no primeiro acesso */
 export function traderState(
@@ -202,7 +203,7 @@ export function createStacks(
 /** Soma ao volume negociado e à reputação */
 function addVolume(state: TraderState, rub: number): void {
   state.volume += Math.round(rub);
-  state.reputation += (rub / 100_000) * REPUTATION_PER_100K;
+  state.reputation += (rub / 100_000) * coreBalance().trade.reputationPer100k;
 }
 
 const barterValue = (cost: readonly BarterCost[], catalog: Catalog) =>

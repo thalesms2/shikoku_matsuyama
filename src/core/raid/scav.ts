@@ -1,3 +1,4 @@
+import { CORE_DEFAULTS, coreBalance } from "../balance.ts";
 import type { Clock } from "../clock.ts";
 import type { SlotName } from "../inventory/equipment.ts";
 import { Equipment } from "../inventory/equipment.ts";
@@ -27,22 +28,25 @@ import type {
   StrategyId,
 } from "./types.ts";
 
-/** Espera entre raids Scav (tempo real) com karma 0 */
-export const SCAV_COOLDOWN_MS = 20 * 60 * 1000;
+/** Espera entre raids Scav (tempo real) com karma 0 (padrão) */
+export const SCAV_COOLDOWN_MS = CORE_DEFAULTS.scav.cooldownMs;
 
-/** Efeito de cada ponto de karma (−10 a 10) na raid Scav */
+/**
+ * Efeito de cada ponto de karma (−10 a 10) na raid Scav (padrão; o valor em
+ * uso vem de `coreBalance().scav`):
+ * - chance de um Scav não ser hostil = base + por ponto (0,2 a 1);
+ * - tocaia na extração × (1 − 0,05 × karma) (1,5 a 0,5);
+ * - peso do loot × (1 + 0,03 × karma) (0,7 a 1,3);
+ * - qualidade do loot = 0,05 × karma (−0,5 a 0,5);
+ * - cooldown × (1 − 0,025 × karma) (1,25 a 0,75).
+ */
 export const SCAV_KARMA = {
-  /** Chance de um Scav não ser hostil = base + por ponto (0,2 a 1) */
-  friendlyBase: 0.6,
-  friendlyPerKarma: 0.04,
-  /** Tocaia na extração × (1 − 0,05 × karma) (1,5 a 0,5) */
-  riskPerKarma: 0.05,
-  /** Peso do loot × (1 + 0,03 × karma) (0,7 a 1,3) */
-  lootPerKarma: 0.03,
-  /** Qualidade do loot = 0,05 × karma (−0,5 a 0,5) */
-  qualityPerKarma: 0.05,
-  /** Cooldown × (1 − 0,025 × karma) (1,25 a 0,75) */
-  cooldownPerKarma: 0.025,
+  friendlyBase: CORE_DEFAULTS.scav.friendlyBase,
+  friendlyPerKarma: CORE_DEFAULTS.scav.friendlyPerKarma,
+  riskPerKarma: CORE_DEFAULTS.scav.riskPerKarma,
+  lootPerKarma: CORE_DEFAULTS.scav.lootPerKarma,
+  qualityPerKarma: CORE_DEFAULTS.scav.qualityPerKarma,
+  cooldownPerKarma: CORE_DEFAULTS.scav.cooldownPerKarma,
 } as const;
 
 /** Slot de cada peça do equipamento aleatório */
@@ -57,13 +61,12 @@ const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
 
 /** Modificadores da raid Scav a partir do karma do PMC */
 export function scavModifiers(karma: number): RaidModifiers {
+  const k = coreBalance().scav;
   return {
-    friendlyScav: clamp01(
-      SCAV_KARMA.friendlyBase + SCAV_KARMA.friendlyPerKarma * karma,
-    ),
-    extractRisk: 1 - SCAV_KARMA.riskPerKarma * karma,
-    lootWeight: 1 + SCAV_KARMA.lootPerKarma * karma,
-    lootQuality: SCAV_KARMA.qualityPerKarma * karma,
+    friendlyScav: clamp01(k.friendlyBase + k.friendlyPerKarma * karma),
+    extractRisk: 1 - k.riskPerKarma * karma,
+    lootWeight: 1 + k.lootPerKarma * karma,
+    lootQuality: k.qualityPerKarma * karma,
   };
 }
 
@@ -72,8 +75,9 @@ export function scavModifiers(karma: number): RaidModifiers {
  * (Fase 7) e corta uma fração do tempo.
  */
 export function scavCooldownMs(karma: number, reduction = 0): number {
-  const factor = 1 - SCAV_KARMA.cooldownPerKarma * karma;
-  return Math.round(SCAV_COOLDOWN_MS * factor * (1 - clamp01(reduction)));
+  const k = coreBalance().scav;
+  const factor = 1 - k.cooldownPerKarma * karma;
+  return Math.round(k.cooldownMs * factor * (1 - clamp01(reduction)));
 }
 
 /** Milissegundos até a raid Scav ficar liberada (0 = liberada) */

@@ -15,7 +15,7 @@ import { loadInto } from "../../core/inventory/magazine.ts";
 import { sortGrid } from "../../core/inventory/operations.ts";
 import { quickMove } from "../../core/inventory/quickMove.ts";
 import {
-  MAG_DRILLS_XP_PER_ROUND,
+  magDrillsXpPerRound,
   useConsumable,
 } from "../../core/pmc/consumables.ts";
 import { addSkillXp } from "../../core/pmc/skills.ts";
@@ -562,8 +562,7 @@ export class InventoryScene implements Scene {
   /** XP de Manuseio de carregador por cartucho carregado ou descarregado */
   private magDrillsXp(rounds: number): void {
     const skills = this.player?.skills;
-    if (skills)
-      addSkillXp(skills, "magDrills", rounds * MAG_DRILLS_XP_PER_ROUND);
+    if (skills) addSkillXp(skills, "magDrills", rounds * magDrillsXpPerRound());
   }
 
   /** Usa um remédio ou comida no PMC */

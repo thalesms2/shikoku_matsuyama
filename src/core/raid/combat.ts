@@ -1,3 +1,4 @@
+import { CORE_DEFAULTS, coreBalance } from "../balance.ts";
 import type { ItemDef } from "../inventory/item.ts";
 import type { BodyPart, PmcState } from "../pmc/pmc.ts";
 import { skillBonus } from "../pmc/skills.ts";
@@ -39,7 +40,7 @@ export function armorFactor(penetration: number, armorClass: number): number {
 }
 
 /** Durabilidade perdida por ponto de dano de um acerto na armadura */
-export const ARMOR_WEAR = 0.05;
+export const ARMOR_WEAR = CORE_DEFAULTS.durability.armorWear;
 
 /**
  * Fração do dano que passa por uma armadura gasta: a proteção cai na mesma
@@ -66,7 +67,7 @@ export function armorWear(
 ): number {
   const share =
     armorClass > 0 ? Math.min(1, penetration / (armorClass * 10)) : 1;
-  return damage * ARMOR_WEAR * (0.5 + 0.5 * share);
+  return damage * coreBalance().durability.armorWear * (0.5 + 0.5 * share);
 }
 
 export const BASE_HIT_CHANCE = 0.5;

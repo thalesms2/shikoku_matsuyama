@@ -25,7 +25,7 @@ import {
 import { detach } from "../inventory/operations.ts";
 import { maxStack } from "../inventory/size.ts";
 import {
-  MAG_DRILLS_XP_PER_ROUND,
+  magDrillsXpPerRound,
   isConsumable,
   useConsumable,
 } from "../pmc/consumables.ts";
@@ -650,11 +650,7 @@ export class RaidSimulation {
         loaded += loadRounds(feed, ammo);
       }
     }
-    addSkillXp(
-      this.player.skills,
-      "magDrills",
-      loaded * MAG_DRILLS_XP_PER_ROUND,
-    );
+    addSkillXp(this.player.skills, "magDrills", loaded * magDrillsXpPerRound());
     return loaded;
   }
 

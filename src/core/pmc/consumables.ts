@@ -1,5 +1,4 @@
 import type { Item, ItemStats } from "../inventory/item.ts";
-import { MS_PER_ROUND } from "../inventory/loading.ts";
 import { detach } from "../inventory/operations.ts";
 import { changeEnergy, changeHydration, heal } from "./pmc.ts";
 import type { PmcState } from "./pmc.ts";
@@ -64,9 +63,4 @@ export function useConsumable(
     energy: pmc.energy - before.energy,
     hydration: pmc.hydration - before.hydration,
   };
-}
-
-/** Tempo por cartucho com o bônus de "Manuseio de carregador" */
-export function msPerRound(skills: SkillsState): number {
-  return MS_PER_ROUND * (1 - skillBonus(skills, "magDrills"));
 }

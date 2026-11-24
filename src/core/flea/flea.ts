@@ -7,7 +7,6 @@ import type { PlayerState } from "../state.ts";
 import {
   available,
   createStacks,
-  inUse,
   stashItems,
   storeAll,
   take,
@@ -222,7 +221,6 @@ export function listingValue(
   if (!stashItems(player.inventory.stash).includes(item)) {
     return fail("O item precisa estar no estoque");
   }
-  if (inUse(player, item)) return fail("Item em uso no carregamento");
   if (!tradeable(item.def, config)) {
     return fail("Não pode ser vendido no mercado");
   }

@@ -1,9 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { ManualClock } from "../../../src/core/clock.ts";
 import { Grid } from "../../../src/core/inventory/grid.ts";
 import { totalValue } from "../../../src/core/inventory/item.ts";
-import { MagazineLoader } from "../../../src/core/inventory/loading.ts";
 import {
   attachMagazine,
   canAttachMagazine,
@@ -50,17 +48,6 @@ describe("armas com tubo interno", () => {
     expect(canLoad(shotgun, buck)).toBe(false);
     expect(canAttachMagazine(shotgun, make("mag12"))).toBe(false);
     expect(attachMagazine(shotgun, make("mag12"))).toBe(false);
-  });
-
-  it("o MagazineLoader carrega o tubo um cartucho por vez", () => {
-    const { make } = chamberSetup();
-    const clock = new ManualClock();
-    const loader = new MagazineLoader(clock);
-    const shotgun = make("shotgun");
-    loader.start({ kind: "load", magazine: shotgun, ammo: make("buck", 10) });
-    clock.advance(1500);
-    expect(loader.advance()).toBe(3);
-    expect(loadedRounds(shotgun)).toBe(3);
   });
 });
 

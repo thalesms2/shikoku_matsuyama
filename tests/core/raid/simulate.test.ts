@@ -80,15 +80,6 @@ describe("run", () => {
     expect(player.pmc.energy).toBeCloseTo(100 - 0.15 * 15);
   });
 
-  it("cancela o carregamento de carregador em andamento", () => {
-    const { player } = armedPlayer();
-    const mag = give(player, "mag_pk9");
-    const ammo = give(player, "ammo_9mm", 10);
-    player.loader.start({ kind: "load", magazine: mag, ammo });
-    makeSim(player).sim.run();
-    expect(player.loader.job).toBeNull();
-  });
-
   it("tempo esgotado antes da extração: MIA, perde o equipamento", () => {
     const { player } = armedPlayer();
     give(player, "barter_bolts");

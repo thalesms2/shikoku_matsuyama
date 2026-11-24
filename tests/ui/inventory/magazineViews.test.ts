@@ -1,9 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
 
-import { ManualClock } from "../../../src/core/clock.ts";
 import { Grid } from "../../../src/core/inventory/grid.ts";
-import { MagazineLoader } from "../../../src/core/inventory/loading.ts";
 import {
   attachMagazine,
   loadRounds,
@@ -15,7 +13,7 @@ import {
 } from "../../../src/ui/components/ContextMenu.ts";
 import { itemActions } from "../../../src/ui/inventory/actions.ts";
 import type { ActionContext } from "../../../src/ui/inventory/actions.ts";
-import { ItemView, countText } from "../../../src/ui/inventory/ItemView.ts";
+import { countText } from "../../../src/ui/inventory/ItemView.ts";
 import { ammoSheet, itemSheet } from "../../../src/ui/inventory/Tooltip.ts";
 import { magSetup } from "../../core/inventory/magFixtures.ts";
 
@@ -32,25 +30,6 @@ describe("countText", () => {
     expect(countText(rifle)).toBe("12/30");
     expect(countText(make("fmj", 7))).toBe("7");
     expect(countText(make("rock"))).toBe("");
-  });
-});
-
-describe("ItemView: barra de progresso", () => {
-  it("começa escondida, mostra a fração e esconde com null", () => {
-    const { make } = magSetup();
-    const view = new ItemView(make("mag"));
-    expect(view.progressBar.visible).toBe(false);
-    view.setProgress(0.5);
-    expect(view.progressBar.visible).toBe(true);
-    const half = view.progressBar.getLocalBounds().width;
-    view.setProgress(2);
-    expect(view.progressBar.getLocalBounds().width).toBeGreaterThanOrEqual(
-      half,
-    );
-    view.setProgress(-1);
-    expect(view.progressBar.visible).toBe(true);
-    view.setProgress(null);
-    expect(view.progressBar.visible).toBe(false);
   });
 });
 
@@ -122,15 +101,13 @@ describe("ContextMenu", () => {
 describe("itemActions", () => {
   function ctx(grids: Grid[] = [new Grid(4, 4)]) {
     const { make, factory } = magSetup();
-    const clock = new ManualClock();
     const context: ActionContext = {
-      loader: new MagazineLoader(clock),
       factory,
       storageFor: () => grids,
       openWindow: vi.fn(),
       changed: vi.fn(),
     };
-    return { make, clock, context, grids };
+    return { make, context, grids };
   }
   const labels = (opts: { label: string }[]) => opts.map((o) => o.label);
 
@@ -165,26 +142,29 @@ describe("itemActions", () => {
     expect(context.changed).not.toHaveBeenCalled();
   });
 
-  it("Descarregar começa o descarregamento; durante ele, Cancelar", () => {
-    const { make, context, clock, grids } = ctx();
+  it("Descarregar tira todos os cartuchos na hora", () => {
+    const { make, context, grids } = ctx();
     const mag = make("mag");
     loadRounds(mag, make("fmj", 4));
     const [unload] = itemActions(mag, context);
     expect(unload.label).toBe("Descarregar");
     unload.run();
     expect(context.changed).toHaveBeenCalledOnce();
-    expect(context.loader.isBusy(mag)).toBe(true);
-    clock.advance(10_000);
-    context.loader.advance();
     expect(loadedRounds(mag)).toBe(0);
     expect(grids[0].items()[0].count).toBe(4);
+    expect(itemActions(mag, context)).toEqual([]);
+  });
 
-    loadRounds(mag, make("fmj", 4));
-    itemActions(mag, context)[0].run();
-    const [cancel] = itemActions(mag, context);
-    expect(cancel.label).toBe("Cancelar carregamento");
-    cancel.run();
-    expect(context.loader.job).toBeNull();
+  it("Descarregar avisa quantos cartuchos saíram; sem espaço, o resto fica", () => {
+    const grid = new Grid(1, 1);
+    const { make, context } = ctx([grid]);
+    const roundsMoved = vi.fn();
+    const mag = make("mag");
+    loadRounds(mag, make("fmj", 30));
+    grid.place(make("fmj", 50), 0, 0);
+    itemActions(mag, { ...context, roundsMoved })[0].run();
+    expect(roundsMoved).toHaveBeenCalledWith(10);
+    expect(loadedRounds(mag)).toBe(20);
   });
 
   it("Remover carregador guarda o carregador na grade", () => {

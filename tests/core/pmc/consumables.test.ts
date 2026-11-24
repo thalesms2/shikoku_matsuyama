@@ -3,11 +3,9 @@ import { describe, expect, it } from "vitest";
 import { Grid } from "../../../src/core/inventory/grid.ts";
 import { Catalog, ItemFactory } from "../../../src/core/inventory/item.ts";
 import type { ItemDef } from "../../../src/core/inventory/item.ts";
-import { MS_PER_ROUND } from "../../../src/core/inventory/loading.ts";
 import {
   CONSUMABLE_SKILL_XP,
   isConsumable,
-  msPerRound,
   useConsumable,
 } from "../../../src/core/pmc/consumables.ts";
 import { createPmc, damage } from "../../../src/core/pmc/pmc.ts";
@@ -124,14 +122,5 @@ describe("useConsumable", () => {
     const rock = make("rock");
     expect(useConsumable(rock, pmc, skills)).toBeNull();
     expect(rock.count).toBe(1);
-  });
-});
-
-describe("msPerRound", () => {
-  it("Manuseio de carregador reduz o tempo por cartucho", () => {
-    const skills = createSkills();
-    expect(msPerRound(skills)).toBe(MS_PER_ROUND);
-    skills.magDrills = skillXpForLevel(20);
-    expect(msPerRound(skills)).toBeCloseTo(400);
   });
 });

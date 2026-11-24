@@ -42,20 +42,11 @@ describe("serializeGame / deserializeGame", () => {
     damage(state.pmc, "leftArm", 25);
     state.pmc.energy = 42;
     addSkillXp(state.skills, "aim", 123);
-    const other = stash.items().find((i) => i.def.id === "mag_vk74")!;
-    state.loader.start({ kind: "load", magazine: other, ammo });
-    clock.advance(1500);
-    state.loader.advance();
 
     const data = serializeGame(state, 5000);
     expect(data.version).toBe(SAVE_VERSION);
     expect(data.savedAt).toBe(5000);
     expect(data.nextId).toBe(state.factory.nextId);
-    expect(data.loader).toMatchObject({
-      kind: "load",
-      magazine: other.uid,
-      done: 3,
-    });
 
     const { state: loaded, warnings } = deserializeGame(
       roundTrip(data),
@@ -74,60 +65,6 @@ describe("serializeGame / deserializeGame", () => {
     expect(loaded.inventory.equipment.get("holster")?.magazine).not.toBeNull();
     expect(loaded.factory.create("food_can").uid).toBe(`i${data.nextId}`);
     expect(equipment).not.toBe(loaded.inventory.equipment);
-
-    // o carregamento continua de onde parou
-    clock.advance(1000);
-    expect(loaded.loader.advance()).toBe(2);
-  });
-
-  it("carregamento salvo continua; descarregamento usa o armazenamento padrão", () => {
-    const clock = new ManualClock(0);
-    const state = createNewPlayer(clock);
-    const pistol = state.inventory.equipment.get("holster")!;
-    const mag = pistol.magazine!;
-    state.loader.start({
-      kind: "unload",
-      magazine: mag,
-      factory: state.factory,
-      grids: () => [],
-    });
-    const data = roundTrip(serializeGame(state, 0));
-    expect(data.loader).toEqual({
-      kind: "unload",
-      magazine: mag.uid,
-      startedAt: 0,
-      done: 0,
-    });
-    const { state: loaded } = deserializeGame(data, catalog, clock);
-    clock.advance(1000);
-    expect(loaded.loader.advance()).toBe(2);
-    expect(
-      loadedRounds(loaded.inventory.equipment.get("holster")!.magazine!),
-    ).toBe(10);
-  });
-
-  it("descarta trabalhos de carregamento cujos itens sumiram", () => {
-    const clock = new ManualClock(0);
-    const data = roundTrip(serializeGame(createNewPlayer(clock), 0));
-    data.loader = {
-      kind: "load",
-      magazine: "nada",
-      ammo: "nada",
-      startedAt: 0,
-      done: 0,
-    };
-    expect(deserializeGame(data, catalog, clock).state.loader.job).toBeNull();
-    const mag = data.equipment.slots.holster!.magazine!.uid;
-    data.loader = {
-      kind: "load",
-      magazine: mag,
-      ammo: "nada",
-      startedAt: 0,
-      done: 0,
-    };
-    expect(deserializeGame(data, catalog, clock).state.loader.job).toBeNull();
-    data.loader = null;
-    expect(deserializeGame(data, catalog, clock).state.loader.job).toBeNull();
   });
 
   it("completa PMC e skills que faltam no save com os valores padrão", () => {
@@ -233,7 +170,6 @@ function save(
     equipment: { slots: {}, pockets: [[], [], [], []] },
     pmc: undefined as never,
     skills: undefined as never,
-    loader: null,
     ...extra,
   };
 }

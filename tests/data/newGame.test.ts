@@ -27,7 +27,6 @@ describe("createNewPlayer", () => {
     expect(player.pmc.health).toEqual(MAX_HEALTH);
     expect(player.pmc.xp).toBe(0);
     expect(Object.values(player.skills).every((xp) => xp === 0)).toBe(true);
-    expect(player.loader.job).toBeNull();
   });
 });
 

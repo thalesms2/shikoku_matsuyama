@@ -1,6 +1,5 @@
 import type { Grid } from "../../core/inventory/grid.ts";
 import type { Item, ItemFactory } from "../../core/inventory/item.ts";
-import type { MagazineLoader } from "../../core/inventory/loading.ts";
 import {
   chamberRound,
   feedOf,
@@ -9,19 +8,21 @@ import {
   loadedRounds,
   removeMagazine,
   unloadChamber,
+  unloadRounds,
 } from "../../core/inventory/magazine.ts";
 import { splitStack } from "../../core/inventory/operations.ts";
 import { isConsumable } from "../../core/pmc/consumables.ts";
 import type { MenuOption } from "../components/ContextMenu.ts";
 
 export interface ActionContext {
-  loader: MagazineLoader;
   factory: ItemFactory;
   /** Onde guardar o que sai do item (munição, carregador, metade da pilha) */
   storageFor: (item: Item) => readonly Grid[];
   openWindow: (item: Item) => void;
   /** Chamado depois de qualquer ação que muda o inventário */
   changed: () => void;
+  /** Cartuchos tirados ao descarregar (para o XP de Manuseio de carregador) */
+  roundsMoved?: (count: number) => void;
   /** Usa remédio/comida no PMC (só existe quando há um PMC) */
   use?: (item: Item) => void;
 }
@@ -45,19 +46,12 @@ export function itemActions(item: Item, ctx: ActionContext): MenuOption[] {
     options.push({ label: "Abrir", run: () => ctx.openWindow(item) });
   }
 
-  if (isFeed(item)) {
-    if (ctx.loader.isBusy(item)) {
-      act("Cancelar carregamento", () => ctx.loader.cancel());
-    } else if (loadedRounds(item) > 0) {
-      act("Descarregar", () =>
-        ctx.loader.start({
-          kind: "unload",
-          magazine: item,
-          factory: ctx.factory,
-          grids: () => ctx.storageFor(item),
-        }),
-      );
-    }
+  if (isFeed(item) && loadedRounds(item) > 0) {
+    // Instantâneo: o que não couber fica no carregador
+    act("Descarregar", () => {
+      const moved = unloadRounds(item, ctx.factory, ctx.storageFor(item));
+      ctx.roundsMoved?.(moved);
+    });
   }
 
   if (item.magazine) {
@@ -72,7 +66,7 @@ export function itemActions(item: Item, ctx: ActionContext): MenuOption[] {
     });
   } else if (isWeapon(item)) {
     const feed = feedOf(item);
-    if (feed && loadedRounds(feed) > 0 && !ctx.loader.isBusy(feed)) {
+    if (feed && loadedRounds(feed) > 0) {
       act("Carregar a câmara", () => chamberRound(item));
     }
   }

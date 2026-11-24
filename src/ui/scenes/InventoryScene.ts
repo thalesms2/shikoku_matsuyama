@@ -11,11 +11,10 @@ import type { SlotName } from "../../core/inventory/equipment.ts";
 import type { Grid } from "../../core/inventory/grid.ts";
 import { ItemFactory } from "../../core/inventory/item.ts";
 import type { Item } from "../../core/inventory/item.ts";
-import { MagazineLoader } from "../../core/inventory/loading.ts";
+import { loadRounds } from "../../core/inventory/magazine.ts";
 import { sortGrid } from "../../core/inventory/operations.ts";
 import {
   MAG_DRILLS_XP_PER_ROUND,
-  msPerRound,
   useConsumable,
 } from "../../core/pmc/consumables.ts";
 import { addSkillXp } from "../../core/pmc/skills.ts";
@@ -76,7 +75,6 @@ export class InventoryScene implements Scene {
   readonly overlay = new Container({ label: "overlay" });
   readonly tooltip = new Tooltip();
   readonly contextMenu = new ContextMenu();
-  readonly loader: MagazineLoader;
   readonly factory: ItemFactory;
   readonly player: PlayerState | null;
   characterButton: Button | null = null;
@@ -150,14 +148,14 @@ export class InventoryScene implements Scene {
     this.player = options.player ?? null;
     this.factory =
       options.player?.factory ?? options.factory ?? new ItemFactory(catalog);
-    this.loader = options.player?.loader ?? new MagazineLoader(this.clock);
     this.drag = new DragController(
       this.overlay,
       () => this.targets(),
       () => this.refresh(),
       {
+        // Carregar é instantâneo; com PMC, dá XP de Manuseio de carregador
         onLoad: (magazine, ammo) => {
-          this.loader.start({ kind: "load", magazine, ammo });
+          this.magDrillsXp(loadRounds(magazine, ammo));
         },
       },
     );
@@ -321,7 +319,6 @@ export class InventoryScene implements Scene {
     if (this.window && this.window.item.location === null) this.closeWindow();
     this.window?.refresh();
     this.wireItems();
-    this.showLoadingProgress();
     this.layout();
   }
 
@@ -437,9 +434,8 @@ export class InventoryScene implements Scene {
     this.layout();
   }
 
-  /** Conta o atraso do tooltip e avança o carregamento de carregadores */
+  /** Conta o atraso do tooltip e rola o estoque durante o arraste */
   update(deltaMs: number): void {
-    this.updateLoader();
     this.autoscroll(deltaMs);
     const pending = this.pendingTooltip;
     if (!pending) return;
@@ -447,30 +443,6 @@ export class InventoryScene implements Scene {
     if (pending.remaining > 0) return;
     this.pendingTooltip = null;
     this.showTooltip(pending.item, pending.x, pending.y);
-  }
-
-  private updateLoader(): void {
-    if (!this.loader.job) return;
-    const skills = this.player?.skills;
-    if (skills) this.loader.msPerRound = msPerRound(skills);
-    const processed = this.loader.advance();
-    if (skills && processed > 0) {
-      addSkillXp(skills, "magDrills", processed * MAG_DRILLS_XP_PER_ROUND);
-    }
-    if (processed > 0 || !this.loader.job) this.refresh();
-    else this.showLoadingProgress();
-  }
-
-  /** Barra de progresso na view do carregador em carregamento */
-  private showLoadingProgress(): void {
-    const job = this.loader.job;
-    const progress = this.loader.progress();
-    if (!job || !progress) return;
-    for (const grid of this.targets().grids) {
-      grid.itemViews
-        .get(job.magazine)
-        ?.setProgress(progress.done / Math.max(1, progress.total));
-    }
   }
 
   /**
@@ -490,14 +462,21 @@ export class InventoryScene implements Scene {
       p.x,
       p.y,
       itemActions(item, {
-        loader: this.loader,
         factory: this.factory,
+        roundsMoved: (n) => this.magDrillsXp(n),
         storageFor: (i) => this.storageFor(i),
         openWindow: (i) => this.openWindow(i),
         changed: () => this.refresh(),
         ...(this.player && { use: (i: Item) => this.useItem(i) }),
       }),
     );
+  }
+
+  /** XP de Manuseio de carregador por cartucho carregado ou descarregado */
+  private magDrillsXp(rounds: number): void {
+    const skills = this.player?.skills;
+    if (skills)
+      addSkillXp(skills, "magDrills", rounds * MAG_DRILLS_XP_PER_ROUND);
   }
 
   /** Usa um remédio ou comida no PMC */

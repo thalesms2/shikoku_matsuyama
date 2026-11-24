@@ -108,16 +108,6 @@ describe("foto do equipamento", () => {
       { item: "mag_pk9", count: 1 },
       { item: "ammo_9mm", count: 15 },
     ]);
-    // itens presos no carregamento não contam
-    const spare = put("mag_pk9");
-    const ammo = put("ammo_9mm", 50);
-    // a pilha de 15 completou a antiga (50) e sobrou uma de 15
-    expect(ammo.count).toBe(15);
-    player.loader.start({ kind: "load", magazine: spare, ammo });
-    expect(missingItems(player, want)).toEqual([
-      { item: "helmet_tk1", count: 1 },
-      { item: "mag_pk9", count: 1 },
-    ]);
   });
 });
 

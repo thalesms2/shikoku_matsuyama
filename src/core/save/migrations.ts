@@ -48,6 +48,9 @@ export const MIGRATIONS: Record<number, Migration> = {
   11: (data) => data,
   // v12 → v13: quests que avançaram na raid em andamento (sem = nenhuma)
   12: (data) => data,
+  // v13 → v14: carregar e descarregar ficaram instantâneos; o carregamento
+  // em andamento sai do save (os cartuchos ficam onde estavam)
+  13: ({ loader: _loader, ...data }) => data,
 };
 
 export class SaveError extends Error {}

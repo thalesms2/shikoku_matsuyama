@@ -8,7 +8,6 @@ import type { HideoutState } from "./hideout/types.ts";
 import type { Equipment } from "./inventory/equipment.ts";
 import type { Grid } from "./inventory/grid.ts";
 import type { Item, ItemFactory } from "./inventory/item.ts";
-import { MagazineLoader } from "./inventory/loading.ts";
 import type { Loadout } from "./loadout/types.ts";
 import type { PmcState } from "./pmc/pmc.ts";
 import type { SkillsState } from "./pmc/skills.ts";
@@ -29,8 +28,6 @@ export interface PlayerState {
   skills: SkillsState;
   /** Cria itens novos; o `nextId` dela vai para o save */
   factory: ItemFactory;
-  /** Carregamento/descarregamento de carregador em andamento */
-  loader: MagazineLoader;
   /** Karma, estatísticas, regra de loot, seed e a raid em andamento */
   raid: RaidProfile;
   /** Cooldown e estatísticas da raid Scav */
@@ -58,7 +55,6 @@ export interface PlayerState {
 export function createPlayerState(
   parts: Omit<
     PlayerState,
-    | "loader"
     | "raid"
     | "scav"
     | "traders"
@@ -81,7 +77,6 @@ export function createPlayerState(
 ): PlayerState {
   return {
     ...parts,
-    loader: new MagazineLoader(clock),
     raid: parts.raid ?? createRaidProfile(clock.now()),
     scav: parts.scav ?? createScavProfile(),
     traders: parts.traders ?? {},

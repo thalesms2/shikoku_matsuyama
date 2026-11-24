@@ -2,10 +2,8 @@
 import { Container } from "pixi.js";
 import { describe, expect, it, vi } from "vitest";
 
-import { ManualClock } from "../../../src/core/clock.ts";
 import { Equipment } from "../../../src/core/inventory/equipment.ts";
 import { Grid } from "../../../src/core/inventory/grid.ts";
-import { MagazineLoader } from "../../../src/core/inventory/loading.ts";
 import {
   attachMagazine,
   loadRounds,
@@ -61,7 +59,6 @@ describe("itemActions com câmara e tubo", () => {
   function ctx(grids: Grid[] = [new Grid(4, 4)]) {
     const { make, factory } = chamberSetup();
     const context: ActionContext = {
-      loader: new MagazineLoader(new ManualClock()),
       factory,
       storageFor: () => grids,
       openWindow: vi.fn(),
@@ -94,7 +91,7 @@ describe("itemActions com câmara e tubo", () => {
     expect(grids[0].items()[0].def.id).toBe("fmj");
   });
 
-  it("a escopeta descarrega o tubo; durante o carregamento não mexe na câmara", () => {
+  it("a escopeta descarrega o tubo na hora", () => {
     const { make, context } = ctx();
     const shotgun = make("shotgun");
     expect(itemActions(shotgun, context)).toEqual([]);
@@ -104,10 +101,8 @@ describe("itemActions com câmara e tubo", () => {
       "Carregar a câmara",
     ]);
     itemActions(shotgun, context)[0].run();
-    expect(context.loader.isBusy(shotgun)).toBe(true);
-    expect(labels(itemActions(shotgun, context))).toEqual([
-      "Cancelar carregamento",
-    ]);
+    expect(loadedRounds(shotgun)).toBe(0);
+    expect(itemActions(shotgun, context)).toEqual([]);
   });
 });
 

@@ -11,7 +11,6 @@ import type { SlotName } from "../inventory/equipment.ts";
 import { Grid } from "../inventory/grid.ts";
 import { ItemFactory } from "../inventory/item.ts";
 import type { Catalog, GridLocation, Item } from "../inventory/item.ts";
-import type { LoadJob } from "../inventory/loading.ts";
 import {
   attachMagazine,
   isWeapon,
@@ -32,7 +31,7 @@ import type {
   RaidProfile,
   ScavProfile,
 } from "../raid/types.ts";
-import { createPlayerState, storageFor } from "../state.ts";
+import { createPlayerState } from "../state.ts";
 import type { PlayerState } from "../state.ts";
 import type { TraderState, TradersState } from "../trade/types.ts";
 import { SAVE_VERSION } from "./format.ts";
@@ -40,7 +39,6 @@ import type {
   SaveData,
   SavedFlea,
   SavedItem,
-  SavedLoadJob,
   SavedPlacedItem,
 } from "./format.ts";
 
@@ -66,21 +64,6 @@ function saveGrid(grid: Grid): SavedPlacedItem[] {
     const loc = item.location as GridLocation;
     return { ...saveItem(item), x: loc.x, y: loc.y, r: loc.rotated };
   });
-}
-
-function saveJob(state: PlayerState): SavedLoadJob | null {
-  const snap = state.loader.snapshot();
-  if (!snap) return null;
-  const { job, startedAt, done } = snap;
-  return job.kind === "load"
-    ? {
-        kind: "load",
-        magazine: job.magazine.uid,
-        ammo: job.ammo.uid,
-        startedAt,
-        done,
-      }
-    : { kind: "unload", magazine: job.magazine.uid, startedAt, done };
 }
 
 function saveFlea(flea: FleaState): SavedFlea {
@@ -113,7 +96,6 @@ export function serializeGame(state: PlayerState, now: number): SaveData {
     equipment: { slots, pockets: equipment.pockets.map(saveGrid) },
     pmc: structuredClone(state.pmc),
     skills: { ...state.skills },
-    loader: saveJob(state),
     raid: structuredClone(state.raid),
     scav: structuredClone(state.scav),
     traders: structuredClone(state.traders),
@@ -515,29 +497,6 @@ function validQuestUpdate(raw: unknown): raw is QuestUpdate {
   );
 }
 
-function loadJob(
-  saved: SavedLoadJob | null,
-  state: PlayerState,
-  byUid: Map<string, Item>,
-): { job: LoadJob; startedAt: number; done: number } | null {
-  if (!saved) return null;
-  const magazine = byUid.get(saved.magazine);
-  if (!magazine) return null;
-  const { startedAt, done } = saved;
-  if (saved.kind === "unload") {
-    const grids = () => storageFor(state.inventory, magazine);
-    return {
-      job: { kind: "unload", magazine, factory: state.factory, grids },
-      startedAt,
-      done,
-    };
-  }
-  const ammo = byUid.get(saved.ammo);
-  return ammo
-    ? { job: { kind: "load", magazine, ammo }, startedAt, done }
-    : null;
-}
-
 /**
  * Recria o estado do jogador a partir do save (já migrado para a versão
  * atual). Itens que saíram do catálogo são descartados com aviso; itens que
@@ -593,7 +552,5 @@ export function deserializeGame(
     },
     clock,
   );
-  const job = loadJob(data.loader, state, loader.byUid);
-  if (job) state.loader.restore(job.job, job.startedAt, job.done);
   return { state, warnings: loader.warnings };
 }

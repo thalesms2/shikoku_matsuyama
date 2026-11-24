@@ -14,7 +14,7 @@ Como trabalhamos:
 
 ## Fase 11 — Inventário e carregadores
 
-- **11A — Carregamento instantâneo:** soltar munição sobre um carregador carrega na hora (até encher ou acabar a pilha). Descarregar também é instantâneo. O carregamento progressivo (`MagazineLoader`, barra de progresso, tempo por cartucho) sai.
+- ✅ **11A — Carregamento instantâneo:** soltar munição sobre um carregador carrega na hora (até encher ou acabar a pilha). Descarregar também é instantâneo. O carregamento progressivo (`MagazineLoader`, barra de progresso, tempo por cartucho) sai.
   - Fora da raid, a skill Manuseio de carregador deixa de ter efeito. Ela passa a valer dentro da raid (12F): quando a munição acaba em combate, ela define quão rápido o PMC recarrega e volta a atirar.
 - **11B — Munição sobre a arma:** soltar munição sobre uma arma (no estoque ou equipada): com a câmara vazia, 1 cartucho vai para a câmara; o resto (ou tudo, com a câmara cheia) vai para o carregador encaixado ou para o tubo. Arma sem carregador e com a câmara vazia recebe só o cartucho da câmara. Calibre errado fica vermelho.
 - **11C — Vender arrastando:** soltar um item do inventário sobre o vendedor abre a venda já com o item escolhido.

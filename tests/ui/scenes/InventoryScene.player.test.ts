@@ -6,7 +6,6 @@ import type { Item } from "../../../src/core/inventory/item.ts";
 import { loadedRounds } from "../../../src/core/inventory/magazine.ts";
 import { MAG_DRILLS_XP_PER_ROUND } from "../../../src/core/pmc/consumables.ts";
 import { damage } from "../../../src/core/pmc/pmc.ts";
-import { skillXpForLevel } from "../../../src/core/pmc/skills.ts";
 import { createNewPlayer } from "../../../src/data/newGame.ts";
 import { InventoryScene } from "../../../src/ui/scenes/InventoryScene.ts";
 
@@ -28,11 +27,10 @@ function setup(onOpenCharacter?: () => void) {
 }
 
 describe("InventoryScene com o estado do jogador", () => {
-  it("usa a fábrica e o carregamento do jogador", () => {
+  it("usa a fábrica do jogador", () => {
     const { scene, player } = setup();
     expect(scene.player).toBe(player);
     expect(scene.factory).toBe(player.factory);
-    expect(scene.loader).toBe(player.loader);
     expect(scene.characterButton).toBeNull();
     scene.destroy();
   });
@@ -73,38 +71,38 @@ describe("InventoryScene com o estado do jogador", () => {
     scene.destroy();
   });
 
-  it("carregar dá XP de Manuseio de carregador e a skill acelera", () => {
-    const { scene, player, find, clock } = setup();
-    const mag = player.inventory.stash
-      .items()
-      .find((i) => i.def.id === "mag_vk74")!;
+  it("carregar e descarregar dão XP de Manuseio de carregador por cartucho", () => {
+    const { scene, player, find, viewOf } = setup();
+    const mag = find("mag_vk74");
     const ammo = find("ammo_545");
-    player.skills.magDrills = skillXpForLevel(20); // 20% mais rápido: 400 ms
-    const xpBefore = player.skills.magDrills;
-    scene.loader.start({ kind: "load", magazine: mag, ammo });
-    clock.advance(1200);
-    scene.update(1200);
-    expect(scene.loader.msPerRound).toBe(400);
-    expect(loadedRounds(mag)).toBe(3);
-    expect(player.skills.magDrills).toBe(
-      xpBefore + 3 * MAG_DRILLS_XP_PER_ROUND,
-    );
+    const before = ammo.count;
+    // solta a munição sobre o carregador
+    scene.drag.begin(viewOf(ammo), viewOf(ammo).toGlobal({ x: 5, y: 5 }));
+    scene.drag.end(viewOf(mag).toGlobal({ x: 5, y: 5 }));
+    const loaded = loadedRounds(mag);
+    expect(loaded).toBe(Math.min(30, before));
+    expect(player.skills.magDrills).toBe(loaded * MAG_DRILLS_XP_PER_ROUND);
+    // descarrega pelo menu
+    viewOf(mag).emit("pointerdown", ev(0, 0, 2));
+    scene.contextMenu.buttons[0].emit("pointertap", ev(0, 0));
+    expect(loadedRounds(mag)).toBe(0);
+    expect(player.skills.magDrills).toBe(2 * loaded * MAG_DRILLS_XP_PER_ROUND);
     scene.destroy();
   });
 
-  it("sem jogador, o carregamento não dá XP e usa o tempo padrão", () => {
-    const { player, clock } = setup();
-    const scene = new InventoryScene(player.inventory, { clock });
-    const mag = player.inventory.stash
-      .items()
-      .find((i) => i.def.id === "mag_vk74")!;
-    const ammo = player.inventory.stash
-      .items()
-      .find((i) => i.def.id === "ammo_545")!;
-    scene.loader.start({ kind: "load", magazine: mag, ammo });
-    clock.advance(1000);
-    scene.update(1000);
-    expect(loadedRounds(mag)).toBe(2);
+  it("sem jogador, carregar não dá XP", () => {
+    const { player } = setup();
+    const scene = new InventoryScene(player.inventory);
+    const find = (id: string) =>
+      player.inventory.stash.items().find((i) => i.def.id === id)!;
+    const view = (id: string) => scene.stashView.itemViews.get(find(id))!;
+    const mag = find("mag_vk74");
+    scene.drag.begin(
+      view("ammo_545"),
+      view("ammo_545").toGlobal({ x: 5, y: 5 }),
+    );
+    scene.drag.end(view("mag_vk74").toGlobal({ x: 5, y: 5 }));
+    expect(loadedRounds(mag)).toBeGreaterThan(0);
     expect(player.skills.magDrills).toBe(0);
     scene.destroy();
   });

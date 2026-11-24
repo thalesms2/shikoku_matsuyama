@@ -21,7 +21,6 @@ export class ItemView extends Container {
   /** Imagem do item, se a textura estiver carregada */
   readonly sprite: Sprite | null;
   /** Barra de progresso (carregamento de carregador) */
-  readonly progressBar = new Graphics();
 
   constructor(
     readonly item: Item,
@@ -51,8 +50,7 @@ export class ItemView extends Container {
     this.sprite = texture ? new Sprite({ texture }) : null;
     this.addChild(this.background);
     if (this.sprite) this.addChild(this.sprite);
-    this.addChild(this.nameText, this.countLabel, this.progressBar);
-    this.progressBar.visible = false;
+    this.addChild(this.nameText, this.countLabel);
     this.redraw();
   }
 
@@ -85,23 +83,6 @@ export class ItemView extends Container {
     this.nameText.position.set(w - 4, 2);
     this.countLabel.position.set(w - 4, h - 2);
     this.countLabel.text = countText(this.item);
-  }
-
-  /** Mostra a barra de progresso (0 a 1) ou esconde com `null` */
-  setProgress(fraction: number | null): void {
-    if (fraction === null) {
-      this.progressBar.visible = false;
-      return;
-    }
-    const { w, h } = this.pixelSize;
-    const f = Math.min(1, Math.max(0, fraction));
-    this.progressBar
-      .clear()
-      .rect(3, h - 7, w - 6, 4)
-      .fill({ color: 0x000000, alpha: 0.6 })
-      .rect(3, h - 7, (w - 6) * f, 4)
-      .fill({ color: theme.accent });
-    this.progressBar.visible = true;
   }
 }
 

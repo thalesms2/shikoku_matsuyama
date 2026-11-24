@@ -8,6 +8,7 @@ import { ItemFactory } from "../../../src/core/inventory/item.ts";
 import type { Item } from "../../../src/core/inventory/item.ts";
 import {
   attachMagazine,
+  loadRounds,
   loadedRounds,
 } from "../../../src/core/inventory/magazine.ts";
 import { catalog } from "../../../src/data/items.ts";
@@ -51,30 +52,16 @@ describe("InventoryScene: carregadores", () => {
     scene.destroy();
   });
 
-  it("soltar munição no carregador carrega um cartucho por vez, com barra de progresso", () => {
-    const { scene, put, viewOf, cell, clock } = setup();
+  it("soltar munição no carregador carrega na hora", () => {
+    const { scene, put, viewOf, cell, state } = setup();
     const ammo = put("ammo_545", 0, 0, 10);
     const mag = put("mag_vk74", 2, 0);
     viewOf(ammo).emit("pointerdown", ev(...cell(0, 0)));
     viewOf(ammo).emit("pointerup", ev(...cell(2, 0)));
-    expect(scene.loader.isBusy(mag)).toBe(true);
-    expect(viewOf(mag).progressBar.visible).toBe(true);
-
-    clock.advance(200);
-    scene.update(200);
-    expect(loadedRounds(mag)).toBe(0);
-
-    clock.advance(1300);
-    scene.update(1300);
-    expect(loadedRounds(mag)).toBe(3);
-    expect(viewOf(mag).countLabel.text).toBe("3/30");
-    expect(viewOf(mag).progressBar.visible).toBe(true);
-
-    clock.advance(60_000);
-    scene.update(60_000);
     expect(loadedRounds(mag)).toBe(10);
-    expect(scene.loader.job).toBeNull();
-    expect(viewOf(mag).progressBar.visible).toBe(false);
+    expect(viewOf(mag).countLabel.text).toBe("10/30");
+    // a pilha vazia sai do estoque
+    expect(state.stash.has(ammo)).toBe(false);
     scene.destroy();
   });
 
@@ -110,17 +97,12 @@ describe("InventoryScene: carregadores", () => {
   });
 
   it("descarregar pelo menu devolve a munição para a grade do carregador", () => {
-    const { scene, put, viewOf, cell, clock, factory, state } = setup();
+    const { scene, put, viewOf, cell, factory, state } = setup();
     const mag = put("mag_vk74", 0, 0);
-    const ammo = factory.create("ammo_545", 5);
-    scene.loader.start({ kind: "load", magazine: mag, ammo });
-    clock.advance(10_000);
-    scene.update(10_000);
-    expect(loadedRounds(mag)).toBe(5);
+    loadRounds(mag, factory.create("ammo_545", 5));
+    scene.refresh();
     viewOf(mag).emit("pointerdown", ev(...cell(0, 0), 2));
     scene.contextMenu.buttons[0].emit("pointertap", ev(0, 0));
-    clock.advance(10_000);
-    scene.update(10_000);
     expect(loadedRounds(mag)).toBe(0);
     const unloaded = state.stash.items().find((i) => i.def.id === "ammo_545");
     expect(unloaded?.count).toBe(5);

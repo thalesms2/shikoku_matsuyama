@@ -140,7 +140,6 @@ describe("createScav", () => {
     expect(scav.raid).toBe(player.raid);
     expect(scav.skills).toEqual(player.skills);
     expect(scav.skills).not.toBe(player.skills);
-    expect(scav.loader).not.toBe(player.loader);
     expect(scav.pmc.name).toBe("Scav");
     expect(scav.inventory.equipment).not.toBe(player.inventory.equipment);
     expect(scav.inventory.equipment.equipped().length).toBeGreaterThan(0);
@@ -250,13 +249,6 @@ describe("startScavRaid", () => {
     const pmcBefore = structuredClone(player.pmc);
     const skillsBefore = { ...player.skills };
     const stashBefore = player.inventory.stash.items().length;
-    const mag = player.inventory.stash
-      .items()
-      .find((i) => i.def.id === "mag_vk74")!;
-    const ammo = player.inventory.stash
-      .items()
-      .find((i) => i.def.id === "ammo_545")!;
-    player.loader.start({ kind: "load", magazine: mag, ammo });
 
     const active = startScavRaid(
       player,
@@ -282,7 +274,6 @@ describe("startScavRaid", () => {
     expect(player.inventory.equipment.get("holster")).toBe(holster);
     expect(player.pmc).toEqual(pmcBefore);
     expect(player.skills).toEqual(skillsBefore);
-    expect(player.loader.job?.magazine).toBe(mag);
   });
 
   it("morreu: perde só o equipamento do Scav", () => {

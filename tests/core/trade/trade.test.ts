@@ -235,7 +235,7 @@ describe("buy", () => {
     expect(player.traders.test.bought).toEqual({});
   });
 
-  it("não paga com contêiner cheio nem com item em uso no carregamento", () => {
+  it("não paga com contêiner cheio", () => {
     const { player, put } = trader();
     const custom = {
       ...TEST_TRADER,
@@ -260,13 +260,6 @@ describe("buy", () => {
     put("food_can", 1, sack.grids[0]);
     expect(buy(player, custom, "x", 0).ok).toBe(false);
     const ammo = put("ammo_9mm", 20);
-    const mag = put("mag_pk9");
-    player.loader.start({ kind: "load", magazine: mag, ammo });
-    expect(buy(player, custom, "y", 0)).toEqual({
-      ok: false,
-      reason: "Faltam itens para a troca",
-    });
-    player.loader.cancel();
     expect(buy(player, custom, "y", 0).ok).toBe(true);
     expect(ammo.count).toBe(10);
   });
@@ -360,19 +353,13 @@ describe("sell", () => {
     expect(sell(player, TEST_TRADER, bolts, 0).ok).toBe(true);
   });
 
-  it("recusas: fora do estoque, em uso, preço", () => {
+  it("recusas: fora do estoque, preço", () => {
     const { player, factory, put } = trader();
     const loose = factory.create("barter_bolts");
     expect(sell(player, TEST_TRADER, loose, 0)).toEqual({
       ok: false,
       reason: "O item precisa estar no estoque",
     });
-    const ammo = put("ammo_9mm", 20);
-    const mag = put("mag_pk9");
-    player.loader.start({ kind: "load", magazine: mag, ammo });
-    const busy = { ok: false, reason: "Item em uso no carregamento" };
-    expect(sell(player, TEST_TRADER, ammo, 0)).toEqual(busy);
-    expect(sell(player, TEST_TRADER, mag, 0)).toEqual(busy);
     expect(sell(player, TEST_TRADER, put("food_can"), 0).ok).toBe(false);
   });
 

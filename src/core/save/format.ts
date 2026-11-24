@@ -10,7 +10,7 @@ import type { RaidProfile, ScavProfile } from "../raid/types.ts";
 import type { TradersState } from "../trade/types.ts";
 
 /** Versão atual do formato do save. Mudou o formato? Incremente e migre. */
-export const SAVE_VERSION = 13;
+export const SAVE_VERSION = 14;
 
 /** Item salvo; o conteúdo vai junto (grades, cartuchos, carregador) */
 export interface SavedItem {
@@ -39,16 +39,6 @@ export interface SavedPlacedItem extends SavedItem {
   r: boolean;
 }
 
-export type SavedLoadJob =
-  | {
-      kind: "load";
-      magazine: string;
-      ammo: string;
-      startedAt: number;
-      done: number;
-    }
-  | { kind: "unload"; magazine: string; startedAt: number; done: number };
-
 export interface SaveData {
   version: number;
   savedAt: number;
@@ -61,7 +51,6 @@ export interface SaveData {
   };
   pmc: PmcState;
   skills: SkillsState;
-  loader: SavedLoadJob | null;
   /** v2: karma, estatísticas, regra de loot, seed e a raid em andamento */
   raid?: RaidProfile;
   /** v3: cooldown e estatísticas da raid Scav */

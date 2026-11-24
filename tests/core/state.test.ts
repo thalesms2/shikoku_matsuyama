@@ -1,14 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import { ManualClock } from "../../src/core/clock.ts";
-import { MagazineLoader } from "../../src/core/inventory/loading.ts";
 import { createPlayerState, storageFor } from "../../src/core/state.ts";
 import { createNewPlayer } from "../../src/data/newGame.ts";
 
 describe("createPlayerState", () => {
-  it("cria um carregador de carregadores ligado ao relógio", () => {
+  it("sem as partes opcionais, começa os perfis a partir do relógio", () => {
     const state = createNewPlayer(new ManualClock());
-    expect(state.loader).toBeInstanceOf(MagazineLoader);
     const again = createPlayerState(
       {
         inventory: state.inventory,
@@ -16,9 +14,11 @@ describe("createPlayerState", () => {
         skills: state.skills,
         factory: state.factory,
       },
-      new ManualClock(),
+      new ManualClock(5),
     );
-    expect(again.loader).not.toBe(state.loader);
+    expect(again.inventory).toBe(state.inventory);
+    expect(again.hideout.lastTick).toBe(5);
+    expect(again.loadouts).toEqual([]);
   });
 });
 

@@ -119,6 +119,6 @@ describe("startGame: save", () => {
     tickers.length = 0;
     const { startGame } = await import("../src/game.ts");
     const { player } = await startGame(document.body);
-    expect(player.loader).toBeDefined();
+    expect(player.factory).toBeDefined();
   });
 });

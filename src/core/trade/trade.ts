@@ -126,25 +126,15 @@ export function countInStash(stash: Grid, defId: string): number {
     .reduce((sum, i) => sum + i.count, 0);
 }
 
-/** Item ocupado no carregamento de carregador em andamento */
-export function inUse(player: PlayerState, item: Item): boolean {
-  const job = player.loader.job;
-  return (
-    job !== null &&
-    (job.magazine === item || (job.kind === "load" && job.ammo === item))
-  );
-}
-
 /**
  * Itens do estoque que podem ser entregues como `defId`: sem conteúdo, fora
- * do carregamento em andamento e, com `firOnly`, encontrados na raid.
+ * e, com `firOnly`, encontrados na raid.
  */
 function payable(player: PlayerState, defId: string, firOnly: boolean) {
   return stashItems(player.inventory.stash).filter(
     (i) =>
       i.def.id === defId &&
       (!firOnly || i.fir === true) &&
-      !inUse(player, i) &&
       i.grids.every((g) => g.items().length === 0),
   );
 }
@@ -307,9 +297,6 @@ export function sell(
   const { stash } = player.inventory;
   if (!stashItems(stash).includes(item)) {
     return { ok: false, reason: "O item precisa estar no estoque" };
-  }
-  if (inUse(player, item)) {
-    return { ok: false, reason: "Item em uso no carregamento" };
   }
   const state = traderState(player.traders, def, now);
   const level = loyaltyLevel(def, state, player.pmc.xp);

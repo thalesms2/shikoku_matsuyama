@@ -252,11 +252,6 @@ describe("mercado: anunciar", () => {
       reason: "Esvazie antes de anunciar",
     });
 
-    player.loader.start({ kind: "load", magazine: mag, ammo });
-    expect(listingValue(player, TEST_FLEA, ammo, 0)).toEqual({
-      ok: false,
-      reason: "Item em uso no carregamento",
-    });
     player.pmc.xp = 0;
     expect(listingValue(player, TEST_FLEA, bolts, 0)).toEqual({
       ok: false,

@@ -20,7 +20,6 @@ import { autoPlace, detach, splitStack } from "../inventory/operations.ts";
 import type { PlayerState } from "../state.ts";
 import {
   buy,
-  inUse,
   loyaltyLevel,
   offerPrice,
   questUnlocked,
@@ -93,7 +92,7 @@ export function requiredItems(loadout: Loadout): LoadoutItem[] {
  */
 function stashCandidates(player: PlayerState, defId: string): Item[] {
   return stashItems(player.inventory.stash)
-    .filter((i) => i.def.id === defId && !inUse(player, i))
+    .filter((i) => i.def.id === defId)
     .sort(
       (a, b) =>
         rounds(b) - rounds(a) || durabilityRatio(b) - durabilityRatio(a),

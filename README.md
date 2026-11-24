@@ -67,19 +67,19 @@ Todo item ocupa um retângulo de células (por exemplo, 1x1 para uma atadura, 5x
 - Botão **Personagem** no inventário: mostra nível e XP, a vida de cada parte do corpo (cabeça, tórax, estômago, braços e pernas), energia, hidratação e skills.
 - Se a cabeça ou o tórax chegarem a zero, o PMC morre. Dano em um braço ou perna já destruídos se espalha pelo resto do corpo.
 - **Usar itens:** botão direito em um remédio, comida ou bebida → "Usar". Remédios curam primeiro as partes mais feridas; comida e água recuperam energia e hidratação. O quadro de informações mostra o efeito de cada um.
-- **Skills:** cada skill sobe com o uso e dá 1% de bônus por nível (até 50%). Saúde melhora os remédios, Metabolismo melhora comida e bebida, e Manuseio de carregador carrega mais rápido. As outras contam nas raids (veja abaixo).
+- **Skills:** cada skill sobe com o uso e dá 1% de bônus por nível (até 50%). Saúde melhora os remédios, Metabolismo melhora comida e bebida, e Manuseio de carregador ganha XP ao carregar e descarregar (o efeito dela vai valer na recarga em combate da raid nova). As outras contam nas raids (veja abaixo).
 
 ### Save
 
-- O jogo salva sozinho a cada 5 segundos e ao fechar a página, e continua de onde parou na próxima vez, inclusive carregamentos de carregador em andamento e a raid que estava acontecendo.
+- O jogo salva sozinho a cada 5 segundos e ao fechar a página, e continua de onde parou na próxima vez, inclusive a raid que estava acontecendo.
 - O resultado da raid é sorteado e salvo no momento em que você entra nela: fechar ou recarregar o jogo não muda o que vai acontecer.
 - Se um save antigo tiver itens que não existem mais, eles são descartados; o que não couber mais no lugar vai para o estoque.
 
 ### Carregadores e munição
 
-- **Carregar:** arraste uma pilha de munição e solte sobre um carregador do mesmo calibre. Os cartuchos entram um por vez (meio segundo cada), com uma barra de progresso, e o carregamento continua mesmo enquanto você faz outras coisas. Calibre errado ou carregador cheio aparece em vermelho.
+- **Carregar:** arraste uma pilha de munição e solte sobre um carregador do mesmo calibre. Os cartuchos entram na hora, até encher o carregador ou acabar a pilha. Calibre errado ou carregador cheio aparece em vermelho.
 - **Ordem dos cartuchos:** se você misturar tipos de munição, eles ficam na ordem em que foram carregados, e o último colocado é o primeiro a ser disparado. O quadro de informações do carregador mostra a sequência, de cima para baixo.
-- **Descarregar:** botão direito → "Descarregar". Os cartuchos voltam como pilhas para perto do carregador; se faltar espaço, o resto fica nele.
+- **Descarregar:** botão direito → "Descarregar". Os cartuchos voltam na hora como pilhas para perto do carregador; se faltar espaço, o resto fica nele.
 - **Arma:** solte o carregador sobre a arma (no estoque ou equipada) para encaixá-lo. Carregadores e armas mostram no canto quantos cartuchos têm (ex.: 12/30). Para tirar: botão direito na arma → "Remover carregador".
 - **Câmara:** toda arma tem um cartucho na câmara além do carregador, mostrado como "+1" (ex.: 11+1/12). O PMC carrega a câmara ao entrar na raid, e a cada disparo o próximo cartucho sobe do carregador. No inventário: botão direito na arma → "Carregar a câmara" ou "Descarregar a câmara".
 - **Escopeta:** a Escopeta M-12 não usa carregador. Ela tem um tubo de 6 cartuchos: solte a munição calibre 12 direto sobre a escopeta (no estoque ou equipada) e ela carrega um cartucho por vez, como um carregador. Na raid, quando o tubo esvazia, o PMC usa um turno para enchê-lo com os cartuchos soltos que estiver carregando.

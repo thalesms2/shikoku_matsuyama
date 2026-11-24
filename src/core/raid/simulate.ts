@@ -304,7 +304,6 @@ export class RaidSimulation {
 
   run(): RaidRun {
     const { map } = this.setup;
-    this.player.loader.cancel();
     this.log("start", `Entrou em ${map.name} (${this.strategy.name})`);
     // Entra com um cartucho na câmara de cada arma
     for (const weapon of this.weapons()) chamberRound(weapon);

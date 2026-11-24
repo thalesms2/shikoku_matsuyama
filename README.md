@@ -59,14 +59,15 @@ Todo item ocupa um retângulo de células (por exemplo, 1x1 para uma atadura, 5x
 - **Rolagem:** com o Depósito, o estoque passa de 14 linhas e ganha uma barra de rolagem. Use a roda do mouse sobre o estoque, ou arraste um item até a borda de cima ou de baixo para ele rolar sozinho.
 - **Janelas de contêiner:** dá para abrir várias ao mesmo tempo (duplo clique em cada contêiner) e arrastá-las pela barra de título. Clicar numa janela a traz para frente.
 - **Ctrl+clique** (⌘+clique no Mac): move o item na hora. Do estoque, ele vai para o slot de equipamento vazio que o aceita (ou para bolsos, colete tático e mochila); de qualquer outro lugar, volta para o estoque.
-- **Organizar:** o botão organiza o estoque automaticamente, com os itens maiores primeiro. Se a nova organização não couber, nada muda.
+- **Organizar:** o botão azul com o ícone de barras organiza o estoque automaticamente, com os itens maiores primeiro. Se a nova organização não couber, nada muda.
 - **Informações:** pare o mouse sobre um item para ver a imagem, o nome, o tamanho, a quantidade, o valor (incluindo o que está dentro dele), os dados técnicos (calibre, dano, penetração, proteção, capacidade) e a descrição. O quadro muda de lado perto das bordas da tela.
 - **Menu do item:** clique com o botão direito em um item para ver as ações dele: abrir contêiner, descarregar carregador, remover o carregador da arma ou separar uma pilha pela metade.
 - **Imagens:** cada item mostra sua imagem ocupando as células dele, e ela gira junto quando você gira o item.
 
 ### Personagem (PMC)
 
-- Botão **Personagem** no inventário: mostra nível e XP, a vida de cada parte do corpo (cabeça, tórax, estômago, braços e pernas), energia, hidratação e skills.
+- **Painel do PMC** no inventário, ao lado das armas: nível e XP, uma silhueta com a vida de cada parte do corpo (verde, amarelo, vermelho; parte destruída marcada com X), vida total, energia e hidratação. Atualiza na hora.
+- Botão **Skills** no inventário: o nível, o bônus e o progresso de cada skill.
 - Se a cabeça ou o tórax chegarem a zero, o PMC morre. Dano em um braço ou perna já destruídos se espalha pelo resto do corpo.
 - **Usar itens:** botão direito em um remédio, comida ou bebida → "Usar". Remédios curam primeiro as partes mais feridas; comida e água recuperam energia e hidratação. O quadro de informações mostra o efeito de cada um.
 - **Skills:** cada skill sobe com o uso e dá 1% de bônus por nível (até 50%). Saúde melhora os remédios, Metabolismo melhora comida e bebida, e Manuseio de carregador ganha XP ao carregar e descarregar (o efeito dela vai valer na recarga em combate da raid nova). As outras contam nas raids (veja abaixo).

@@ -26,6 +26,7 @@ import { catalog } from "../../data/items.ts";
 import type { InventoryState } from "../../data/starter.ts";
 import { Button } from "../components/Button.ts";
 import { ContextMenu } from "../components/ContextMenu.ts";
+import { IconButton, sortIcon } from "../components/IconButton.ts";
 import type { TutorialPanel } from "../components/TutorialPanel.ts";
 import { itemActions } from "../inventory/actions.ts";
 import { ContainerWindow } from "../inventory/ContainerWindow.ts";
@@ -34,6 +35,7 @@ import type { DropTargets } from "../inventory/DragController.ts";
 import { GridView } from "../inventory/GridView.ts";
 import type { ItemView } from "../inventory/ItemView.ts";
 import { CELL } from "../inventory/layout.ts";
+import { PANEL_WIDTH, PmcPanel } from "../inventory/PmcPanel.ts";
 import { SlotView } from "../inventory/SlotView.ts";
 import { Tooltip } from "../inventory/Tooltip.ts";
 import type { TooltipBounds } from "../inventory/Tooltip.ts";
@@ -57,6 +59,8 @@ const CONTAINER_SECTIONS: [SlotName, string][] = [
   ["secure", "Contêiner seguro"],
 ];
 export const STASH_X = 700;
+/** Intervalo para atualizar o painel do PMC */
+export const PANEL_REFRESH_MS = 500;
 /** Deslocamento de cada janela de contêiner nova em relação à anterior */
 export const WINDOW_CASCADE = 24;
 /** Linhas do estoque visíveis de uma vez; o resto rola */
@@ -81,7 +85,10 @@ export class InventoryScene implements Scene {
   readonly contextMenu = new ContextMenu();
   readonly factory: ItemFactory;
   readonly player: PlayerState | null;
-  characterButton: Button | null = null;
+  skillsButton: Button | null = null;
+  /** Painel com vida, nível, energia e hidratação (só com o PMC) */
+  readonly pmcPanel: PmcPanel | null;
+  private panelMs = 0;
   raidButton: Button | null = null;
   tradersButton: Button | null = null;
   questsButton: Button | null = null;
@@ -134,7 +141,7 @@ export class InventoryScene implements Scene {
        */
       player?: PlayerState;
       /** Mostra o botão "Personagem" */
-      onOpenCharacter?: () => void;
+      onOpenSkills?: () => void;
       /** Mostra o botão "Raid" */
       onOpenRaid?: () => void;
       /** Mostra o botão "Vendedores" */
@@ -205,11 +212,24 @@ export class InventoryScene implements Scene {
     });
 
     this.containerPanel.position.set(0, y);
+
+    // Painel do PMC, no espaço entre o equipamento e o estoque
+    this.pmcPanel = this.player ? new PmcPanel() : null;
+    if (this.pmcPanel) {
+      const primary = this.slotViews.get("primary")!;
+      this.pmcPanel.position.set(
+        STASH_X - GAP - PANEL_WIDTH,
+        primary.y - LABEL,
+      );
+      this.content.addChild(this.pmcPanel);
+    }
     this.content.addChild(this.containerPanel);
 
     // Estoque
     this.content.addChild(this.heading("Estoque", STASH_X, 0));
-    this.sortButton = new Button("Organizar", () => this.sortStash());
+    this.sortButton = new IconButton(sortIcon, "Organizar", () =>
+      this.sortStash(),
+    );
     this.stashView = new GridView(state.stash);
     this.stashView.position.set(STASH_X, ROW_TOP);
     this.sortButton.position.set(
@@ -227,17 +247,17 @@ export class InventoryScene implements Scene {
       this.scrollBar,
       this.sortButton,
     );
-    if (options.onOpenCharacter) {
-      this.characterButton = new Button("Personagem", options.onOpenCharacter);
-      this.characterButton.position.set(
-        this.sortButton.x - this.characterButton.buttonWidth - GAP,
+    if (options.onOpenSkills) {
+      this.skillsButton = new Button("Skills", options.onOpenSkills);
+      this.skillsButton.position.set(
+        this.sortButton.x - this.skillsButton.buttonWidth - GAP,
         2,
       );
-      this.content.addChild(this.characterButton);
+      this.content.addChild(this.skillsButton);
     }
     if (options.onOpenRaid) {
       this.raidButton = new Button("Raid", options.onOpenRaid);
-      const left = this.characterButton ?? this.sortButton;
+      const left = this.skillsButton ?? this.sortButton;
       this.raidButton.position.set(
         left.x - this.raidButton.buttonWidth - GAP,
         2,
@@ -335,6 +355,7 @@ export class InventoryScene implements Scene {
 
   /** Redesenha tudo a partir do estado do inventário */
   refresh(): void {
+    if (this.player) this.pmcPanel!.refresh(this.player.pmc);
     this.stashView.refresh();
     this.applyStashScroll();
     for (const view of this.pocketViews) view.refresh();
@@ -497,6 +518,12 @@ export class InventoryScene implements Scene {
   /** Conta o atraso do tooltip e rola o estoque durante o arraste */
   update(deltaMs: number): void {
     this.autoscroll(deltaMs);
+    // O esconderijo cura e alimenta o PMC enquanto a tela está aberta
+    this.panelMs += deltaMs;
+    if (this.player && this.panelMs >= PANEL_REFRESH_MS) {
+      this.panelMs = 0;
+      this.pmcPanel!.refresh(this.player.pmc);
+    }
     const pending = this.pendingTooltip;
     if (!pending) return;
     pending.remaining -= deltaMs;

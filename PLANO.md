@@ -21,7 +21,7 @@ Como trabalhamos:
 - ✅ **11D — Atalhos de movimento:** Ctrl+clique move o item para o estoque (ou para o equipamento, vindo do estoque).
 - ✅ **11E — Janela de contêiner arrastável** e mais de uma janela aberta.
 - ✅ **11F — Loadouts melhores:** renomear loadouts e carregar os carregadores ao montar (agora instantâneo).
-- **11G — Painel do PMC no inventário:** a tela de equipamento ganha um painel com o estado do PMC, no estilo de HUD dos extraction shooters (com arte e layout próprios): silhueta do corpo com a vida de cada parte (cores por gravidade, partes destruídas marcadas), vida total, nível com a barra de XP, energia e hidratação. Atualiza na hora (uso de remédio, comida, esconderijo).
+- ✅ **11G — Painel do PMC no inventário:** a tela de equipamento ganha um painel com o estado do PMC, no estilo de HUD dos extraction shooters (com arte e layout próprios): silhueta do corpo com a vida de cada parte (cores por gravidade, partes destruídas marcadas), vida total, nível com a barra de XP, energia e hidratação. Atualiza na hora (uso de remédio, comida, esconderijo).
   - O botão "Personagem" vira "Skills", e a tela dele passa a mostrar só as skills (a vida, o nível, a energia e a hidratação ficam no painel).
   - Autorizado: a 11G conta como sistema substituído, então os testes antigos do botão "Personagem" (`InventoryScene.player.test.ts`) e da tela de personagem (`CharacterScene.test.ts`) são atualizados.
   - O botão "Organizar" do estoque vira um botão de ícone azul (com dica "Organizar" ao passar o mouse).

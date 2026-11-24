@@ -5,8 +5,8 @@ import { describe, expect, it, vi } from "vitest";
 import { ManualClock } from "../src/core/clock.ts";
 import { SAVE_VERSION } from "../src/core/save/format.ts";
 import { SAVE_KEY } from "../src/core/save/storage.ts";
-import { CharacterScene } from "../src/ui/scenes/CharacterScene.ts";
 import { InventoryScene } from "../src/ui/scenes/InventoryScene.ts";
+import { SkillsScene } from "../src/ui/scenes/SkillsScene.ts";
 import type { TitleScene } from "../src/ui/scenes/TitleScene.ts";
 
 const { tickers } = vi.hoisted(() => ({
@@ -101,16 +101,16 @@ describe("startGame: save", () => {
     );
   });
 
-  it("navega entre título, inventário e personagem", async () => {
+  it("navega entre título, inventário e skills", async () => {
     const { scenes, player } = await start();
     (scenes.current as TitleScene).view.emit("pointertap", {} as never);
     const inventory = scenes.current as InventoryScene;
     expect(inventory).toBeInstanceOf(InventoryScene);
     expect(inventory.player).toBe(player);
-    inventory.characterButton!.emit("pointertap", {} as never);
-    const character = scenes.current as CharacterScene;
-    expect(character).toBeInstanceOf(CharacterScene);
-    character.backButton.emit("pointertap", {} as never);
+    inventory.skillsButton!.emit("pointertap", {} as never);
+    const skills = scenes.current as SkillsScene;
+    expect(skills).toBeInstanceOf(SkillsScene);
+    skills.backButton.emit("pointertap", {} as never);
     expect(scenes.current).toBeInstanceOf(InventoryScene);
     scenes.clear();
   });

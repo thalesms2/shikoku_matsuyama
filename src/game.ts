@@ -37,7 +37,6 @@ import { TutorialPanel } from "./ui/components/TutorialPanel.ts";
 import { loadItemTextures } from "./ui/inventory/textures.ts";
 import { SceneManager } from "./ui/SceneManager.ts";
 import { AutoRaidScene, describeAutoRun } from "./ui/scenes/AutoRaidScene.ts";
-import { CharacterScene } from "./ui/scenes/CharacterScene.ts";
 import { EndingScene } from "./ui/scenes/EndingScene.ts";
 import { FleaScene } from "./ui/scenes/FleaScene.ts";
 import { HideoutScene } from "./ui/scenes/HideoutScene.ts";
@@ -48,6 +47,7 @@ import { QuestsScene } from "./ui/scenes/QuestsScene.ts";
 import { RaidScene } from "./ui/scenes/RaidScene.ts";
 import { RaidSetupScene } from "./ui/scenes/RaidSetupScene.ts";
 import { SettingsScene } from "./ui/scenes/SettingsScene.ts";
+import { SkillsScene } from "./ui/scenes/SkillsScene.ts";
 import { TitleScene } from "./ui/scenes/TitleScene.ts";
 import { TradersScene } from "./ui/scenes/TradersScene.ts";
 import { theme } from "./ui/theme.ts";
@@ -170,7 +170,7 @@ export async function startGame(
               })
             : undefined,
         player,
-        onOpenCharacter: showCharacter,
+        onOpenSkills: showSkills,
         onOpenRaid: showRaidSetup,
         onOpenTraders: () => showTraders(),
         onSellItem: (item) => showTraders(item),
@@ -230,8 +230,8 @@ export async function startGame(
         },
       }),
     );
-  const showCharacter = () =>
-    scenes.change(new CharacterScene(player, showInventory));
+  const showSkills = () =>
+    scenes.change(new SkillsScene(player, showInventory));
   const showRaidSetup = () =>
     scenes.change(
       new RaidSetupScene(player, {

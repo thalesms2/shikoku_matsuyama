@@ -12,13 +12,13 @@ import { InventoryScene } from "../../../src/ui/scenes/InventoryScene.ts";
 const ev = (x: number, y: number, button = 0) =>
   ({ global: { x, y }, button }) as never;
 
-function setup(onOpenCharacter?: () => void) {
+function setup(onOpenSkills?: () => void) {
   const clock = new ManualClock(0);
   const player = createNewPlayer(clock);
   const scene = new InventoryScene(player.inventory, {
     clock,
     player,
-    onOpenCharacter,
+    onOpenSkills,
   });
   const find = (id: string) =>
     player.inventory.stash.items().find((i) => i.def.id === id)!;
@@ -31,15 +31,15 @@ describe("InventoryScene com o estado do jogador", () => {
     const { scene, player } = setup();
     expect(scene.player).toBe(player);
     expect(scene.factory).toBe(player.factory);
-    expect(scene.characterButton).toBeNull();
+    expect(scene.skillsButton).toBeNull();
     scene.destroy();
   });
 
-  it("botão Personagem quando há onOpenCharacter", () => {
+  it("botão Skills quando há onOpenSkills", () => {
     const open = vi.fn();
     const { scene } = setup(open);
-    expect(scene.characterButton!.text.text).toBe("Personagem");
-    scene.characterButton!.emit("pointertap", ev(0, 0));
+    expect(scene.skillsButton!.text.text).toBe("Skills");
+    scene.skillsButton!.emit("pointertap", ev(0, 0));
     expect(open).toHaveBeenCalledOnce();
     scene.destroy();
   });

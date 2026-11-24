@@ -6,23 +6,23 @@ import { createNewPlayer } from "../../../src/data/newGame.ts";
 import { InventoryScene } from "../../../src/ui/scenes/InventoryScene.ts";
 
 describe("InventoryScene: botão Raid", () => {
-  it("fica à esquerda do Personagem e abre a preparação", () => {
+  it("fica à esquerda do Skills e abre a preparação", () => {
     const player = createNewPlayer(new ManualClock());
     const onOpenRaid = vi.fn();
     const scene = new InventoryScene(player.inventory, {
       player,
-      onOpenCharacter: () => {},
+      onOpenSkills: () => {},
       onOpenRaid,
     });
     const raid = scene.raidButton!;
     expect(raid.text.text).toBe("Raid");
-    expect(raid.x).toBeLessThan(scene.characterButton!.x);
+    expect(raid.x).toBeLessThan(scene.skillsButton!.x);
     raid.emit("pointertap", {} as never);
     expect(onOpenRaid).toHaveBeenCalledOnce();
     scene.destroy();
   });
 
-  it("sem Personagem, fica à esquerda do Organizar; sem callback, não existe", () => {
+  it("sem Skills, fica à esquerda do Organizar; sem callback, não existe", () => {
     const player = createNewPlayer(new ManualClock());
     const scene = new InventoryScene(player.inventory, {
       onOpenRaid: () => {},

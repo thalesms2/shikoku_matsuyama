@@ -134,7 +134,7 @@ Modelo de entrada para novas mecânicas:
 - **Operações:** `moveToGrid`/`moveToSlot` não mudam nada se o destino for inválido. `mergeStack` move `min(origem, maxStack − destino)`; se a origem esvaziar, ela é removida. `splitStack(item, n)` exige `1 ≤ n < count`. `autoPlace` completa pilhas iguais primeiro e depois usa o primeiro espaço livre nas grades, na ordem dada. `dropOnItem`: se for pilha igual, soma; se o alvo for um contêiner, guarda dentro dele.
 - **Organizar (`sortGrid`):** recoloca os itens por área (maior primeiro), depois por categoria, nome e quantidade (maior primeiro). Se não couber tudo, a grade volta exatamente como estava e a função devolve `false`.
 - **Valor:** `totalValue` = `basePrice × count` + valor de tudo que está dentro do item, recursivamente.
-- **UI:** arrastar com o botão esquerdo; prévia verde/vermelha; `R` gira durante o arraste; `Esc` cancela; soltar sobre uma pilha igual soma; soltar sobre um contêiner guarda dentro dele; duplo clique (≤ 350 ms) abre a janela do contêiner; o botão "Organizar" ordena o estoque. Soltar no mesmo lugar não conta como mudança (senão a view é recriada e o clique se perde).
+- **UI:** arrastar com o botão esquerdo; prévia verde/vermelha; `R` gira durante o arraste; `Esc` cancela; soltar sobre uma pilha igual soma; soltar sobre um contêiner guarda dentro dele; duplo clique (≤ 350 ms) abre a janela do contêiner; o botão azul de ícone (`IconButton` com `sortIcon`, dica "Organizar" com o ponteiro em cima) ordena o estoque. Soltar no mesmo lugar não conta como mudança (senão a view é recriada e o clique se perde).
 - **Janelas de contêiner** (Fase 11E): várias podem ficar abertas (`InventoryScene.windows`; `window` é a da frente). Abrir a de um item já aberto só a traz para frente; cada janela nova abre `WINDOW_CASCADE = 24` px deslocada da anterior. Clicar numa janela a traz para frente (`focusWindow`), e ela é arrastada pela barra de título (`WINDOW_HEADER = 30` px, menos o botão X). As janelas ficam acima do inventário e abaixo do tooltip e do menu; a da frente vem primeiro nos alvos do arraste. Cada uma fecha pelo X, e as dos contêineres que sumiram fecham no `refresh`.
 - **Ctrl+clique** (Fase 11D; ⌘+clique no Mac; `quickMove` em `src/core/inventory/quickMove.ts`): um item do estoque (direto ou dentro de um contêiner dele, `inStash`) vai para o primeiro slot vazio que o aceita (na ordem de `SLOT_NAMES`) ou, sem slot, para as grades de carga com `autoPlace`; de qualquer outro lugar, vai para o estoque com `autoPlace`. Pilhas podem entrar só em parte (conta como mudança). Sem espaço, nada muda. Não começa arraste.
 - **Menu de contexto (botão direito):** `src/ui/inventory/actions.ts` monta as opções por item: "Abrir" (contêiner), "Descarregar" (carregador ou tubo, instantâneo), "Remover carregador" (arma), "Separar pilha pela metade" (pilhas; a metade vai para o primeiro espaço livre de `storageFor`, ou volta para a pilha se não couber). `storageFor(item)` = grade do item, depois `carryGrids()`, depois o estoque, sem repetir. O menu do navegador é bloqueado no canvas.
@@ -167,7 +167,8 @@ Modelo de entrada para novas mecânicas:
 
 ### PMC
 
-- Arquivos: `src/core/pmc/pmc.ts`; tela em `src/ui/scenes/CharacterScene.ts` (botão "Personagem" no inventário).
+- Arquivos: `src/core/pmc/pmc.ts`; painel no inventário `src/ui/inventory/PmcPanel.ts` (Fase 11G).
+- **Painel do PMC** (`PmcPanel`, só quando a `InventoryScene` tem o `PlayerState`): fica entre o equipamento e o estoque, ao lado das armas. Mostra o nível com a barra de XP, uma silhueta com a vida de cada parte (verde acima de 60%, amarelo acima de 35%, vermelho abaixo, e destruída escura com contorno e um X; `partColor`), a vida de cada parte em texto (nomes curtos), vida total, energia e hidratação com barras. Atualiza a cada `refresh` do inventário e a cada `PANEL_REFRESH_MS = 500` ms no `update` (a cura e a comida do esconderijo aparecem com a tela aberta).
 - **Vida por parte do corpo** (máx.): cabeça 35, tórax 85, estômago 70, braços 60, pernas 65 (total 440). Cabeça ou tórax em 0 = morte.
 - **Dano** (`damage`): tira da parte atingida, sem passar de 0 (o excesso se perde). Dano em parte já destruída (não vital) se espalha: `dano × 0,7` dividido igualmente entre as partes vivas. Morto não recebe dano.
 - **Cura** (`heal`): distribui os pontos pelas partes mais feridas primeiro (menor `vida/máx.`; em empate, vitais primeiro); não cura partes destruídas (`restorePart` volta uma parte destruída para 1 PV, usado pela cirurgia).
@@ -176,7 +177,7 @@ Modelo de entrada para novas mecânicas:
 
 ### Skills
 
-- Arquivos: `src/core/pmc/skills.ts`.
+- Arquivos: `src/core/pmc/skills.ts`; tela `src/ui/scenes/SkillsScene.ts` (botão "Skills" no inventário; até a Fase 11G era a tela "Personagem", com vida e nível, que foram para o painel do inventário).
 - Skills: Resistência, Força, Saúde, Vitalidade, Metabolismo, Percepção, Furtividade, Mira, Manuseio de carregador.
 - XP acumulado para o nível `n` = `10 × n(n+1)/2` (nível 1 = 10, nível 2 = 30...), máximo 51. Bônus = `1% × nível`, limitado a 50%.
 - Efeitos: **Saúde** (+bônus na cura de remédios), **Metabolismo** (+bônus em energia/hidratação de comida e bebida; gasto de hidratação na raid × (1 − bônus)), **Manuseio de carregador** (sem efeito fora da raid desde o carregamento instantâneo; vai definir a recarga em combate na raid nova), **Mira**, **Percepção**, **Furtividade**, **Vitalidade** e **Resistência** na raid (fórmulas em Raid do PMC). **Força** só ganha XP por enquanto.

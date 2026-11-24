@@ -1,4 +1,6 @@
 import type { Clock } from "../clock.ts";
+import { createFleaState } from "../flea/flea.ts";
+import type { FleaListing, FleaResult, FleaState } from "../flea/types.ts";
 import { createHideoutState } from "../hideout/hideout.ts";
 import type { HideoutState } from "../hideout/types.ts";
 import { Equipment, SLOT_NAMES } from "../inventory/equipment.ts";
@@ -22,6 +24,7 @@ import type { TraderState, TradersState } from "../trade/types.ts";
 import { SAVE_VERSION } from "./format.ts";
 import type {
   SaveData,
+  SavedFlea,
   SavedItem,
   SavedLoadJob,
   SavedPlacedItem,
@@ -64,6 +67,20 @@ function saveJob(state: PlayerState): SavedLoadJob | null {
     : { kind: "unload", magazine: job.magazine.uid, startedAt, done };
 }
 
+function saveFlea(flea: FleaState): SavedFlea {
+  return {
+    seed: flea.seed,
+    nextListing: flea.nextListing,
+    listings: flea.listings.map((l) => ({ ...l, item: saveItem(l.item) })),
+    results: flea.results.map((r) =>
+      r.kind === "sold" ? { ...r } : { ...r, item: saveItem(r.item) },
+    ),
+    pressure: structuredClone(flea.pressure),
+    lastCheck: flea.lastCheck,
+    stats: { ...flea.stats },
+  };
+}
+
 /** Converte o estado do jogador para o formato do save */
 export function serializeGame(state: PlayerState, now: number): SaveData {
   const { stash, equipment } = state.inventory;
@@ -86,6 +103,7 @@ export function serializeGame(state: PlayerState, now: number): SaveData {
     traders: structuredClone(state.traders),
     quests: structuredClone(state.quests),
     hideout: structuredClone(state.hideout),
+    flea: saveFlea(state.flea),
   };
 }
 
@@ -223,6 +241,77 @@ function loadHideout(
   };
 }
 
+const isInt = (n: unknown): n is number => Number.isInteger(n);
+
+/**
+ * Mercado salvo: anúncios e resultados inválidos (ou com item que saiu do
+ * jogo) são descartados, pressão inválida some, números inválidos voltam ao
+ * padrão e `lastCheck` inválido vira `now` (sem tempo offline).
+ */
+function loadFlea(
+  saved: SavedFlea | undefined,
+  loader: Loader,
+  now: number,
+): FleaState {
+  const base = createFleaState(now);
+  if (!saved) return base;
+  const listings: FleaListing[] = [];
+  for (const l of saved.listings ?? []) {
+    if (
+      !isInt(l?.id) ||
+      !isInt(l.price) ||
+      l.price < 1 ||
+      !Number.isFinite(l.listedAt) ||
+      !Number.isFinite(l.expiresAt) ||
+      !l.item
+    ) {
+      continue;
+    }
+    const item = loader.item(l.item);
+    if (item) listings.push({ ...l, item });
+  }
+  const results: FleaResult[] = [];
+  for (const r of saved.results ?? []) {
+    if (!isInt(r?.id)) continue;
+    if (r.kind === "sold") {
+      if (
+        typeof r.def === "string" &&
+        isInt(r.count) &&
+        isInt(r.price) &&
+        r.price > 0
+      ) {
+        results.push({ ...r });
+      }
+    } else if (r.kind === "expired" && r.item) {
+      const item = loader.item(r.item);
+      if (item) results.push({ ...r, item });
+    }
+  }
+  const pressure: FleaState["pressure"] = {};
+  for (const [id, p] of Object.entries(saved.pressure ?? {})) {
+    if (Number.isFinite(p?.value) && Number.isFinite(p.at)) {
+      pressure[id] = { value: p.value, at: p.at };
+    }
+  }
+  const stats = { ...base.stats };
+  for (const key of Object.keys(stats) as (keyof typeof stats)[]) {
+    stats[key] = finite(saved.stats?.[key], 0);
+  }
+  const ids = [...listings, ...results].map((x) => x.id);
+  return {
+    seed: isInt(saved.seed) ? saved.seed >>> 0 : base.seed,
+    nextListing: Math.max(
+      isInt(saved.nextListing) ? saved.nextListing : 1,
+      ...ids.map((id) => id + 1),
+    ),
+    listings,
+    results,
+    pressure,
+    lastCheck: finite(saved.lastCheck, now),
+    stats,
+  };
+}
+
 /**
  * Quests salvas: status inválido descarta a quest; progresso inválido vira
  * 0. Quests que saíram do jogo ficam guardadas sem efeito.
@@ -345,6 +434,7 @@ export function deserializeGame(
       traders: loadTraders(data.traders),
       quests: loadQuests(data.quests),
       hideout: loadHideout(data.hideout, clock.now()),
+      flea: loadFlea(data.flea, loader, clock.now()),
     },
     clock,
   );

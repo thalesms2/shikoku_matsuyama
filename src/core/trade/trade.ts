@@ -122,7 +122,7 @@ export function countInStash(stash: Grid, defId: string): number {
 }
 
 /** Item ocupado no carregamento de carregador em andamento */
-function inUse(player: PlayerState, item: Item): boolean {
+export function inUse(player: PlayerState, item: Item): boolean {
   const job = player.loader.job;
   return (
     job !== null &&

@@ -1,3 +1,4 @@
+import type { FleaState, FleaStats } from "../flea/types.ts";
 import type { HideoutState } from "../hideout/types.ts";
 import type { SlotName } from "../inventory/equipment.ts";
 import type { PmcState } from "../pmc/pmc.ts";
@@ -7,7 +8,7 @@ import type { RaidProfile, ScavProfile } from "../raid/types.ts";
 import type { TradersState } from "../trade/types.ts";
 
 /** Versão atual do formato do save. Mudou o formato? Incremente e migre. */
-export const SAVE_VERSION = 6;
+export const SAVE_VERSION = 7;
 
 /** Item salvo; o conteúdo vai junto (grades, cartuchos, carregador) */
 export interface SavedItem {
@@ -65,4 +66,26 @@ export interface SaveData {
   quests?: QuestsState;
   /** v6: esconderijo (módulos, obra, produções, renda, último cálculo) */
   hideout?: HideoutState;
+  /** v7: mercado (anúncios com o item, resultados, pressão, estatísticas) */
+  flea?: SavedFlea;
+}
+
+export type SavedFleaResult =
+  | { kind: "sold"; id: number; def: string; count: number; price: number }
+  | { kind: "expired"; id: number; item: SavedItem };
+
+export interface SavedFlea {
+  seed: number;
+  nextListing: number;
+  listings: {
+    id: number;
+    item: SavedItem;
+    price: number;
+    listedAt: number;
+    expiresAt: number;
+  }[];
+  results: SavedFleaResult[];
+  pressure: FleaState["pressure"];
+  lastCheck: number;
+  stats: FleaStats;
 }

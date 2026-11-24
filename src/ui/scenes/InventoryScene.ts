@@ -71,6 +71,7 @@ export class InventoryScene implements Scene {
   tradersButton: Button | null = null;
   questsButton: Button | null = null;
   hideoutButton: Button | null = null;
+  fleaButton: Button | null = null;
   readonly stashView: GridView;
   readonly slotViews = new Map<SlotName, SlotView>();
   readonly pocketViews: GridView[];
@@ -116,6 +117,7 @@ export class InventoryScene implements Scene {
       onOpenQuests?: () => void;
       /** Mostra o botão "Esconderijo" */
       onOpenHideout?: () => void;
+      onOpenFlea?: () => void;
     } = {},
   ) {
     this.clock = options.clock ?? systemClock;
@@ -220,6 +222,19 @@ export class InventoryScene implements Scene {
         2,
       );
       this.content.addChild(this.hideoutButton);
+    }
+    if (options.onOpenFlea) {
+      this.fleaButton = new Button("Mercado", options.onOpenFlea);
+      const right =
+        this.hideoutButton?.x ??
+        this.questsButton?.x ??
+        this.tradersButton?.x ??
+        STASH_X;
+      this.fleaButton.position.set(
+        right - this.fleaButton.buttonWidth - GAP,
+        2,
+      );
+      this.content.addChild(this.fleaButton);
     }
 
     this.view.addChild(this.content);

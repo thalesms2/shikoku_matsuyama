@@ -1,4 +1,6 @@
 import type { Clock } from "./clock.ts";
+import { createFleaState } from "./flea/flea.ts";
+import type { FleaState } from "./flea/types.ts";
 import { createHideoutState } from "./hideout/hideout.ts";
 import type { HideoutState } from "./hideout/types.ts";
 import type { Equipment } from "./inventory/equipment.ts";
@@ -36,23 +38,27 @@ export interface PlayerState {
   quests: QuestsState;
   /** Módulos, obra, produções, renda e o último cálculo do esconderijo */
   hideout: HideoutState;
+  /** Anúncios, resultados, pressão de preços e estatísticas do mercado */
+  flea: FleaState;
 }
 
 /**
  * Monta o estado do jogador. Sem `raid`, começa um perfil novo com a seed
  * tirada do relógio; sem `scav`, a raid Scav começa liberada; sem `traders`, nenhum vendedor
- * tem histórico (o estado de cada um é criado no primeiro acesso).
+ * tem histórico (o estado de cada um é criado no primeiro acesso); sem
+ * `hideout`/`flea`, começam vazios a partir do relógio.
  */
 export function createPlayerState(
   parts: Omit<
     PlayerState,
-    "loader" | "raid" | "scav" | "traders" | "quests" | "hideout"
+    "loader" | "raid" | "scav" | "traders" | "quests" | "hideout" | "flea"
   > & {
     raid?: RaidProfile;
     scav?: ScavProfile;
     traders?: TradersState;
     quests?: QuestsState;
     hideout?: HideoutState;
+    flea?: FleaState;
   },
   clock: Clock,
 ): PlayerState {
@@ -64,6 +70,7 @@ export function createPlayerState(
     traders: parts.traders ?? {},
     quests: parts.quests ?? {},
     hideout: parts.hideout ?? createHideoutState(clock.now()),
+    flea: parts.flea ?? createFleaState(clock.now()),
   };
 }
 

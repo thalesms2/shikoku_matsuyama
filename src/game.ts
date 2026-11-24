@@ -5,6 +5,7 @@ import { Application, Assets } from "pixi.js";
 import { assets } from "./assets.ts";
 import { systemClock } from "./core/clock.ts";
 import type { Clock } from "./core/clock.ts";
+import { fleaTick } from "./core/flea/flea.ts";
 import { hideoutTick } from "./core/hideout/hideout.ts";
 import { progressAfterRaid } from "./core/quests/quests.ts";
 import type { QuestContext } from "./core/quests/types.ts";
@@ -14,6 +15,7 @@ import {
   browserStorage,
   saveGame,
 } from "./core/save/storage.ts";
+import { FLEA } from "./data/flea.ts";
 import { HIDEOUT } from "./data/hideout.ts";
 import { ITEM_DEFS } from "./data/items.ts";
 import { ENEMIES, MAPS, mapById } from "./data/maps.ts";
@@ -25,6 +27,7 @@ import { loadItemTextures } from "./ui/inventory/textures.ts";
 import { SceneManager } from "./ui/SceneManager.ts";
 import { CharacterScene } from "./ui/scenes/CharacterScene.ts";
 import { EndingScene } from "./ui/scenes/EndingScene.ts";
+import { FleaScene } from "./ui/scenes/FleaScene.ts";
 import { HideoutScene } from "./ui/scenes/HideoutScene.ts";
 import { InventoryScene } from "./ui/scenes/InventoryScene.ts";
 import { QuestsScene } from "./ui/scenes/QuestsScene.ts";
@@ -34,7 +37,7 @@ import { TitleScene } from "./ui/scenes/TitleScene.ts";
 import { TradersScene } from "./ui/scenes/TradersScene.ts";
 import { theme } from "./ui/theme.ts";
 
-/** Intervalo do cálculo do esconderijo com o jogo aberto */
+/** Intervalo do cálculo do esconderijo e do mercado com o jogo aberto */
 export const HIDEOUT_TICK_MS = 1000;
 
 /** Inicia a aplicação PixiJS dentro de `container` e mostra a tela inicial */
@@ -85,14 +88,19 @@ export async function startGame(
     console.warn(`Save não carregado, começando um jogo novo: ${error}`);
   for (const warning of warnings) console.warn(`Save: ${warning}`);
 
-  // Tempo do esconderijo com o jogo fechado (obras, cura, comida)
-  hideoutTick(player, HIDEOUT, clock.now());
+  // Tempo com o jogo fechado: esconderijo (obras, cura, comida) e vendas
+  // dos anúncios do mercado
+  const tick = () => {
+    hideoutTick(player, HIDEOUT, clock.now());
+    fleaTick(player, FLEA, clock.now());
+  };
+  tick();
   let hideoutElapsed = 0;
   app.ticker.add((ticker) => {
     hideoutElapsed += ticker.deltaMS;
     if (hideoutElapsed < HIDEOUT_TICK_MS) return;
     hideoutElapsed = 0;
-    hideoutTick(player, HIDEOUT, clock.now());
+    tick();
   });
 
   const save = () => saveGame(player, storage, clock);
@@ -115,6 +123,18 @@ export async function startGame(
         onOpenTraders: showTraders,
         onOpenQuests: showQuests,
         onOpenHideout: showHideout,
+        onOpenFlea: showFlea,
+      }),
+    );
+  const showFlea = () =>
+    scenes.change(
+      new FleaScene(player, {
+        config: FLEA,
+        clock,
+        onBack: () => {
+          save();
+          showInventory();
+        },
       }),
     );
   const showHideout = () =>

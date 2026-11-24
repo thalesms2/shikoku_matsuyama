@@ -134,7 +134,7 @@ O jogo **nunca consulta a API durante a execução**. A API ([tarkov.dev](https:
 - Módulos com níveis e requisitos (itens, dinheiro, lealdade, outros módulos): estoque (aumenta a grade), enfermaria (cura entre raids), cozinha/água, gerador, oficina (crafting), estação de renda passiva, módulo que reduz o cooldown do scav.
 - Produção/crafting com tempo real (continua com o jogo fechado — cálculo de progresso offline ao carregar o save).
 
-## Fase 8 — Flea market
+## Fase 8 — Flea market ✅
 
 - Desbloqueado por nível do PMC.
 - Preços dinâmicos (oferta/demanda simuladas, variação com o tempo, influência das vendas do jogador).
@@ -174,3 +174,4 @@ O jogo **nunca consulta a API durante a execução**. A API ([tarkov.dev](https:
 10. ✅ Vendedores e economia (Fase 5).
 11. ✅ Quests e final do jogo (Fase 6).
 12. ✅ Esconderijo (Fase 7).
+13. ✅ Flea market (Fase 8).

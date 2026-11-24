@@ -41,7 +41,7 @@ As imagens placeholder ficam em `public/assets/items/`, fora do git: cada máqui
 2. Escolha um mapa e uma estratégia e entre na raid.
 3. Se extrair, fica com tudo que levou e encontrou. Se morrer, perde tudo — só o XP das skills fica.
 4. Use a raid Scav (com cooldown) para conseguir itens sem arriscar seu equipamento.
-5. Venda, compre, faça quests, melhore o esconderijo e organize tudo na grade do estoque.
+5. Venda, compre (nos vendedores e no mercado), faça quests, melhore o esconderijo e organize tudo na grade do estoque.
 
 ## Mecânicas
 
@@ -154,6 +154,17 @@ Botão **Esconderijo** no inventário. Construa e melhore módulos pagando com d
 - **Posto de vigia** — diminui a espera da raid Scav.
 
 Cada módulo mostra o que faz agora, o que o próximo nível dá, quanto custa e o que falta. As produções usam os ingredientes ao começar; quando terminam, clique em **Retirar** (precisa haver espaço no estoque).
+
+### Mercado
+
+Botão **Mercado** no inventário. É o mercado entre jogadores da cidade (simulado). Ele abre no **nível 5 do PMC**, e tudo é pago em rublos.
+
+- **Preços que mudam:** cada item tem um preço de mercado que sobe e desce com o tempo, até 20% acima ou abaixo do preço normal. A seta ▲/▼ mostra para onde o preço foi na última hora. Comprar um item faz o preço dele subir um pouco, e vender faz cair. O efeito some aos poucos (cai pela metade a cada 2 horas).
+- **Comprar:** cada compra traz uma pilha cheia (ex.: 60 cartuchos), por 10% acima do preço de mercado. O que você compra aqui **não** conta como encontrado na raid.
+- **Vender (anunciar):** escolha um item do estoque e o preço pedido, de 50% a 200% do valor de mercado (botões − e +). Você paga uma **taxa** ao anunciar: 4% do valor quando o preço é o de mercado, e ela cresce rápido se você pedir mais. O item sai do estoque enquanto está anunciado.
+- **Quando vende:** os compradores aparecem com o tempo, inclusive com o jogo fechado. Pelo preço de mercado, a venda leva uns 20 minutos em média. Mais barato vende mais rápido, mais caro demora mais, e com o dobro do valor ninguém compra. O anúncio dura 12 horas; depois disso o item volta.
+- **Anúncios:** até 3 ao mesmo tempo. Na aba **Anúncios**, retire o dinheiro das vendas e os itens que voltaram (precisa haver espaço no estoque) ou cancele um anúncio (a taxa não volta).
+- **Encontrado na raid:** permutas e chaves só podem ser anunciadas se forem encontradas na raid. Contêineres, carregadores e armas precisam estar vazios.
 
 ### Raid Scav
 

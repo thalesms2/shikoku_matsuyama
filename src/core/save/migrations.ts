@@ -1,3 +1,4 @@
+import { createFleaState } from "../flea/flea.ts";
 import { createHideoutState } from "../hideout/hideout.ts";
 import { createRaidProfile, createScavProfile } from "../raid/profile.ts";
 import { SAVE_VERSION } from "./format.ts";
@@ -28,6 +29,11 @@ export const MIGRATIONS: Record<number, Migration> = {
   5: (data) => ({
     ...data,
     hideout: createHideoutState(Number(data.savedAt) || 0),
+  }),
+  // v6 → v7: mercado sem anúncios (o formato salvo é igual ao do estado)
+  6: (data) => ({
+    ...data,
+    flea: createFleaState(Number(data.savedAt) || 0),
   }),
 };
 

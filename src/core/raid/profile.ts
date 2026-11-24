@@ -12,22 +12,45 @@ import type {
   MapDef,
   RaidEvent,
   RaidProfile,
+  RaidStats,
+  RaidSummary,
+  ScavProfile,
   StrategyId,
 } from "./types.ts";
 
 /** Milissegundos reais por minuto de raid, na velocidade normal */
 export const MS_PER_RAID_MINUTE = 2000;
 
+export function createRaidStats(): RaidStats {
+  return {
+    raids: 0,
+    extracted: 0,
+    killed: 0,
+    mia: 0,
+    kills: { scav: 0, pmc: 0 },
+  };
+}
+
+/** Conta uma raid nas estatísticas */
+export function recordRaid(
+  stats: RaidStats,
+  summary: Pick<RaidSummary, "outcome" | "kills">,
+): void {
+  stats.raids++;
+  stats[summary.outcome]++;
+  stats.kills.scav += summary.kills.scav;
+  stats.kills.pmc += summary.kills.pmc;
+}
+
+/** Raid Scav liberada desde o começo */
+export function createScavProfile(): ScavProfile {
+  return { readyAt: 0, stats: createRaidStats() };
+}
+
 export function createRaidProfile(seed: number): RaidProfile {
   return {
     karma: 0,
-    stats: {
-      raids: 0,
-      extracted: 0,
-      killed: 0,
-      mia: 0,
-      kills: { scav: 0, pmc: 0 },
-    },
+    stats: createRaidStats(),
     lootRule: "valuePerCell",
     seed: seed >>> 0,
     active: null,
@@ -75,11 +98,7 @@ export function startRaid(
   });
   profile.seed = Math.floor(rng.next() * 2 ** 32);
   profile.karma = clampKarma(profile.karma + summary.karma);
-  const { stats } = profile;
-  stats.raids++;
-  stats[summary.outcome]++;
-  stats.kills.scav += summary.kills.scav;
-  stats.kills.pmc += summary.kills.pmc;
+  recordRaid(profile.stats, summary);
   profile.active = { startedAt: clock.now(), events, summary };
   return profile.active;
 }

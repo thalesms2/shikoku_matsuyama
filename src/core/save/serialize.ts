@@ -10,9 +10,9 @@ import { createPmc } from "../pmc/pmc.ts";
 import type { PmcState } from "../pmc/pmc.ts";
 import { createSkills } from "../pmc/skills.ts";
 import type { SkillsState } from "../pmc/skills.ts";
-import { createRaidProfile } from "../raid/profile.ts";
+import { createRaidProfile, createScavProfile } from "../raid/profile.ts";
 import { LOOT_RULES } from "../raid/types.ts";
-import type { RaidProfile } from "../raid/types.ts";
+import type { RaidProfile, ScavProfile } from "../raid/types.ts";
 import { createPlayerState, storageFor } from "../state.ts";
 import type { PlayerState } from "../state.ts";
 import { SAVE_VERSION } from "./format.ts";
@@ -77,6 +77,7 @@ export function serializeGame(state: PlayerState, now: number): SaveData {
     skills: { ...state.skills },
     loader: saveJob(state),
     raid: structuredClone(state.raid),
+    scav: structuredClone(state.scav),
   };
 }
 
@@ -149,6 +150,20 @@ function loadPmc(saved: Partial<PmcState> | undefined): PmcState {
 
 function loadSkills(saved: Partial<SkillsState> | undefined): SkillsState {
   return { ...createSkills(), ...saved };
+}
+
+/** Perfil Scav salvo; campos que faltam voltam ao padrão (liberada) */
+function loadScav(saved: ScavProfile | undefined): ScavProfile {
+  const base = createScavProfile();
+  if (!saved) return base;
+  return {
+    readyAt: Number.isFinite(saved.readyAt) ? saved.readyAt : base.readyAt,
+    stats: {
+      ...base.stats,
+      ...saved.stats,
+      kills: { ...base.stats.kills, ...saved.stats?.kills },
+    },
+  };
 }
 
 function loadRaid(saved: RaidProfile | undefined, seed: number): RaidProfile {
@@ -237,6 +252,7 @@ export function deserializeGame(
       skills: loadSkills(data.skills),
       factory,
       raid: loadRaid(data.raid, clock.now()),
+      scav: loadScav(data.scav),
     },
     clock,
   );

@@ -18,6 +18,7 @@ import type {
   RaidEventKind,
   RaidOutcome,
   RaidSummary,
+  ScavTransfer,
 } from "../../core/raid/types.ts";
 import type { PlayerState } from "../../core/state.ts";
 import { Button } from "../components/Button.ts";
@@ -82,8 +83,38 @@ const listItems = (items: readonly ItemSummary[]) =>
         .join(", ")
     : "nada";
 
+/** Linhas do resumo da raid Scav */
+export function scavSummaryLines(
+  summary: RaidSummary,
+  transfer: ScavTransfer,
+): string[] {
+  const lines: string[] = [];
+  if (summary.outcome === "extracted")
+    lines.push(`Extração: ${summary.extract}`);
+  else if (summary.killedBy) lines.push(`Morto por ${summary.killedBy}`);
+  lines.push(`Tempo: ${formatRaidTime(summary.minutes)}`);
+  lines.push(`Abates: ${summary.kills.scav} Scav, ${summary.kills.pmc} PMC`);
+  if (summary.outcome === "extracted") {
+    lines.push(
+      `Loot: ${listItems(summary.loot)} (${formatPrice(summary.lootValue)})`,
+    );
+    lines.push(
+      `Levado ao estoque: ${listItems(transfer.stored)} (${formatPrice(transfer.storedValue)})`,
+    );
+    if (transfer.left.length > 0) {
+      lines.push(`Sem espaço no estoque: ${listItems(transfer.left)}`);
+    }
+  } else {
+    lines.push(`Perdido: ${listItems(summary.lost)}`);
+    lines.push("O PMC não perdeu nada");
+  }
+  lines.push("Raid Scav: sem XP e sem mudança de karma");
+  return lines;
+}
+
 /** Linhas do resumo pós-raid */
 export function summaryLines(summary: RaidSummary): string[] {
+  if (summary.scav) return scavSummaryLines(summary, summary.scav);
   const lines: string[] = [];
   if (summary.outcome === "extracted")
     lines.push(`Extração: ${summary.extract}`);
@@ -149,7 +180,11 @@ export class RaidScene implements Scene {
     this.minute = raidMinuteAt(options.clock.now() - raid.startedAt);
 
     this.header = new Text({
-      text: `${options.map.name} · ${STRATEGIES[raid.summary.strategy].name}`,
+      text: [
+        options.map.name,
+        ...(raid.summary.scav ? ["Scav"] : []),
+        STRATEGIES[raid.summary.strategy].name,
+      ].join(" · "),
       style: {
         fill: theme.accent,
         fontFamily: theme.fontFamily,

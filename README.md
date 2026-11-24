@@ -116,4 +116,20 @@ Botão **Raid** no inventário. Escolha o mapa, a estratégia e a regra de loot 
   - **Vitalidade:** recebe menos dano.
   - **Resistência e Metabolismo:** gastam menos energia e hidratação.
   - **Força:** sobe com o loot carregado.
-- **Karma:** abater Scavs diminui o karma; evitar brigas, abater PMCs inimigos e extrair aumentam. Ele vai influenciar a raid Scav. A tela de preparação mostra o karma e as suas estatísticas.
+- **Karma:** abater Scavs diminui o karma; evitar brigas, abater PMCs inimigos e extrair aumentam. Ele muda a raid Scav (veja abaixo). A tela de preparação mostra o karma e as suas estatísticas.
+
+### Raid Scav
+
+Na tela de preparação, escolha o mapa e a estratégia e clique em **Entrar como Scav**. Você entra com um Scav descartável e seu PMC não arrisca nada.
+
+- **Equipamento aleatório:** o Scav recebe uma pistola ou um fuzil com o carregador pelo menos meio cheio e, às vezes, colete tático, mochila, colete balístico, capacete, carregador extra, munição e alguns itens (remédios, comida, dinheiro).
+- **Habilidade:** o Scav usa as skills do seu PMC, mas o XP ganho na raid Scav não fica, e o PMC também não ganha XP.
+- **Extraiu:** tudo que o Scav carrega (equipamento e loot) vai para o estoque, do mais valioso por célula para o menos valioso. **Precisa caber:** o que não couber fica para trás e aparece no resumo.
+- **Morreu ou MIA:** perde só o que o Scav tinha.
+- **Espera:** depois de cada raid Scav, a próxima fica liberada em 20 minutos de tempo real (continua contando com o jogo fechado).
+- **Karma:** quanto maior o karma do PMC, melhor a raid Scav:
+  - os outros Scavs reconhecem você e não atacam (60% das vezes com karma 0; de 20% a 100% conforme o karma);
+  - menos tocaias na extração;
+  - mais loot e loot mais valioso;
+  - espera menor (até 25% a menos com karma alto, até 25% a mais com karma baixo).
+- A raid Scav não muda o karma. A tela de preparação mostra quanto falta para liberar, o efeito do karma atual e as estatísticas das raids Scav.

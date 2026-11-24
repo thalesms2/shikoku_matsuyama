@@ -1,5 +1,6 @@
 import { SLOT_NAMES } from "../inventory/equipment.ts";
 import type { Grid } from "../inventory/grid.ts";
+import { totalValue } from "../inventory/item.ts";
 import type { Item } from "../inventory/item.ts";
 import {
   freeRounds,
@@ -50,6 +51,7 @@ import {
 import { rollLoot, stashLoot } from "./loot.ts";
 import { KARMA, STRATEGIES } from "./strategy.ts";
 import type { Strategy } from "./strategy.ts";
+import { NO_MODIFIERS } from "./types.ts";
 import type {
   EnemyDef,
   EnemyKind,
@@ -58,6 +60,7 @@ import type {
   LootRule,
   MapDef,
   RaidEvent,
+  RaidModifiers,
   RaidEventKind,
   RaidOutcome,
   RaidSummary,
@@ -147,6 +150,8 @@ export interface RaidSetup {
   enemies: Readonly<Record<EnemyKind, EnemyDef>>;
   rng: Rng;
   lootRule: LootRule;
+  /** Ajustes da raid Scav (karma); sem eles, nada muda */
+  modifiers?: RaidModifiers;
 }
 
 export interface RaidRun {
@@ -206,6 +211,7 @@ function summarize(items: Iterable<{ def: Item["def"]; count: number }>) {
 export class RaidSimulation {
   readonly events: RaidEvent[] = [];
   readonly strategy: Strategy;
+  readonly mods: RaidModifiers;
   t = 0;
   karma = 0;
   readonly kills: Record<EnemyKind, number> = { scav: 0, pmc: 0 };
@@ -219,6 +225,7 @@ export class RaidSimulation {
 
   constructor(private readonly setup: RaidSetup) {
     this.strategy = STRATEGIES[setup.strategy];
+    this.mods = setup.modifiers ?? NO_MODIFIERS;
     this.skillsBefore = { ...setup.player.skills };
   }
 
@@ -308,7 +315,11 @@ export class RaidSimulation {
     const kind = this.rng.weighted<"loot" | EnemyKind | "hazard" | "quiet">([
       {
         value: "loot",
-        weight: EVENT_WEIGHTS.loot * this.strategy.loot * perception,
+        weight:
+          EVENT_WEIGHTS.loot *
+          this.strategy.loot *
+          perception *
+          this.mods.lootWeight,
       },
       { value: "scav", weight: map.threats.scav * this.strategy.encounter },
       { value: "pmc", weight: map.threats.pmc * this.strategy.encounter },
@@ -324,13 +335,25 @@ export class RaidSimulation {
   // ------------------------------------------------------------------- loot
 
   searchLoot(extraChance: number): void {
-    this.takeLoot(rollLoot(this.setup.map.loot, this.rng, this.player.factory));
+    this.takeLoot(this.rollLoot());
     if (this.rng.chance(extraChance)) {
-      this.takeLoot(
-        rollLoot(this.setup.map.loot, this.rng, this.player.factory),
-        " (olhar atento)",
-      );
+      this.takeLoot(this.rollLoot(), " (olhar atento)");
     }
+  }
+
+  /**
+   * Sorteia um item da tabela do mapa. Com `lootQuality`, pode sortear de
+   * novo e ficar com o mais valioso (positivo) ou o menos valioso (negativo).
+   */
+  rollLoot(): Item {
+    const roll = () =>
+      rollLoot(this.setup.map.loot, this.rng, this.player.factory);
+    const item = roll();
+    const quality = this.mods.lootQuality;
+    if (quality === 0 || !this.rng.chance(Math.abs(quality))) return item;
+    const other = roll();
+    const otherIsBetter = totalValue(other) > totalValue(item);
+    return otherIsBetter === quality > 0 ? other : item;
   }
 
   takeLoot(item: Item, where = ""): void {
@@ -524,6 +547,14 @@ export class RaidSimulation {
   fight(kind: EnemyKind): void {
     const { player, rng, strategy } = this;
     const enemy = this.setup.enemies[kind];
+    const friendly = this.mods.friendlyScav;
+    if (kind === "scav" && friendly > 0 && rng.chance(friendly)) {
+      this.log(
+        "avoid",
+        `Cruzou com ${enemy.name}, que reconheceu você e seguiu em frente`,
+      );
+      return;
+    }
     const armorClass = rng.pick(enemy.armorClasses);
     let health = enemy.health;
     this.log(
@@ -627,10 +658,7 @@ export class RaidSimulation {
     this.karma += enemy.kind === "scav" ? KARMA.killScav : KARMA.killPmc;
     this.log("kill", `Abateu ${enemy.name}`);
     if (this.rng.chance(this.strategy.searchBody)) {
-      this.takeLoot(
-        rollLoot(this.setup.map.loot, this.rng, this.player.factory),
-        " no corpo",
-      );
+      this.takeLoot(this.rollLoot(), " no corpo");
     }
     this.afterFight();
   }
@@ -674,7 +702,9 @@ export class RaidSimulation {
       this.pay(req.item, req.amount);
       this.log("extract", `Pagou ${req.amount} pela passagem`);
     }
-    if (this.rng.chance(extract.risk * this.strategy.encounter)) {
+    const ambush =
+      extract.risk * this.strategy.encounter * this.mods.extractRisk;
+    if (this.rng.chance(ambush)) {
       const kind = this.rng.weighted([
         { value: "scav" as const, weight: this.setup.map.threats.scav },
         { value: "pmc" as const, weight: this.setup.map.threats.pmc },

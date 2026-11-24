@@ -127,6 +127,78 @@ export interface RaidSummary {
   readonly extract: string | null;
   /** Quem matou o PMC */
   readonly killedBy: string | null;
+  /** Só na raid Scav: o que foi levado ao estoque ao extrair */
+  readonly scav?: ScavTransfer;
+}
+
+/** Resultado da transferência do Scav para o estoque */
+export interface ScavTransfer {
+  /** Itens (equipamento e loot do Scav) guardados no estoque */
+  readonly stored: readonly ItemSummary[];
+  readonly storedValue: number;
+  /** O que não coube no estoque e ficou para trás */
+  readonly left: readonly ItemSummary[];
+}
+
+/**
+ * Ajustes da simulação para um tipo de raid (a raid Scav usa o karma). Sem
+ * modificadores, a raid do PMC não muda.
+ */
+export interface RaidModifiers {
+  /** Chance de um Scav encontrado não ser hostil */
+  readonly friendlyScav: number;
+  /** Multiplica a chance de tocaia na extração */
+  readonly extractRisk: number;
+  /** Multiplica o peso dos eventos de loot */
+  readonly lootWeight: number;
+  /**
+   * −1 a 1. Positivo: chance de sortear o loot duas vezes e ficar com o mais
+   * valioso; negativo: com o menos valioso.
+   */
+  readonly lootQuality: number;
+}
+
+export const NO_MODIFIERS: RaidModifiers = {
+  friendlyScav: 0,
+  extractRisk: 1,
+  lootWeight: 1,
+  lootQuality: 0,
+};
+
+/** Opção de arma do Scav, com carregador e munição */
+export interface ScavWeaponOption {
+  readonly weapon: string;
+  readonly magazine: string;
+  readonly ammo: string;
+  readonly weight: number;
+  /** Carregadores extras (cheios) */
+  readonly spareMags: readonly [number, number];
+  /** Munição solta */
+  readonly looseAmmo: readonly [number, number];
+}
+
+/** Opção de um slot do Scav; `item: null` = slot vazio */
+export interface ScavSlotOption {
+  readonly item: string | null;
+  readonly weight: number;
+}
+
+export type ScavGearSlot = "helmet" | "armor" | "rig" | "backpack";
+
+/** Tabelas do equipamento aleatório do Scav */
+export interface ScavLoadout {
+  readonly weapons: readonly ScavWeaponOption[];
+  readonly gear: Readonly<Record<ScavGearSlot, readonly ScavSlotOption[]>>;
+  /** Itens soltos (remédios, comida, dinheiro...) */
+  readonly extras: readonly LootEntry[];
+  readonly extraRolls: readonly [number, number];
+}
+
+/** Raid Scav: cooldown e estatísticas (vai para o save) */
+export interface ScavProfile {
+  /** Momento (relógio real, ms) em que a próxima raid Scav fica liberada */
+  readyAt: number;
+  stats: RaidStats;
 }
 
 /** Raid já resolvida, sendo mostrada em tempo real */

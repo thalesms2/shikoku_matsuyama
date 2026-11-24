@@ -1,4 +1,4 @@
-import { createRaidProfile } from "../raid/profile.ts";
+import { createRaidProfile, createScavProfile } from "../raid/profile.ts";
 import { SAVE_VERSION } from "./format.ts";
 import type { SaveData } from "./format.ts";
 
@@ -17,6 +17,8 @@ export const MIGRATIONS: Record<number, Migration> = {
     ...data,
     raid: createRaidProfile(Number(data.savedAt) || 0),
   }),
+  // v2 → v3: raid Scav (começa liberada)
+  2: (data) => ({ ...data, scav: createScavProfile() }),
 };
 
 export class SaveError extends Error {}

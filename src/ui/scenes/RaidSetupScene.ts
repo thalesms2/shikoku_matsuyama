@@ -3,6 +3,11 @@ import { Container, Text } from "pixi.js";
 import type { Clock } from "../../core/clock.ts";
 import type { Catalog } from "../../core/inventory/item.ts";
 import { raidWarnings, startRaid } from "../../core/raid/profile.ts";
+import {
+  scavModifiers,
+  scavReadyIn,
+  startScavRaid,
+} from "../../core/raid/scav.ts";
 import { STRATEGIES } from "../../core/raid/strategy.ts";
 import { STRATEGY_IDS } from "../../core/raid/types.ts";
 import type {
@@ -11,9 +16,12 @@ import type {
   ExtractDef,
   MapDef,
   RaidProfile,
+  ScavLoadout,
+  ScavProfile,
   StrategyId,
 } from "../../core/raid/types.ts";
 import type { PlayerState } from "../../core/state.ts";
+import { SCAV_LOADOUT } from "../../data/scav.ts";
 import { Button } from "../components/Button.ts";
 import { formatPrice } from "../inventory/layout.ts";
 import type { Scene } from "../SceneManager.ts";
@@ -64,6 +72,30 @@ export function describeStats(profile: RaidProfile): string {
   ].join("\n");
 }
 
+/** Tempo de espera como `mm:ss` (arredonda o segundo para cima) */
+export function formatCountdown(ms: number): string {
+  const total = Math.ceil(Math.max(0, ms) / 1000);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${pad(Math.floor(total / 60))}:${pad(total % 60)}`;
+}
+
+/** Situação da raid Scav: espera, efeito do karma e estatísticas */
+export function describeScav(
+  scav: ScavProfile,
+  karma: number,
+  now: number,
+): string {
+  const wait = scavReadyIn(scav, now);
+  const mods = scavModifiers(karma);
+  const { stats } = scav;
+  const sign = karma > 0 ? "+" : "";
+  return [
+    `Raid Scav (equipamento aleatório, o PMC não arrisca nada): ${wait > 0 ? `em espera, ${formatCountdown(wait)}` : "liberada"}`,
+    `Karma ${sign}${karma.toFixed(2)}: Scavs amigáveis ${Math.round(mods.friendlyScav * 100)}% · tocaia ×${mods.extractRisk.toFixed(2)} · loot ×${mods.lootWeight.toFixed(2)}`,
+    `Raids Scav: ${stats.raids} · Extrações: ${stats.extracted} · Mortes: ${stats.killed} · MIA: ${stats.mia}`,
+  ].join("\n");
+}
+
 export const LOOT_RULE_LABELS = {
   valuePerCell: "Loot: priorizar valor por célula",
   keepFirst: "Loot: guardar o que achar primeiro",
@@ -83,6 +115,8 @@ export class RaidSetupScene implements Scene {
   readonly warningsText: Text;
   readonly statsText: Text;
   readonly startButton: Button;
+  readonly scavText: Text;
+  readonly scavButton: Button;
   map: MapDef;
   strategy: StrategyId = "balanced";
   private readonly contentHeight: number;
@@ -93,6 +127,8 @@ export class RaidSetupScene implements Scene {
       maps: readonly MapDef[];
       enemies: Readonly<Record<EnemyKind, EnemyDef>>;
       clock: Clock;
+      /** Tabelas do Scav (padrão: `SCAV_LOADOUT`) */
+      scavLoadout?: ScavLoadout;
       /** Chamado depois que a raid foi resolvida (com `player.raid.active`) */
       onStart: () => void;
       onBack: () => void;
@@ -173,6 +209,19 @@ export class RaidSetupScene implements Scene {
       36,
     );
     this.startButton.position.set(WIDTH - 180, mapY + 200);
+    this.scavText = new Text({
+      text: "",
+      position: { x: 0, y: mapY + 262 },
+      style: style({ lineHeight: 19 }),
+    });
+    this.scavButton = new Button(
+      "Entrar como Scav",
+      () => this.startScav(),
+      180,
+      36,
+    );
+    this.scavButton.position.set(WIDTH - 180, mapY + 270);
+    this.content.addChild(this.scavText, this.scavButton);
     this.content.addChild(
       this.mapInfo,
       this.strategyInfo,
@@ -181,7 +230,7 @@ export class RaidSetupScene implements Scene {
       this.statsText,
       this.startButton,
     );
-    this.contentHeight = mapY + 250;
+    this.contentHeight = mapY + 330;
     this.view.addChild(this.content);
     this.refresh();
   }
@@ -223,6 +272,39 @@ export class RaidSetupScene implements Scene {
     this.options.onStart();
   }
 
+  get scavReady(): boolean {
+    return scavReadyIn(this.player.scav, this.options.clock.now()) === 0;
+  }
+
+  /** Raid Scav com o mapa e a estratégia escolhidos (só se estiver liberada) */
+  startScav(): void {
+    if (!this.scavReady) return;
+    startScavRaid(
+      this.player,
+      this.map,
+      this.strategy,
+      this.options.enemies,
+      this.options.scavLoadout ?? SCAV_LOADOUT,
+      this.options.clock,
+    );
+    this.options.onStart();
+  }
+
+  /** Atualiza a contagem do cooldown */
+  update(): void {
+    this.refreshScav();
+  }
+
+  refreshScav(): void {
+    const text = describeScav(
+      this.player.scav,
+      this.player.raid.karma,
+      this.options.clock.now(),
+    );
+    if (this.scavText.text !== text) this.scavText.text = text;
+    this.scavButton.alpha = this.scavReady ? 1 : 0.55;
+  }
+
   refresh(): void {
     const { catalog } = this.player.factory;
     for (const [id, button] of this.mapButtons) {
@@ -242,6 +324,7 @@ export class RaidSetupScene implements Scene {
     this.warningsText.style.fill =
       warnings.length > 0 ? WARNING_COLOR : READY_COLOR;
     this.statsText.text = describeStats(this.player.raid);
+    this.refreshScav();
   }
 
   resize(width: number, height: number): void {

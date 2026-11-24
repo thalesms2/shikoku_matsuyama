@@ -52,9 +52,9 @@ O jogador gerencia seu **PMC** (o personagem principal), preso em uma cidade iso
 - `src/ui/` — telas e componentes PixiJS; apenas leem estado e disparam ações do core.
 - `src/game.ts` — `startGame()`: inicia o PixiJS, carrega assets e mostra a primeira cena. `src/main.ts` só chama `startGame`.
 - `src/ui/SceneManager.ts` — troca de cenas; toda tela implementa a interface `Scene` (`view`, `resize?`, `update?`, `destroy?`).
-- `src/core/state.ts` — `PlayerState` (inventário, PMC, skills, `ItemFactory`, `MagazineLoader` e o perfil de raid `raid`): tudo que vai para o save. `storageFor()` decide onde guardar o que sai de um item.
+- `src/core/state.ts` — `PlayerState` (inventário, PMC, skills, `ItemFactory`, `MagazineLoader`, o perfil de raid `raid` e o perfil Scav `scav`): tudo que vai para o save. `storageFor()` decide onde guardar o que sai de um item.
 - `src/core/pmc/` — PMC, skills e consumíveis. `src/core/save/` — formato, serialização, migrações e armazenamento do save.
-- `src/core/raid/` — raid do PMC: tipos (`types.ts`), estratégias e karma (`strategy.ts`), fórmulas de combate (`combat.ts`), loot (`loot.ts`), simulação (`simulate.ts`, classe `RaidSimulation`) e perfil/reprodução (`profile.ts`). Mapas e inimigos ficam em `src/data/maps.ts`.
+- `src/core/raid/` — raid do PMC: tipos (`types.ts`), estratégias e karma (`strategy.ts`), fórmulas de combate (`combat.ts`), loot (`loot.ts`), simulação (`simulate.ts`, classe `RaidSimulation`) e perfil/reprodução (`profile.ts`) e raid Scav (`scav.ts`). Mapas e inimigos ficam em `src/data/maps.ts`; o equipamento do Scav, em `src/data/scav.ts`.
 - `src/data/newGame.ts` — `createNewPlayer()` e `loadOrCreatePlayer()`.
 - `src/core/rng.ts`, `src/core/events.ts`, `src/core/clock.ts` — `Rng` com seed, `EventBus` tipado e `Clock` injetável (use `ManualClock` nos testes).
 - `server/` — servidor Colyseus (sala `game`).
@@ -176,8 +176,9 @@ Modelo de entrada para novas mecânicas:
 ### Save
 
 - Arquivos: `src/core/save/` (`format.ts`, `serialize.ts`, `migrations.ts`, `storage.ts`); integração em `src/game.ts` e `src/data/newGame.ts`.
-- **Formato** (`SAVE_VERSION = 2`): `nextId` da fábrica, estoque (itens com posição/rotação), slots e bolsos, conteúdo aninhado (grades, cartuchos do carregador do fundo ao topo, carregador encaixado na arma), PMC, skills, o carregamento em andamento (por uid, com `startedAt`/`done`, então continua de onde parou) e, desde a v2, o perfil de raid (`raid`: karma, estatísticas, regra de loot, seed e a raid em andamento com log e resumo).
+- **Formato** (`SAVE_VERSION = 3`): `nextId` da fábrica, estoque (itens com posição/rotação), slots e bolsos, conteúdo aninhado (grades, cartuchos do carregador do fundo ao topo, carregador encaixado na arma), PMC, skills, o carregamento em andamento (por uid, com `startedAt`/`done`, então continua de onde parou) e, desde a v2, o perfil de raid (`raid`: karma, estatísticas, regra de loot, seed e a raid em andamento com log e resumo) e, desde a v3, o perfil Scav (`scav`: `readyAt` e estatísticas).
 - **Migração 1 → 2:** adiciona `raid = createRaidProfile(savedAt)`. Ao carregar, campos do perfil que faltam voltam ao padrão e `lootRule` inválida vira `valuePerCell`.
+- **Migração 2 → 3:** adiciona `scav = createScavProfile()` (liberada). Ao carregar, `readyAt` inválido vira 0 e estatísticas que faltam voltam a 0.
 - **Carregar save antigo/inconsistente:** item que saiu do catálogo é descartado com aviso; item que não cabe mais na posição vai para o primeiro espaço da mesma grade; se não couber nela (ou a grade não existir mais, ou o slot não aceitar mais o item, ou o carregador ficar incompatível), vai para o estoque; sem espaço no estoque, é perdido com aviso. Campos de PMC/skills que faltam recebem o valor padrão (skills novas começam em 0).
 - **Migrações:** `migrate()` aplica `MIGRATIONS[v]` de versão em versão até `SAVE_VERSION`; save sem versão, de versão mais nova ou com migração faltando lança `SaveError`.
 - **Armazenamento:** chave `escape-from-idle:save` no `localStorage`; erros do navegador são ignorados. Autosave a cada 5 s de jogo e no `beforeunload`. Save ilegível é copiado para `escape-from-idle:save:backup` e o jogo começa do zero (com aviso no console).
@@ -208,7 +209,29 @@ Modelo de entrada para novas mecânicas:
   - Extraiu: XP do PMC = 300 + 5/min + 120 por Scav + 400 por PMC + valor do loot / 1000, e partes destruídas voltam para 1 PV (cirurgia de campo provisória, até existir a enfermaria).
   - Morreu/MIA: perde todos os slots menos `secure` e tudo dos bolsos; o loot salvo é o que estiver no contêiner seguro; vida, energia e hidratação voltam ao máximo; nenhum XP do PMC.
   - O XP de skills fica sempre: Resistência 0,5/min, Percepção 2 por loot, Furtividade 4 por briga evitada, Mira 1 por acerto, Vitalidade 0,05 por dano recebido, Força 0,2 por célula de loot guardada (+ Saúde/Metabolismo/Manuseio de carregador pelo uso).
-- **Karma** (`KARMA`): abater Scav −0,25, abater PMC +0,1, evitar briga +0,1, extrair +0,05, limitado a −10..10. É guardado para a raid Scav (Fase 4).
+- **Karma** (`KARMA`): abater Scav −0,25, abater PMC +0,1, evitar briga +0,1, extrair +0,05, limitado a −10..10. Usado pela raid Scav.
 - **Avisos antes da raid** (`raidWarnings`, não impedem a entrada): sem arma com munição, sem colete, sem capacete, cabeça ou tórax abaixo da metade.
 - **Balanceamento:** `tests/core/raid/balance.test.ts` roda 150 raids por cenário com seeds fixas e confere as faixas (ex.: kit bom na Periferia equilibrado extrai 85–99%; agressivo no Porto morre bem mais que furtivo, mas traz mais loot; MIA < 5%).
 - Pendências: durabilidade da armadura (desgaste), armas sem carregador (escopeta), loot "encontrado na raid" para quests, inimigos com equipamento de verdade.
+
+### Raid Scav
+
+- Arquivos: `src/core/raid/scav.ts`, modificadores em `RaidSimulation` (`RaidSetup.modifiers`, tipo `RaidModifiers` em `types.ts`), tabelas em `src/data/scav.ts` (`SCAV_LOADOUT`); botão "Entrar como Scav" na `RaidSetupScene` e resumo próprio na `RaidScene` (`scavSummaryLines`).
+- **Fluxo** (`startScavRaid`): recusa se `scavReadyIn > 0`. Usa a mesma seed do perfil de raid (`new Rng(raid.seed)`, depois sorteia a próxima). Monta o Scav (`createScav`: `PlayerState` temporário com equipamento sorteado, `createPmc("Scav")`, cópia das skills do PMC, a mesma `ItemFactory` e um `MagazineLoader` próprio, então o carregamento do PMC continua) e roda a simulação normal com `scavModifiers(karma)`. Ao extrair, `transferToStash` leva tudo ao estoque. Grava as estatísticas em `player.scav.stats` e `readyAt = agora + cooldown`. O resumo sai com `xp: 0`, `skillXp: {}`, `karma: 0` e `scav: { stored, storedValue, left }` (a presença de `scav` marca a raid Scav). Fica em `raid.active` como a raid do PMC.
+- **O PMC não arrisca nada:** equipamento, vida, skills, XP e karma do PMC não mudam; o XP de skills ganho pelo Scav é descartado.
+- **Equipamento** (`rollScavEquipment`): para cada slot (colete tático, mochila, colete balístico, capacete), sorteia por peso (`item: null` = vazio). Uma arma por peso, com carregador de `ceil(capacidade/2)` até a capacidade (pistola vai no coldre, arma longa no primário); `spareMags` carregadores cheios e `looseAmmo` cartuchos soltos; `extraRolls` itens de `extras`. O que não couber nas grades fica de fora.
+- **Modificadores** (`RaidModifiers`; `NO_MODIFIERS` = a raid do PMC, sem nenhuma chamada extra ao RNG):
+  - `friendlyScav`: chance de um Scav não ser hostil (log `avoid`, sem karma nem XP), sorteada antes da briga, também na tocaia;
+  - `extractRisk`: multiplica a chance de tocaia;
+  - `lootWeight`: multiplica o peso dos eventos de loot;
+  - `lootQuality`: com chance `|q|`, sorteia o loot de novo e fica com o mais valioso (q > 0) ou o menos valioso (q < 0), por `totalValue`. Vale para busca e corpo revistado.
+- **Karma** (`SCAV_KARMA`, k de −10 a 10):
+  - Scav amigável = `clamp(0,6 + 0,04k, 0, 1)`;
+  - tocaia × `(1 − 0,05k)`;
+  - loot × `(1 + 0,03k)`;
+  - qualidade = `0,05k`;
+  - cooldown × `(1 − 0,025k)`.
+- **Cooldown** (`scavCooldownMs(karma, reduction)`): `SCAV_COOLDOWN_MS = 20 min × fator do karma × (1 − reduction)`. `reduction` (0 a 1, limitado) fica para o módulo do esconderijo (Fase 7). É contado pelo relógio real (`readyAt`), então anda com o jogo fechado.
+- **Transferência** (`transferToStash`): tira os itens soltos das grades do Scav e depois as peças vestidas (já vazias; a arma mantém o carregador), ordena por valor por célula (maior primeiro) e usa `autoPlace` no estoque. Uma pilha pode entrar só em parte. O que não coube vai para `left` (perdido).
+- **Balanceamento** (`tests/core/raid/scavBalance.test.ts`): Periferia equilibrado com karma 0 extrai 75–97%; Porto equilibrado com karma +10 extrai pelo menos 8 pontos a mais e traz pelo menos 1,8× o loot de karma −10; Porto agressivo extrai menos de 60%.
+- Pendências: karma mudar com o comportamento na raid Scav (matar Scavs como Scav), Scav com equipamento melhor ou pior pelo karma, redução do cooldown pelo esconderijo (Fase 7).

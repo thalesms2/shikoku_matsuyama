@@ -33,9 +33,9 @@ O coração do jogo; vem primeiro porque quase tudo depende dele.
 
 ## Fase 2 — Dados do jogo e PMC
 
-### 2A — Base de dados local de itens (sincronizada da API tarkov.dev) ✅ (falta ligar os itens à API)
+### 2A — Base de dados local de itens (sincronizada da API tarkov.dev) ✅
 
-**Estado:** pipeline completo e testado (`scripts/items/`, comando `npm run items`). O `sync` usa os dados JSON do tarkov.dev (a API GraphQL respondia 422) e já sincronizou a referência completa (5.498 itens). Os itens do jogo ainda são overrides completos sem `sourceId`. **Próximo passo:** `items -- sync`, ligar cada item ao seu `sourceId` (`override <id> --source ...`, limpando com `--clear` os campos que devem vir da API), `items -- images` e `items -- export`. Itens novos entram com o mesmo fluxo.
+**Estado:** pipeline completo e testado (`scripts/items/`, comando `npm run items`). O `sync` usa os dados JSON do tarkov.dev (a API GraphQL respondia 422) e já sincronizou a referência completa (5.498 itens). Os 24 itens do jogo estão ligados ao seu `sourceId` (só para a imagem placeholder; os outros campos continuam no override) e as imagens são baixadas com `items -- images`. Itens novos entram com o mesmo fluxo.
 
 Decisões de implementação: SQLite nativo do Node (`node:sqlite`) no lugar de `better-sqlite3`, que dispensa compilação nativa; `tsx` para rodar os scripts; uma CLI única (`npm run items -- <comando>`) no lugar de vários scripts npm.
 
@@ -99,7 +99,9 @@ O jogo **nunca consulta a API durante a execução**. A API ([tarkov.dev](https:
 - **Tela de raid:** log de eventos em tempo real (com acelerar/pular) e tela de resumo pós-raid.
 - **Karma:** comportamento acumulado do PMC (ex.: matar Scavs, ajudar, agressividade) registrado para a Fase 4.
 
-## Fase 4 — Raid Scav
+## Fase 4 — Raid Scav ✅
+
+**Estado:** feito. `src/core/raid/scav.ts` (equipamento sorteado por `src/data/scav.ts`, modificadores de karma na `RaidSimulation`, transferência para o estoque, cooldown em `player.scav`) e save v3 com migração. A entrada é o botão "Entrar como Scav" na tela de preparação. A redução do cooldown pelo esconderijo já tem o parâmetro (`cooldownReduction`) e espera a Fase 7.
 
 - Cooldown baseado em tempo real (relógio injetável), reduzível pelo esconderijo e pelo karma.
 - Equipamento Scav aleatório gerado por tabelas.
@@ -162,3 +164,4 @@ O jogo **nunca consulta a API durante a execução**. A API ([tarkov.dev](https:
 6. ✅ Carregadores e munição (2C).
 7. ✅ PMC + skills + save (2D).
 8. ✅ Primeira raid simulada ponta a ponta (Fase 3).
+9. ✅ Raid Scav (Fase 4).

@@ -37,13 +37,13 @@ function v1Save(clock: ManualClock): Record<string, unknown> {
 }
 
 describe("save v2: perfil de raid", () => {
-  it("SAVE_VERSION é 2", () => {
-    expect(SAVE_VERSION).toBe(2);
+  it("SAVE_VERSION é pelo menos 2", () => {
+    expect(SAVE_VERSION).toBeGreaterThanOrEqual(2);
   });
 
   it("migração 1 → 2 cria o perfil com a seed do savedAt", () => {
     const migrated = migrate(v1Save(new ManualClock()));
-    expect(migrated.version).toBe(2);
+    expect(migrated.version).toBe(SAVE_VERSION);
     expect(migrated.raid).toMatchObject({ karma: 0, seed: 777, active: null });
     expect(MIGRATIONS[1]({ version: 1 }).raid).toMatchObject({ seed: 0 });
   });

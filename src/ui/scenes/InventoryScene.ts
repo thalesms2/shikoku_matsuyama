@@ -57,6 +57,8 @@ const CONTAINER_SECTIONS: [SlotName, string][] = [
   ["secure", "Contêiner seguro"],
 ];
 export const STASH_X = 700;
+/** Deslocamento de cada janela de contêiner nova em relação à anterior */
+export const WINDOW_CASCADE = 24;
 /** Linhas do estoque visíveis de uma vez; o resto rola */
 export const STASH_VISIBLE_ROWS = 14;
 /** Linhas roladas por passo da roda do mouse */
@@ -98,7 +100,8 @@ export class InventoryScene implements Scene {
   stashScroll = 0;
   private autoscrollMs = 0;
   readonly drag: DragController;
-  window: ContainerWindow | null = null;
+  /** Janelas de contêiner abertas; a última é a da frente */
+  readonly windows: ContainerWindow[] = [];
   private containerGridViews: GridView[] = [];
   private lastTap: { item: Item; time: number } | null = null;
   private lastPointer = { x: 0, y: 0 };
@@ -312,7 +315,8 @@ export class InventoryScene implements Scene {
   targets(): DropTargets {
     return {
       grids: [
-        ...(this.window?.gridViews ?? []),
+        // a janela da frente primeiro
+        ...[...this.windows].reverse().flatMap((w) => w.gridViews),
         ...this.pocketViews,
         ...this.containerGridViews,
         this.stashView,
@@ -336,25 +340,61 @@ export class InventoryScene implements Scene {
     for (const view of this.pocketViews) view.refresh();
     for (const view of this.slotViews.values()) view.refresh();
     this.buildContainerPanel();
-    if (this.window && this.window.item.location === null) this.closeWindow();
-    this.window?.refresh();
+    // Fecha as janelas dos contêineres que sumiram
+    const gone = this.windows.filter((w) => w.item.location === null);
+    for (const win of gone) this.closeWindow(win);
+    for (const win of this.windows) win.refresh();
     this.wireItems();
     this.layout();
   }
 
-  /** Abre a janela de um item contêiner (mochila, caixa...) */
+  /** Janela da frente (a última aberta ou clicada), ou `null` */
+  get window(): ContainerWindow | null {
+    return this.windows.at(-1) ?? null;
+  }
+
+  /**
+   * Abre a janela de um item contêiner (mochila, caixa...). As outras
+   * continuam abertas; se a do item já estiver aberta, só vem para frente.
+   * Cada janela nova abre um pouco deslocada da anterior.
+   */
   openWindow(item: Item): void {
-    this.closeWindow();
-    const win = new ContainerWindow(item, () => this.closeWindow());
-    win.position.set(STASH_X - 60, ROW_TOP + 60);
-    this.window = win;
-    this.overlay.addChildAt(win, 0);
+    const open = this.windows.find((w) => w.item === item);
+    if (open) {
+      this.focusWindow(open);
+      return;
+    }
+    const win = new ContainerWindow(
+      item,
+      () => this.closeWindow(win),
+      () => this.focusWindow(win),
+    );
+    const n = this.windows.length;
+    win.position.set(
+      STASH_X - 60 + n * WINDOW_CASCADE,
+      ROW_TOP + 60 + n * WINDOW_CASCADE,
+    );
+    this.windows.push(win);
+    // Acima das outras janelas e abaixo do tooltip e do menu
+    this.overlay.addChildAt(win, this.windows.length - 1);
     this.wireItems();
   }
 
-  closeWindow(): void {
-    this.window?.destroy({ children: true });
-    this.window = null;
+  /** Traz a janela para frente das outras */
+  focusWindow(win: ContainerWindow): void {
+    const i = this.windows.indexOf(win);
+    if (i < 0 || i === this.windows.length - 1) return;
+    this.windows.splice(i, 1);
+    this.windows.push(win);
+    this.overlay.setChildIndex(win, this.windows.length - 1);
+  }
+
+  /** Fecha a janela (sem argumento, a da frente) */
+  closeWindow(win: ContainerWindow | null = this.window): void {
+    const i = win ? this.windows.indexOf(win) : -1;
+    if (i < 0) return;
+    this.windows.splice(i, 1);
+    win!.destroy({ children: true });
   }
 
   /** Linhas do estoque visíveis (menos se o estoque for menor) */

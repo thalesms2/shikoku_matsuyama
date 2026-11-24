@@ -155,6 +155,7 @@ Botão **Quests** no inventário. Os vendedores dão quests com recompensas em d
 - **Aceitar:** quests disponíveis precisam ser aceitas antes de contar. As bloqueadas mostram o que falta (nível, outra quest ou lealdade com um vendedor).
 - **Objetivos:** entregar itens (botão **Entregar**, pode ser em partes), extrair de um mapa (às vezes por uma saída ou com uma estratégia), abater Scavs ou PMCs e sair de uma raid com um item. Só as raids do PMC contam; os abates contam mesmo se você morrer.
 - **Encontrado na raid:** o loot com que o PMC extrai fica marcado ("Encontrado na raid ✓" no tooltip). Algumas entregas só aceitam itens marcados. Morrer não marca nada, nem o que estava no contêiner seguro. Itens marcados e não marcados não se misturam na mesma pilha.
+- **No resumo da raid:** o fim de cada raid do PMC lista as quests que avançaram (ex.: `Quest "Limpeza": Abater 5 Scav(s): 1 → 3/5`) e avisa quando uma ficou pronta para concluir.
 - **Concluir:** com os objetivos cumpridos, conclua a quest para receber as recompensas (precisa haver espaço no estoque).
 - **A fuga:** a cadeia principal começa com o Coronel Brás e termina com o barco do contrabandista no Porto Velho. Concluir a última quest é o final do jogo, mas você pode continuar jogando depois.
 

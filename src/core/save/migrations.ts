@@ -46,6 +46,8 @@ export const MIGRATIONS: Record<number, Migration> = {
   10: (data) => data,
   // v11 → v12: cartucho na câmara das armas (sem o campo = vazia); nada muda
   11: (data) => data,
+  // v12 → v13: quests que avançaram na raid em andamento (sem = nenhuma)
+  12: (data) => data,
 };
 
 export class SaveError extends Error {}

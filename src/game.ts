@@ -11,7 +11,7 @@ import { fleaTick } from "./core/flea/flea.ts";
 import { hideoutTick } from "./core/hideout/hideout.ts";
 import { catchUp, hasNews } from "./core/offline.ts";
 import type { OfflineData } from "./core/offline.ts";
-import { progressAfterRaid } from "./core/quests/quests.ts";
+import { recordRaidQuests } from "./core/quests/quests.ts";
 import type { QuestContext } from "./core/quests/types.ts";
 import {
   AutoSaver,
@@ -237,7 +237,7 @@ export async function startGame(
         clock,
         onStart: () => {
           // Quests avançam com o resultado (raids Scav não contam)
-          progressAfterRaid(player, questContext, player.raid.active!.summary);
+          recordRaidQuests(player, questContext, player.raid.active!);
           // Salva já com o resultado: recarregar não refaz a raid
           save();
           showRaid();
@@ -277,6 +277,7 @@ export async function startGame(
         clock,
         map: mapById(active.summary.map) ?? MAPS[0],
         speed: settings.raidSpeed,
+        quests: questContext,
         onDone: () => {
           save();
           after();

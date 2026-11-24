@@ -1,8 +1,10 @@
 import { Container, Graphics, Text } from "pixi.js";
 
 import type { Clock } from "../../core/clock.ts";
+import type { Catalog } from "../../core/inventory/item.ts";
 import { SKILL_INFO } from "../../core/pmc/skills.ts";
 import type { SkillId } from "../../core/pmc/skills.ts";
+import type { QuestContext } from "../../core/quests/types.ts";
 import {
   MS_PER_RAID_MINUTE,
   eventsUntil,
@@ -15,6 +17,7 @@ import type {
   ActiveRaid,
   ItemSummary,
   MapDef,
+  QuestUpdate,
   RaidEventKind,
   RaidOutcome,
   RaidSummary,
@@ -25,12 +28,15 @@ import { Button } from "../components/Button.ts";
 import { formatPrice } from "../inventory/layout.ts";
 import type { Scene } from "../SceneManager.ts";
 import { theme } from "../theme.ts";
+import { describeObjective } from "./QuestsScene.ts";
 
 const WIDTH = 760;
 const LOG_LINES = 16;
 const LINE_HEIGHT = 20;
 const LOG_TOP = 80;
 export const SPEEDS = [1, 4, 16] as const;
+/** Linhas de quest no resumo; passou disso, o resto vira "e mais N" */
+export const MAX_QUEST_LINES = 4;
 
 const GOOD = 0x6abf4b;
 const BAD = 0xd9534f;
@@ -143,6 +149,38 @@ export function summaryLines(summary: RaidSummary): string[] {
 }
 
 /**
+ * Linhas das quests que avançaram na raid: uma por objetivo (`texto: 1 → 3/5`)
+ * ou "pronta para concluir". Sem as quests do jogo (`ctx`), ou se a quest
+ * saiu do jogo, o objetivo aparece pelo número.
+ */
+export function questLines(
+  updates: readonly QuestUpdate[],
+  catalog: Catalog,
+  ctx?: QuestContext,
+): string[] {
+  return updates.flatMap((update) => {
+    const title = `Quest "${update.name}"`;
+    if (update.ready) return [`${title}: pronta para concluir ✓`];
+    const def = ctx?.quests.find((q) => q.id === update.quest);
+    return update.objectives.map((o) => {
+      const objective = def?.objectives[o.index];
+      const text = objective
+        ? describeObjective(objective, catalog, ctx!)
+        : `Objetivo ${o.index + 1}`;
+      return `${title}: ${text}: ${o.from} → ${o.to}/${o.count}`;
+    });
+  });
+}
+
+/** `questLines` limitado a `MAX_QUEST_LINES` para caber no resumo */
+export function clampLines(lines: readonly string[]): string[] {
+  if (lines.length <= MAX_QUEST_LINES) return [...lines];
+  const shown = lines.slice(0, MAX_QUEST_LINES - 1);
+  const rest = lines.length - shown.length;
+  return [...shown, `... e mais ${rest} avanço(s) em Quests`];
+}
+
+/**
  * Raid em andamento: mostra o log no ritmo do relógio (a raid já foi
  * resolvida; aqui só é revelada), com velocidades e "Pular", e o resumo no
  * fim. Ao fechar o resumo o perfil é liberado para a próxima raid.
@@ -175,6 +213,8 @@ export class RaidScene implements Scene {
       onDone: () => void;
       /** Velocidade inicial do log (padrão x1) */
       speed?: number;
+      /** Quests do jogo, para descrever os objetivos que avançaram */
+      quests?: QuestContext;
     },
   ) {
     const raid = player.raid.active;
@@ -229,7 +269,12 @@ export class RaidScene implements Scene {
       },
     });
     this.summaryText = new Text({
-      text: summaryLines(raid.summary).join("\n"),
+      text: [
+        ...summaryLines(raid.summary),
+        ...clampLines(
+          questLines(raid.quests ?? [], player.factory.catalog, options.quests),
+        ),
+      ].join("\n"),
       position: { x: 0, y: 40 },
       style: {
         fill: theme.text,

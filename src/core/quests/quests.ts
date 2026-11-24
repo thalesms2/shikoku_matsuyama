@@ -1,5 +1,5 @@
 import { addPmcXp, levelForXp } from "../pmc/pmc.ts";
-import type { RaidSummary } from "../raid/types.ts";
+import type { ActiveRaid, QuestUpdate, RaidSummary } from "../raid/types.ts";
 import type { PlayerState } from "../state.ts";
 import {
   available,
@@ -190,6 +190,33 @@ function raidProgress(
       return 1;
     }
   }
+}
+
+/**
+ * Soma o resultado da raid às quests (como `progressAfterRaid`) e guarda em
+ * `raid.quests` o que avançou, para o resumo. Devolve a lista guardada.
+ */
+export function recordRaidQuests(
+  player: PlayerState,
+  ctx: QuestContext,
+  raid: ActiveRaid,
+): QuestUpdate[] {
+  const before = new Map(
+    Object.entries(player.quests).map(([id, s]) => [id, [...s.progress]]),
+  );
+  const updates = progressAfterRaid(player, ctx, raid.summary).map((def) => {
+    const progress = player.quests[def.id]!.progress;
+    const from = before.get(def.id)!;
+    const objectives = def.objectives.flatMap((o, index) => {
+      const old = from[index] ?? 0;
+      const now = progress[index];
+      return now > old ? [{ index, from: old, to: now, count: o.count }] : [];
+    });
+    const ready = def.objectives.every((o, i) => objectiveDone(o, progress[i]));
+    return { quest: def.id, name: def.name, objectives, ready };
+  });
+  raid.quests = updates;
+  return updates;
 }
 
 /**

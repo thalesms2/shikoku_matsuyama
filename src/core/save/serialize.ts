@@ -26,7 +26,12 @@ import type { SkillsState } from "../pmc/skills.ts";
 import type { QuestState, QuestsState } from "../quests/types.ts";
 import { createRaidProfile, createScavProfile } from "../raid/profile.ts";
 import { LOOT_RULES, STRATEGY_IDS } from "../raid/types.ts";
-import type { RaidProfile, ScavProfile } from "../raid/types.ts";
+import type {
+  ActiveRaid,
+  QuestUpdate,
+  RaidProfile,
+  ScavProfile,
+} from "../raid/types.ts";
 import { createPlayerState, storageFor } from "../state.ts";
 import type { PlayerState } from "../state.ts";
 import type { TraderState, TradersState } from "../trade/types.ts";
@@ -475,8 +480,39 @@ function loadRaid(saved: RaidProfile | undefined, seed: number): RaidProfile {
     lootRule: LOOT_RULES.includes(saved.lootRule)
       ? saved.lootRule
       : base.lootRule,
-    active: saved.active ?? null,
+    active: loadActive(saved.active),
   };
+}
+
+/**
+ * Raid em andamento salva. As quests do resumo (v13) só ficam se forem uma
+ * lista; entradas inválidas são descartadas.
+ */
+function loadActive(saved: ActiveRaid | null | undefined): ActiveRaid | null {
+  if (!saved) return null;
+  const { quests, ...rest } = saved;
+  if (!Array.isArray(quests)) return rest;
+  return { ...rest, quests: quests.filter(validQuestUpdate) };
+}
+
+const isNumber = (n: unknown) => typeof n === "number" && Number.isFinite(n);
+
+function validQuestUpdate(raw: unknown): raw is QuestUpdate {
+  const u = raw as Partial<QuestUpdate> | null;
+  return (
+    typeof u === "object" &&
+    u !== null &&
+    typeof u.quest === "string" &&
+    typeof u.name === "string" &&
+    typeof u.ready === "boolean" &&
+    Array.isArray(u.objectives) &&
+    u.objectives.every(
+      (o) =>
+        typeof o === "object" &&
+        o !== null &&
+        [o.index, o.from, o.to, o.count].every(isNumber),
+    )
+  );
 }
 
 function loadJob(

@@ -159,7 +159,7 @@ Uma sub-fase por commit:
 - ✅ **10B — Cirurgia na raid:** parte do corpo destruída só volta com um item de kit cirúrgico (nome próprio), usado **durante a raid**. A cirurgia leva tempo e dá uma chance de encontro surpresa enquanto o PMC está vulnerável; as skills do PMC aumentam a chance de sobreviver ao encontro e de abater o inimigo. Substitui a "cirurgia de campo provisória" ao extrair. A Enfermaria nível 2 também opera, devagar.
 - ✅ **10C — Câmara da arma e escopeta:** cartucho na câmara e armas sem carregador (tubo interno).
 - ✅ **10D — Inimigos com equipamento de verdade:** arma, munição e armadura dos inimigos vêm de itens do catálogo, e o corpo revistado pode deixar esses itens.
-- **10E — Quests no resumo da raid:** mostrar as quests que avançaram.
+- ✅ **10E — Quests no resumo da raid:** mostrar as quests que avançaram.
 - **10F — Rolagem do estoque grande:** o inventário rola em vez de só diminuir a escala.
 
 ---
@@ -196,3 +196,4 @@ Uma sub-fase por commit:
 19. ✅ Cirurgia na raid e na enfermaria (Fase 10B).
 20. ✅ Câmara da arma e escopeta com tubo interno (Fase 10C).
 21. ✅ Inimigos com equipamento de verdade (Fase 10D).
+22. ✅ Quests que avançaram no resumo da raid (Fase 10E).

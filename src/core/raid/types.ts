@@ -238,6 +238,25 @@ export interface ActiveRaid {
   readonly startedAt: number;
   readonly events: readonly RaidEvent[];
   readonly summary: RaidSummary;
+  /** Quests que avançaram com esta raid (para o resumo) */
+  quests?: QuestUpdate[];
+}
+
+/** Uma quest que avançou numa raid */
+export interface QuestUpdate {
+  /** Id da quest */
+  readonly quest: string;
+  /** Nome da quest no momento da raid */
+  readonly name: string;
+  /** Objetivos que avançaram: índice, progresso antes e depois e o total */
+  readonly objectives: readonly {
+    readonly index: number;
+    readonly from: number;
+    readonly to: number;
+    readonly count: number;
+  }[];
+  /** Todos os objetivos cumpridos: pronta para concluir */
+  readonly ready: boolean;
 }
 
 export interface RaidStats {

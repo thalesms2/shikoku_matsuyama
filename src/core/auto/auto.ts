@@ -3,7 +3,7 @@ import { weaponRounds } from "../inventory/magazine.ts";
 import { applyLoadout, quickEquip } from "../loadout/loadout.ts";
 import type { LoadoutItem } from "../loadout/types.ts";
 import { totalHealth, totalMaxHealth } from "../pmc/pmc.ts";
-import { progressAfterRaid } from "../quests/quests.ts";
+import { recordRaidQuests } from "../quests/quests.ts";
 import { MS_PER_RAID_MINUTE, finishRaid, startRaid } from "../raid/profile.ts";
 import type { ActiveRaid, MapDef } from "../raid/types.ts";
 import type { PlayerState } from "../state.ts";
@@ -153,7 +153,7 @@ export function autoTick(
       ctx.enemies,
       { now: () => t },
     );
-    progressAfterRaid(player, ctx.quests, raid.summary);
+    recordRaidQuests(player, ctx.quests, raid);
     auto.done += 1;
     auto.current = raid.startedAt;
     auto.nextAt = raidEndsAt(raid) + AUTO_GAP_MS;

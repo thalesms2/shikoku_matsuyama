@@ -198,3 +198,47 @@ export function unloadChamber(
   delete weapon.chamber;
   return true;
 }
+
+/**
+ * Se a munição pode entrar na arma agora: mesmo calibre e espaço na câmara
+ * vazia ou no carregador encaixado (ou no tubo)
+ */
+export function canLoadWeapon(weapon: Item, ammo: Item): boolean {
+  if (!isWeapon(weapon) || ammo.def.category !== "ammo" || ammo.count < 1) {
+    return false;
+  }
+  if (!sameCaliber(weapon.def, ammo.def)) return false;
+  const feed = feedOf(weapon);
+  return !weapon.chamber || (feed !== null && canLoad(feed, ammo));
+}
+
+/**
+ * Munição solta sobre a arma: com a câmara vazia, 1 cartucho vai para ela; o
+ * resto vai para o carregador encaixado (ou para o tubo). Devolve quantos
+ * cartuchos entraram; a pilha vazia sai de onde estava.
+ */
+export function loadWeapon(weapon: Item, ammo: Item): number {
+  if (!canLoadWeapon(weapon, ammo)) return 0;
+  let loaded = 0;
+  if (!weapon.chamber) {
+    weapon.chamber = ammo.def;
+    ammo.count -= 1;
+    loaded = 1;
+    if (ammo.count === 0) {
+      detach(ammo);
+      return loaded;
+    }
+  }
+  const feed = feedOf(weapon);
+  return loaded + (feed ? loadRounds(feed, ammo) : 0);
+}
+
+/** `canLoadWeapon` para armas, `canLoad` para carregadores */
+export function canLoadInto(target: Item, ammo: Item): boolean {
+  return isWeapon(target) ? canLoadWeapon(target, ammo) : canLoad(target, ammo);
+}
+
+/** `loadWeapon` para armas, `loadRounds` para carregadores */
+export function loadInto(target: Item, ammo: Item): number {
+  return isWeapon(target) ? loadWeapon(target, ammo) : loadRounds(target, ammo);
+}

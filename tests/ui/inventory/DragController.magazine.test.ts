@@ -148,8 +148,8 @@ describe("DragController com carregadores", () => {
     const { drag, put, viewOf, cell, equipment, holster, make } = scene();
     equipment.equip("holster", make("pistol"));
     holster.refresh();
-    const ammo = put("nine", 0, 0, 5);
-    drag.begin(viewOf(ammo), cell(0, 0));
+    const rock = put("rock", 0, 0);
+    drag.begin(viewOf(rock), cell(0, 0));
     expect(drag.resolve({ x: 620, y: 20 })).toMatchObject({
       kind: "slot",
       ok: false,
@@ -159,7 +159,7 @@ describe("DragController com carregadores", () => {
   it("munição sobre item comum continua sendo um movimento na grade", () => {
     const { drag, put, viewOf, cell } = scene();
     const ammo = put("fmj", 0, 0, 5);
-    put("rifle", 2, 0);
+    put("rock", 2, 0);
     drag.begin(viewOf(ammo), cell(0, 0));
     expect(drag.resolve(cell(2, 0))).toMatchObject({ kind: "grid", ok: false });
   });

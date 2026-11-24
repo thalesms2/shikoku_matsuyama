@@ -11,7 +11,7 @@ import type { SlotName } from "../../core/inventory/equipment.ts";
 import type { Grid } from "../../core/inventory/grid.ts";
 import { ItemFactory } from "../../core/inventory/item.ts";
 import type { Item } from "../../core/inventory/item.ts";
-import { loadRounds } from "../../core/inventory/magazine.ts";
+import { loadInto } from "../../core/inventory/magazine.ts";
 import { sortGrid } from "../../core/inventory/operations.ts";
 import {
   MAG_DRILLS_XP_PER_ROUND,
@@ -153,9 +153,9 @@ export class InventoryScene implements Scene {
       () => this.targets(),
       () => this.refresh(),
       {
-        // Carregar é instantâneo; com PMC, dá XP de Manuseio de carregador
+        // Carregar (carregador, tubo ou arma) é instantâneo; com PMC, dá XP
         onLoad: (magazine, ammo) => {
-          this.magDrillsXp(loadRounds(magazine, ammo));
+          this.magDrillsXp(loadInto(magazine, ammo));
         },
       },
     );

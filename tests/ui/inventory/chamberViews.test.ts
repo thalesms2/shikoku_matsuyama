@@ -167,7 +167,77 @@ describe("DragController com a escopeta", () => {
     drag.cancel();
     drag.begin(stashView.itemViews.get(shells)!, cell(1, 0));
     expect(drag.end({ x: 620, y: 20 })).toBe(true);
+    // 1 cartucho na câmara e 4 no tubo
+    expect(shotgun.chamber?.id).toBe("buck");
     expect(loadedRounds(shotgun)).toBe(4);
-    expect(shells.count).toBe(6);
+    expect(shells.count).toBe(5);
+  });
+});
+
+describe("DragController: munição sobre arma com carregador", () => {
+  function scene() {
+    const { make } = chamberSetup();
+    const stash = new Grid(8, 2);
+    const equipment = new Equipment();
+    const stashView = new GridView(stash);
+    const primary = new SlotView(equipment, "primary");
+    primary.position.set(600, 0);
+    const overlay = new Container();
+    new Container().addChild(stashView, primary, overlay);
+    const drag = new DragController(
+      overlay,
+      () => ({ grids: [stashView], slots: [primary] }),
+      () => {
+        stashView.refresh();
+        primary.refresh();
+      },
+    );
+    const cell = (x: number, y: number) => ({
+      x: x * CELL + CELL / 2,
+      y: y * CELL + CELL / 2,
+    });
+    return { make, stash, stashView, equipment, primary, drag, cell };
+  }
+
+  it("na grade: câmara e carregador; calibre errado fica vermelho", () => {
+    const { make, stash, stashView, drag, cell } = scene();
+    const rifle = make("rifle");
+    const mag = make("mag");
+    attachMagazine(rifle, mag);
+    const wrong = make("nine", 5);
+    const ammo = make("fmj", 10);
+    stash.place(wrong, 0, 0);
+    stash.place(ammo, 0, 1);
+    stash.place(rifle, 2, 0);
+    stashView.refresh();
+    drag.begin(stashView.itemViews.get(wrong)!, cell(0, 0));
+    expect(drag.resolve(cell(3, 0))).toMatchObject({ kind: "load", ok: false });
+    drag.cancel();
+    drag.begin(stashView.itemViews.get(ammo)!, cell(0, 1));
+    expect(drag.resolve(cell(3, 0))).toMatchObject({
+      kind: "load",
+      target: rifle,
+      ok: true,
+    });
+    expect(drag.end(cell(3, 0))).toBe(true);
+    expect(rifle.chamber?.id).toBe("fmj");
+    expect(loadedRounds(mag)).toBe(9);
+  });
+
+  it("equipada no slot: carrega a câmara e o carregador", () => {
+    const { make, stash, stashView, equipment, primary, drag, cell } = scene();
+    const rifle = make("rifle");
+    const mag = make("mag");
+    attachMagazine(rifle, mag);
+    equipment.equip("primary", rifle);
+    primary.refresh();
+    const ammo = make("fmj", 3);
+    stash.place(ammo, 0, 0);
+    stashView.refresh();
+    drag.begin(stashView.itemViews.get(ammo)!, cell(0, 0));
+    expect(drag.end({ x: 620, y: 20 })).toBe(true);
+    expect(rifle.chamber?.id).toBe("fmj");
+    expect(loadedRounds(mag)).toBe(2);
+    expect(stash.has(ammo)).toBe(false);
   });
 });

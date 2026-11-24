@@ -82,6 +82,7 @@ Todo item ocupa um retângulo de células (por exemplo, 1x1 para uma atadura, 5x
 - **Descarregar:** botão direito → "Descarregar". Os cartuchos voltam na hora como pilhas para perto do carregador; se faltar espaço, o resto fica nele.
 - **Arma:** solte o carregador sobre a arma (no estoque ou equipada) para encaixá-lo. Carregadores e armas mostram no canto quantos cartuchos têm (ex.: 12/30). Para tirar: botão direito na arma → "Remover carregador".
 - **Câmara:** toda arma tem um cartucho na câmara além do carregador, mostrado como "+1" (ex.: 11+1/12). O PMC carrega a câmara ao entrar na raid, e a cada disparo o próximo cartucho sobe do carregador. No inventário: botão direito na arma → "Carregar a câmara" ou "Descarregar a câmara".
+- **Munição direto na arma:** solte a munição sobre a arma (no estoque ou equipada): o primeiro cartucho vai para a câmara, se ela estiver vazia, e o resto para o carregador encaixado ou para o tubo da escopeta. Calibre errado aparece em vermelho.
 - **Escopeta:** a Escopeta M-12 não usa carregador. Ela tem um tubo de 6 cartuchos: solte a munição calibre 12 direto sobre a escopeta (no estoque ou equipada) e ela carrega um cartucho por vez, como um carregador. Na raid, quando o tubo esvazia, o PMC usa um turno para enchê-lo com os cartuchos soltos que estiver carregando.
 
 ### Raid

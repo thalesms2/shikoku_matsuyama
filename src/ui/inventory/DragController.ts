@@ -4,11 +4,11 @@ import type { GridLocation, Item } from "../../core/inventory/item.ts";
 import {
   attachMagazine,
   canAttachMagazine,
-  canLoad,
-  isFeed,
+  canLoadInto,
+  canLoadWeapon,
   isMagazine,
   isWeapon,
-  loadRounds,
+  loadInto,
 } from "../../core/inventory/magazine.ts";
 import {
   canStack,
@@ -152,7 +152,7 @@ export class DragController {
         this.hooks.onLoad(drop.target, s.item);
         changed = true;
       } else {
-        changed = loadRounds(drop.target, s.item) > 0;
+        changed = loadInto(drop.target, s.item) > 0;
       }
     } else if (drop.kind === "attach") {
       changed = attachMagazine(drop.target, s.item);
@@ -194,8 +194,9 @@ export class DragController {
           const ok = hovered.grids.some((g) => g.findFreeSpot(s.item) !== null);
           return { kind: "item", view, target: hovered, ok };
         }
-        if (isFeed(hovered) && s.item.def.category === "ammo") {
-          const ok = canLoad(hovered, s.item);
+        const loadable = isMagazine(hovered) || isWeapon(hovered);
+        if (loadable && s.item.def.category === "ammo") {
+          const ok = canLoadInto(hovered, s.item);
           return { kind: "load", view, target: hovered, ok };
         }
         if (isWeapon(hovered) && isMagazine(s.item)) {
@@ -216,9 +217,9 @@ export class DragController {
         const ok = canAttachMagazine(equipped, s.item);
         return { kind: "attach", view, target: equipped, ok };
       }
-      // Munição sobre a escopeta equipada: carrega o tubo
-      if (equipped && isFeed(equipped) && s.item.def.category === "ammo") {
-        const ok = canLoad(equipped, s.item);
+      // Munição sobre a arma equipada: câmara e depois carregador ou tubo
+      if (equipped && isWeapon(equipped) && s.item.def.category === "ammo") {
+        const ok = canLoadWeapon(equipped, s.item);
         return { kind: "load", view, target: equipped, ok };
       }
       const ok =

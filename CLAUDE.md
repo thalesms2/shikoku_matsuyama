@@ -361,12 +361,14 @@ Modelo de entrada para novas mecânicas:
 - **O que falta** (`missingItems`): `requiredItems` (slots + carregadores + carga, somados por tipo) menos o que o jogador tem vestido, encaixado nas armas vestidas, carregado e no estoque.
 - **Montar** (`applyLoadout`), só com o que há no estoque, sem comprar:
   - **slots:** igual fica; diferente pega do estoque e guarda o antigo no estoque (sem espaço, desfaz e conta como "sem espaço"); slots fora do loadout não mudam;
-  - **carregadores:** encaixa o carregador do tipo pedido com mais cartuchos do estoque; o antigo vai para o estoque (sem espaço, fica). O loadout ainda não carrega munição;
+  - **carregadores:** encaixa o carregador do tipo pedido com mais cartuchos do estoque; o antigo vai para o estoque (sem espaço, fica). A munição é carregada depois, por `loadMagazines` (veja Carregar ao montar);
   - **carga:** completa até a quantidade pedida com `autoPlace` nas grades de carga, separando a última pilha; o que não couber volta para o lugar. Itens a mais nas grades ficam.
   - Devolve `missing` (não havia no estoque) e `noSpace` (não coube).
 - **Comprar** (`purchaseOptions`): ofertas em dinheiro dos vendedores (nível, quest e estoque ok, preço convertido para rublos pelo `basePrice` da moeda) e o mercado (se liberado e negociável), da mais barata por unidade para a mais cara. `estimateMissing` soma `ceil(falta / lote) × preço` da melhor opção e lista o que não está à venda. `buyMissing` compra cada item na opção mais barata que der certo, repetindo até cobrir a falta. `quickEquip` ("Comprar e equipar") = `buyMissing` + `applyLoadout`.
 - **Tela:** lista de loadouts e "Salvar o atual"; o loadout escolhido mostra cada item com "tem" ou "falta N", o custo estimado do que falta e o que não está à venda; ações "Equipar", "Comprar e equipar", "Trocar pelo atual" e "Excluir"; mensagem em verde ou vermelho. Voltar salva o jogo e volta à preparação da raid.
-- Pendências: carregar os carregadores ao montar, renomear loadouts. (As raids automáticas usam um loadout pelo nome.)
+- **Renomear** (Fase 11F; `renameLoadout`, botão "Renomear" ao lado do nome, que pede o nome com `window.prompt` ou a opção `ask` da cena): nome sem espaços nas pontas, não vazio, até `MAX_LOADOUT_NAME = 24` letras e diferente dos outros loadouts. As raids automáticas que usavam o nome antigo passam a usar o novo.
+- **Carregar ao montar** (Fase 11F; `loadMagazines`): depois de "Equipar" e "Comprar e equipar" (e quando as raids automáticas montam o loadout), as armas vestidas recebem a câmara e o carregador ou tubo cheios, e os carregadores levados no equipamento são enchidos, com a munição do calibre que está no estoque: primeiro os tipos que estão na carga do loadout, depois as pilhas maiores. A mensagem diz "carregou N cartucho(s)".
+- Pendências: escolher o tipo de munição de cada carregador no loadout.
 
 ### Raids automáticas
 

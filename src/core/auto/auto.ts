@@ -1,6 +1,6 @@
 import { hideoutTick } from "../hideout/hideout.ts";
 import { weaponRounds } from "../inventory/magazine.ts";
-import { applyLoadout, quickEquip } from "../loadout/loadout.ts";
+import { applyLoadout, loadMagazines, quickEquip } from "../loadout/loadout.ts";
 import type { LoadoutItem } from "../loadout/types.ts";
 import { totalHealth, totalMaxHealth } from "../pmc/pmc.ts";
 import { recordRaidQuests } from "../quests/quests.ts";
@@ -108,6 +108,7 @@ function prepare(
     if (lacking.length > 0) {
       return `Faltou equipamento do loadout: ${names(player, lacking)}`;
     }
+    loadMagazines(player, loadout);
   }
   if (!armed(player)) return "Nenhuma arma equipada com munição";
   return null;

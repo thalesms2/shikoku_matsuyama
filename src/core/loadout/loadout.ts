@@ -12,9 +12,15 @@ import type { Grid } from "../inventory/grid.ts";
 import type { GridLocation, Item } from "../inventory/item.ts";
 import {
   attachMagazine,
+  canLoad,
+  canLoadWeapon,
   isMagazine,
+  isWeapon,
+  loadRounds,
+  loadWeapon,
   loadedRounds,
   removeMagazine,
+  sameCaliber,
 } from "../inventory/magazine.ts";
 import { autoPlace, detach, splitStack } from "../inventory/operations.ts";
 import type { PlayerState } from "../state.ts";
@@ -38,6 +44,8 @@ import type {
 
 /** Loadouts guardados ao mesmo tempo */
 export const MAX_LOADOUTS = 5;
+/** Tamanho máximo do nome de um loadout */
+export const MAX_LOADOUT_NAME = 24;
 
 /** Itens nas grades de carga (bolsos, colete tático, mochila), com o conteúdo */
 export function carriedItems(equipment: Equipment): Item[] {
@@ -357,4 +365,69 @@ export function replaceLoadout(player: PlayerState, index: number): void {
 
 export function deleteLoadout(player: PlayerState, index: number): void {
   player.loadouts.splice(index, 1);
+}
+
+/**
+ * Renomeia o loadout. O nome não pode ser vazio, passar de
+ * `MAX_LOADOUT_NAME` nem repetir o de outro loadout. As raids automáticas que
+ * usavam o nome antigo passam a usar o novo.
+ */
+export function renameLoadout(
+  player: PlayerState,
+  index: number,
+  name: string,
+): { ok: true } | { ok: false; reason: string } {
+  const loadout = player.loadouts[index];
+  if (!loadout) return { ok: false, reason: "Loadout não existe" };
+  const clean = name.trim();
+  if (!clean) return { ok: false, reason: "O nome não pode ficar vazio" };
+  if (clean.length > MAX_LOADOUT_NAME) {
+    return {
+      ok: false,
+      reason: `Nome muito longo (máx. ${MAX_LOADOUT_NAME} letras)`,
+    };
+  }
+  if (player.loadouts.some((l, i) => i !== index && l.name === clean)) {
+    return { ok: false, reason: "Já existe um loadout com esse nome" };
+  }
+  if (player.auto.rules.loadout === loadout.name) {
+    player.auto.rules.loadout = clean;
+  }
+  loadout.name = clean;
+  return { ok: true };
+}
+
+/**
+ * Carrega na hora as armas vestidas (câmara e carregador ou tubo) e os
+ * carregadores levados no equipamento com munição do calibre que está no
+ * estoque. Usa primeiro os tipos de munição da carga do loadout e depois as
+ * pilhas maiores. Devolve quantos cartuchos entraram.
+ */
+export function loadMagazines(player: PlayerState, loadout?: Loadout): number {
+  const { stash, equipment } = player.inventory;
+  const preferred = (loadout?.carried ?? []).map((c) => c.item);
+  const rank = (i: Item) => {
+    const p = preferred.indexOf(i.def.id);
+    return p < 0 ? preferred.length : p;
+  };
+  const ammoFor = (target: Item) =>
+    stashItems(stash)
+      .filter(
+        (i) => i.def.category === "ammo" && sameCaliber(target.def, i.def),
+      )
+      .sort((a, b) => rank(a) - rank(b) || b.count - a.count);
+  let loaded = 0;
+  for (const weapon of equipment.equipped().filter(isWeapon)) {
+    for (const ammo of ammoFor(weapon)) {
+      if (!canLoadWeapon(weapon, ammo)) continue;
+      loaded += loadWeapon(weapon, ammo);
+    }
+  }
+  for (const mag of carriedItems(equipment).filter(isMagazine)) {
+    for (const ammo of ammoFor(mag)) {
+      if (!canLoad(mag, ammo)) continue;
+      loaded += loadRounds(mag, ammo);
+    }
+  }
+  return loaded;
 }

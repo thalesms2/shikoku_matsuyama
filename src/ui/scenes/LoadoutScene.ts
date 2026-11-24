@@ -7,8 +7,10 @@ import {
   applyLoadout,
   deleteLoadout,
   estimateMissing,
+  loadMagazines,
   missingItems,
   quickEquip,
+  renameLoadout,
   replaceLoadout,
   requiredItems,
   saveLoadout,
@@ -83,6 +85,11 @@ export function describeApply(
   return { text: `Montado em parte: ${problems.join("; ")}`, ok: false };
 }
 
+/** Acrescenta à mensagem quantos cartuchos foram carregados (se algum) */
+export function withLoaded(text: string, rounds: number): string {
+  return rounds > 0 ? `${text}; carregou ${rounds} cartucho(s)` : text;
+}
+
 /** Primeiro nome livre: `Loadout 1`, `Loadout 2`... */
 export function nextLoadoutName(loadouts: readonly Loadout[]): string {
   let n = 1;
@@ -108,6 +115,7 @@ export class LoadoutScene implements Scene {
   readonly quickButton: Button;
   readonly replaceButton: Button;
   readonly deleteButton: Button;
+  readonly renameButton: Button;
   readonly messageText: Text;
   selected = 0;
 
@@ -117,6 +125,8 @@ export class LoadoutScene implements Scene {
       shop: ShopContext;
       clock: Clock;
       onBack: () => void;
+      /** Pede o nome novo ao renomear (padrão: `window.prompt`) */
+      ask?: (question: string, current: string) => string | null;
     },
   ) {
     const title = new Text({
@@ -157,6 +167,8 @@ export class LoadoutScene implements Scene {
     this.quickButton = action("Comprar e equipar", () => this.quick(), 1);
     this.replaceButton = action("Trocar pelo atual", () => this.replace(), 2);
     this.deleteButton = action("Excluir", () => this.remove(), 3);
+    this.renameButton = new Button("Renomear", () => this.rename(), 110, 26);
+    this.renameButton.position.set(WIDTH - 110, 48);
     this.messageText = new Text({
       text: "",
       position: { x: RIGHT, y: ACTIONS_Y + 44 },
@@ -174,6 +186,7 @@ export class LoadoutScene implements Scene {
       this.quickButton,
       this.replaceButton,
       this.deleteButton,
+      this.renameButton,
       this.messageText,
     );
     this.view.addChild(this.content);
@@ -216,7 +229,29 @@ export class LoadoutScene implements Scene {
       applyLoadout(this.player, this.loadout),
       this.catalog,
     );
-    this.show(result.text, result.ok);
+    this.show(
+      withLoaded(result.text, this.loadRounds(this.loadout)),
+      result.ok,
+    );
+  }
+
+  /** Carrega as armas e os carregadores com a munição do estoque */
+  private loadRounds(loadout: Loadout): number {
+    return loadMagazines(this.player, loadout);
+  }
+
+  /** Pede um nome novo e renomeia o loadout escolhido */
+  rename(): void {
+    const loadout = this.loadout;
+    if (!loadout) return;
+    const ask =
+      this.options.ask ?? ((q: string, v: string) => window.prompt(q, v));
+    const name = ask("Novo nome do loadout", loadout.name);
+    if (name === null) return;
+    const old = loadout.name;
+    const result = renameLoadout(this.player, this.selected, name);
+    if (result.ok) this.show(`${old} agora se chama ${loadout.name}`, true);
+    else this.show(result.reason, false);
   }
 
   quick(): void {
@@ -239,7 +274,7 @@ export class LoadoutScene implements Scene {
       );
     }
     const result = describeApply(apply, this.catalog);
-    parts.push(result.text);
+    parts.push(withLoaded(result.text, this.loadRounds(this.loadout)));
     this.show(parts.join(". "), result.ok && purchase.failed.length === 0);
   }
 
@@ -274,6 +309,7 @@ export class LoadoutScene implements Scene {
       this.quickButton,
       this.replaceButton,
       this.deleteButton,
+      this.renameButton,
     ]) {
       button.visible = loadout !== null;
     }

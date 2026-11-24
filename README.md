@@ -195,7 +195,8 @@ Na tela de preparação da raid, o botão **Loadouts** guarda até 5 modelos de 
 
 - **Salvar o atual:** guarda o que o PMC está usando: arma e carregador, coletes, capacete, mochila e tudo que está nos bolsos, no colete tático e na mochila.
 - **Ver o que falta:** cada item aparece com "tem" ou "falta", com o custo estimado para comprar o que falta.
-- **Equipar:** monta o equipamento com o que está no estoque. O que estava no lugar volta para o estoque, e itens a mais nos bolsos e na mochila ficam onde estão. Os carregadores mais cheios vão primeiro, mas a munição não é carregada sozinha.
+- **Renomear:** o botão ao lado do nome do loadout pede um nome novo (até 24 letras, sem repetir).
+- **Equipar:** monta o equipamento com o que está no estoque. O que estava no lugar volta para o estoque, e itens a mais nos bolsos e na mochila ficam onde estão. Os carregadores mais cheios vão primeiro, e depois as armas e os carregadores levados são carregados com a munição do estoque (primeiro o tipo que o loadout carrega).
 - **Comprar e equipar:** compra o que falta pelo menor preço (vendedores ou mercado) e monta tudo com um clique.
 
 ### Raids automáticas

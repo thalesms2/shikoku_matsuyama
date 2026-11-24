@@ -3,6 +3,8 @@ import "@pixi/sound";
 import { Application, Assets } from "pixi.js";
 
 import { assets } from "./assets.ts";
+import { autoTick } from "./core/auto/auto.ts";
+import type { AutoContext } from "./core/auto/types.ts";
 import { systemClock } from "./core/clock.ts";
 import type { Clock } from "./core/clock.ts";
 import { fleaTick } from "./core/flea/flea.ts";
@@ -27,6 +29,7 @@ import { TRADERS } from "./data/traders.ts";
 import { gameReady, initPlatform, setLoadingProgress } from "./platform.ts";
 import { loadItemTextures } from "./ui/inventory/textures.ts";
 import { SceneManager } from "./ui/SceneManager.ts";
+import { AutoRaidScene, describeAutoRun } from "./ui/scenes/AutoRaidScene.ts";
 import { CharacterScene } from "./ui/scenes/CharacterScene.ts";
 import { EndingScene } from "./ui/scenes/EndingScene.ts";
 import { FleaScene } from "./ui/scenes/FleaScene.ts";
@@ -94,14 +97,29 @@ export async function startGame(
 
   // Tempo com o jogo fechado: esconderijo (obras, cura, comida) e vendas
   // dos anúncios do mercado; o resumo aparece depois do título
+  const questContext: QuestContext = {
+    quests: QUESTS,
+    traders: TRADERS,
+    maps: MAPS,
+  };
+  const autoContext: AutoContext = {
+    maps: MAPS,
+    enemies: ENEMIES,
+    quests: questContext,
+    hideout: HIDEOUT,
+    shop: { traders: TRADERS, flea: FLEA },
+  };
+  // Raids automáticas primeiro: cada uma vê o esconderijo no seu momento
+  const autoRaids = autoTick(player, autoContext, clock.now());
   const offlineData: OfflineData = {
     hideout: HIDEOUT,
     flea: FLEA,
     traders: TRADERS,
   };
   const offline = catchUp(player, offlineData, clock.now());
-  let pendingReport = hasNews(offline) ? offline : null;
+  let pendingReport = hasNews(offline) || autoRaids.length > 0 ? offline : null;
   const tick = () => {
+    autoTick(player, autoContext, clock.now());
     hideoutTick(player, HIDEOUT, clock.now());
     fleaTick(player, FLEA, clock.now());
   };
@@ -114,11 +132,6 @@ export async function startGame(
   });
 
   const save = () => saveGame(player, storage, clock);
-  const questContext: QuestContext = {
-    quests: QUESTS,
-    traders: TRADERS,
-    maps: MAPS,
-  };
   const autosave = new AutoSaver(save);
   app.ticker.add((ticker) => autosave.update(ticker.deltaMS));
   window.addEventListener("beforeunload", save);
@@ -203,6 +216,19 @@ export async function startGame(
         },
         onBack: showInventory,
         onOpenLoadouts: showLoadouts,
+        onOpenAuto: showAuto,
+      }),
+    );
+  const showAuto = () =>
+    scenes.change(
+      new AutoRaidScene(player, {
+        ctx: autoContext,
+        clock,
+        onBack: () => {
+          save();
+          showRaidSetup();
+        },
+        onViewRaid: () => showRaid(showAuto),
       }),
     );
   const showLoadouts = () =>
@@ -216,7 +242,7 @@ export async function startGame(
         },
       }),
     );
-  const showRaid = () => {
+  const showRaid = (after: () => void = showInventory) => {
     const active = player.raid.active!;
     scenes.change(
       new RaidScene(player, {
@@ -224,7 +250,7 @@ export async function startGame(
         map: mapById(active.summary.map) ?? MAPS[0],
         onDone: () => {
           save();
-          showInventory();
+          after();
         },
       }),
     );
@@ -238,11 +264,18 @@ export async function startGame(
       const report = pendingReport;
       pendingReport = null;
       scenes.change(
-        new OfflineScene(report, offlineData, player.factory.catalog, showHome),
+        new OfflineScene(
+          report,
+          offlineData,
+          player.factory.catalog,
+          showHome,
+          autoRaids.length > 0 ? [describeAutoRun(autoRaids)] : [],
+        ),
       );
       return;
     }
-    if (player.raid.active) showRaid();
+    if (player.auto.running) showAuto();
+    else if (player.raid.active) showRaid();
     else showInventory();
   };
 

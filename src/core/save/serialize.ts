@@ -1,3 +1,5 @@
+import { MAX_AUTO_RAIDS, createAutoState } from "../auto/auto.ts";
+import type { AutoEntry, AutoState } from "../auto/types.ts";
 import type { Clock } from "../clock.ts";
 import { createFleaState } from "../flea/flea.ts";
 import type { FleaListing, FleaResult, FleaState } from "../flea/types.ts";
@@ -18,7 +20,7 @@ import { createSkills } from "../pmc/skills.ts";
 import type { SkillsState } from "../pmc/skills.ts";
 import type { QuestState, QuestsState } from "../quests/types.ts";
 import { createRaidProfile, createScavProfile } from "../raid/profile.ts";
-import { LOOT_RULES } from "../raid/types.ts";
+import { LOOT_RULES, STRATEGY_IDS } from "../raid/types.ts";
 import type { RaidProfile, ScavProfile } from "../raid/types.ts";
 import { createPlayerState, storageFor } from "../state.ts";
 import type { PlayerState } from "../state.ts";
@@ -107,6 +109,7 @@ export function serializeGame(state: PlayerState, now: number): SaveData {
     hideout: structuredClone(state.hideout),
     flea: saveFlea(state.flea),
     loadouts: structuredClone(state.loadouts),
+    auto: structuredClone(state.auto),
   };
 }
 
@@ -350,6 +353,50 @@ function loadLoadouts(saved: Loadout[] | undefined): Loadout[] {
   });
 }
 
+const OUTCOMES = ["extracted", "killed", "mia"];
+
+/**
+ * Raids automáticas salvas: regras inválidas voltam ao padrão (raids entre 1
+ * e o máximo, vida mínima entre 0 e 1), resultados inválidos somem e
+ * `nextAt` inválido vira `now`.
+ */
+function loadAuto(saved: AutoState | undefined, now: number): AutoState {
+  const base = createAutoState();
+  if (!saved) return base;
+  const r = (saved.rules ?? {}) as Partial<AutoState["rules"]>;
+  const d = base.rules;
+  const bool = (v: unknown, fallback: boolean) =>
+    typeof v === "boolean" ? v : fallback;
+  const maxRaids =
+    isInt(r.maxRaids) && r.maxRaids >= 1 && r.maxRaids <= MAX_AUTO_RAIDS
+      ? r.maxRaids
+      : d.maxRaids;
+  const log = (Array.isArray(saved.log) ? saved.log : []).filter(
+    (e): e is AutoEntry =>
+      OUTCOMES.includes(e?.outcome) &&
+      typeof e.map === "string" &&
+      [e.n, e.minutes, e.lootValue, e.xp, e.kills].every(Number.isFinite),
+  );
+  return {
+    rules: {
+      map: typeof r.map === "string" ? r.map : d.map,
+      strategy: STRATEGY_IDS.includes(r.strategy!) ? r.strategy! : d.strategy,
+      loadout: typeof r.loadout === "string" ? r.loadout : null,
+      buyMissing: bool(r.buyMissing, d.buyMissing),
+      maxRaids,
+      minHealth: Math.min(1, Math.max(0, finite(r.minHealth, d.minHealth))),
+      lowHealth: r.lowHealth === "stop" ? "stop" : "wait",
+      stopOnDeath: bool(r.stopOnDeath, d.stopOnDeath),
+    },
+    running: saved.running === true,
+    done: isInt(saved.done) && saved.done >= 0 ? saved.done : 0,
+    nextAt: finite(saved.nextAt, now),
+    current: Number.isFinite(saved.current) ? saved.current : null,
+    log: log.map((e) => ({ ...e })),
+    stopReason: typeof saved.stopReason === "string" ? saved.stopReason : null,
+  };
+}
+
 /**
  * Quests salvas: status inválido descarta a quest; progresso inválido vira
  * 0. Quests que saíram do jogo ficam guardadas sem efeito.
@@ -474,6 +521,7 @@ export function deserializeGame(
       hideout: loadHideout(data.hideout, clock.now()),
       flea: loadFlea(data.flea, loader, clock.now()),
       loadouts: loadLoadouts(data.loadouts),
+      auto: loadAuto(data.auto, clock.now()),
     },
     clock,
   );

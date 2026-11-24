@@ -293,7 +293,7 @@ export class RaidScene implements Scene {
   }
 
   done(): void {
-    finishRaid(this.player);
+    finishRaid(this.player, this.raid);
     this.options.onDone();
   }
 

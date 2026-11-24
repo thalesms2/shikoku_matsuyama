@@ -175,6 +175,14 @@ Na tela de preparação da raid, o botão **Loadouts** guarda até 5 modelos de 
 - **Equipar:** monta o equipamento com o que está no estoque. O que estava no lugar volta para o estoque, e itens a mais nos bolsos e na mochila ficam onde estão. Os carregadores mais cheios vão primeiro, mas a munição não é carregada sozinha.
 - **Comprar e equipar:** compra o que falta pelo menor preço (vendedores ou mercado) e monta tudo com um clique.
 
+### Raids automáticas
+
+Na tela de preparação da raid, o botão **Automático** faz raids uma depois da outra, mesmo com o jogo fechado.
+
+- **Regras:** escolha o mapa, a estratégia, um loadout (montado antes de cada raid, com ou sem comprar o que faltar), quantas raids fazer, a vida mínima para entrar (e se, com a vida baixa, a sequência espera curar ou para) e se ela para quando o PMC morre.
+- **Como anda:** cada raid começa 5 segundos depois de o log da anterior terminar. Sem arma com munição, ou faltando algo do loadout, a sequência para e mostra o motivo.
+- **Acompanhar:** a tela mostra a situação, os totais e as últimas raids, e **Ver raid atual** abre o log da raid em andamento. Ao voltar ao jogo, o resumo diz quantas raids aconteceram enquanto você estava fora.
+
 ### Enquanto você estava fora
 
 O tempo continua passando com o jogo fechado: obras e produções do esconderijo terminam, a central junta renda, o PMC se recupera, os anúncios do mercado vendem ou vencem, a raid Scav libera e os vendedores repõem o estoque. Ao voltar (depois de pelo menos 1 minuto), uma tela mostra um resumo do que aconteceu antes de seguir para o jogo.

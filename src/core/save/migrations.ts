@@ -1,3 +1,4 @@
+import { createAutoState } from "../auto/auto.ts";
 import { createFleaState } from "../flea/flea.ts";
 import { createHideoutState } from "../hideout/hideout.ts";
 import { createRaidProfile, createScavProfile } from "../raid/profile.ts";
@@ -37,6 +38,8 @@ export const MIGRATIONS: Record<number, Migration> = {
   }),
   // v7 → v8: nenhum loadout salvo
   7: (data) => ({ ...data, loadouts: [] }),
+  // v8 → v9: raids automáticas paradas, com as regras padrão
+  8: (data) => ({ ...data, auto: createAutoState() }),
 };
 
 export class SaveError extends Error {}

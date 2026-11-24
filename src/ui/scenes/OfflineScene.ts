@@ -68,6 +68,8 @@ export class OfflineScene implements Scene {
     data: OfflineData,
     catalog: Catalog,
     onContinue: () => void,
+    /** Linhas a mais no fim (ex.: raids automáticas) */
+    extra: readonly string[] = [],
   ) {
     this.title = new Text({
       text: `Enquanto você estava fora (${formatDuration(report.awayMs)})`,
@@ -79,7 +81,7 @@ export class OfflineScene implements Scene {
       },
     });
     this.body = new Text({
-      text: offlineLines(report, data, catalog)
+      text: [...offlineLines(report, data, catalog), ...extra]
         .map((l) => `• ${l}`)
         .join("\n"),
       position: { x: 0, y: 56 },

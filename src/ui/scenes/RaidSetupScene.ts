@@ -111,6 +111,7 @@ export class RaidSetupScene implements Scene {
   readonly title: Text;
   readonly backButton: Button;
   loadoutsButton: Button | null = null;
+  autoButton: Button | null = null;
   readonly mapButtons = new Map<string, Button>();
   readonly strategyButtons = new Map<StrategyId, Button>();
   readonly mapInfo: Text;
@@ -140,6 +141,8 @@ export class RaidSetupScene implements Scene {
       onBack: () => void;
       /** Abre os loadouts (botão ao lado de Voltar) */
       onOpenLoadouts?: () => void;
+      /** Abre as raids automáticas (à esquerda de Loadouts) */
+      onOpenAuto?: () => void;
     },
   ) {
     this.map = options.maps[0];
@@ -157,6 +160,15 @@ export class RaidSetupScene implements Scene {
         2,
       );
       this.content.addChild(this.loadoutsButton);
+    }
+    if (options.onOpenAuto) {
+      this.autoButton = new Button("Automático", options.onOpenAuto);
+      const right = this.loadoutsButton ?? this.backButton;
+      this.autoButton.position.set(
+        right.x - this.autoButton.buttonWidth - 12,
+        2,
+      );
+      this.content.addChild(this.autoButton);
     }
 
     let y = 50;

@@ -118,7 +118,12 @@ export function raidFinished(raid: ActiveRaid, minute: number): boolean {
   return minute >= raid.summary.minutes;
 }
 
-/** Fecha a tela de resultado: o jogador volta ao esconderijo */
-export function finishRaid(player: PlayerState): void {
+/**
+ * Fecha a tela de resultado: o jogador volta ao esconderijo. Com `raid`, só
+ * fecha se ela ainda for a raid em andamento (uma raid automática mais nova
+ * não é apagada por uma tela antiga).
+ */
+export function finishRaid(player: PlayerState, raid?: ActiveRaid): void {
+  if (raid && player.raid.active !== raid) return;
   player.raid.active = null;
 }

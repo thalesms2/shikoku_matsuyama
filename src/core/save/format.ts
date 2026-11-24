@@ -1,3 +1,4 @@
+import type { AutoState } from "../auto/types.ts";
 import type { FleaState, FleaStats } from "../flea/types.ts";
 import type { HideoutState } from "../hideout/types.ts";
 import type { SlotName } from "../inventory/equipment.ts";
@@ -9,7 +10,7 @@ import type { RaidProfile, ScavProfile } from "../raid/types.ts";
 import type { TradersState } from "../trade/types.ts";
 
 /** Versão atual do formato do save. Mudou o formato? Incremente e migre. */
-export const SAVE_VERSION = 8;
+export const SAVE_VERSION = 9;
 
 /** Item salvo; o conteúdo vai junto (grades, cartuchos, carregador) */
 export interface SavedItem {
@@ -71,6 +72,8 @@ export interface SaveData {
   flea?: SavedFlea;
   /** v8: loadouts salvos */
   loadouts?: Loadout[];
+  /** v9: regras e andamento das raids automáticas */
+  auto?: AutoState;
 }
 
 export type SavedFleaResult =

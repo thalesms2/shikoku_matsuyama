@@ -1,3 +1,5 @@
+import { createAutoState } from "./auto/auto.ts";
+import type { AutoState } from "./auto/types.ts";
 import type { Clock } from "./clock.ts";
 import { createFleaState } from "./flea/flea.ts";
 import type { FleaState } from "./flea/types.ts";
@@ -43,6 +45,8 @@ export interface PlayerState {
   flea: FleaState;
   /** Modelos de equipamento salvos */
   loadouts: Loadout[];
+  /** Regras e andamento das raids automáticas */
+  auto: AutoState;
 }
 
 /**
@@ -62,6 +66,7 @@ export function createPlayerState(
     | "hideout"
     | "flea"
     | "loadouts"
+    | "auto"
   > & {
     raid?: RaidProfile;
     scav?: ScavProfile;
@@ -70,6 +75,7 @@ export function createPlayerState(
     hideout?: HideoutState;
     flea?: FleaState;
     loadouts?: Loadout[];
+    auto?: AutoState;
   },
   clock: Clock,
 ): PlayerState {
@@ -83,6 +89,7 @@ export function createPlayerState(
     hideout: parts.hideout ?? createHideoutState(clock.now()),
     flea: parts.flea ?? createFleaState(clock.now()),
     loadouts: parts.loadouts ?? [],
+    auto: parts.auto ?? createAutoState(),
   };
 }
 

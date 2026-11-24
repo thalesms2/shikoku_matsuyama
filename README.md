@@ -100,6 +100,8 @@ Botão **Raid** no inventário. Escolha o mapa, a estratégia e a regra de loot 
   - A chance de acertar depende da skill Mira e cai se um braço estiver destruído.
   - O dano depende da munição: se a penetração for menor que a proteção do colete ou do capacete do alvo (classe × 10), o dano cai. Isso vale para os dois lados.
   - Seu colete protege tórax e estômago, e o capacete protege a cabeça.
+  - **Inimigos equipados:** cada Scav e PMC inimigo aparece com uma arma, munição, colete e capacete de verdade (o log diz a arma e a classe do colete). Scavs usam pistola ou fuzil e às vezes colete civil; PMCs inimigos usam fuzil, às vezes com munição perfurante, e coletes até classe 4. Seus tiros gastam o colete deles, e um colete quebrado não protege mais.
+  - **Corpo revistado:** ao revistar um inimigo abatido, você leva tudo que ele usava (arma com o carregador, colete, capacete e munição), se couber, além de um item achado com ele. O Cartucho 5.45 perfurante só se consegue assim.
   - Quando o carregador esvazia, o PMC troca por outro carregado que esteja no equipamento (a escopeta é recarregada com cartuchos soltos). Depois da briga, ele completa os carregadores e o tubo da escopeta com a munição solta que estiver carregando.
   - Sem munição nenhuma, ele tenta fugir.
 - **Cuidados automáticos:** o PMC usa sozinho os remédios do equipamento quando a vida cai (começando pelo melhor), e come ou bebe quando a energia ou a hidratação ficam baixas. Energia e hidratação caem durante a raid; se zerarem, o PMC começa a perder vida.
@@ -108,7 +110,7 @@ Botão **Raid** no inventário. Escolha o mapa, a estratégia e a regra de loot 
   - **Guardar o primeiro:** fica com o que achou primeiro.
 - **Extração:** perto do fim, o PMC vai para a saída mais segura que puder usar. Algumas saídas pedem uma chave, pagamento em dinheiro ou que você esteja sem mochila. Pode haver alguém de tocaia na saída.
 - **Resultado:**
-  - **Extraiu:** fica com tudo e ganha XP do PMC (pela sobrevivência, pelo tempo, pelos abates e pelo valor do loot). Partes do corpo destruídas voltam com 1 de vida.
+  - **Extraiu:** fica com tudo e ganha XP do PMC (pela sobrevivência, pelo tempo, pelos abates e pelo valor do loot). Partes do corpo destruídas continuam destruídas até uma cirurgia (veja abaixo).
   - **Morreu ou ficou sem tempo (MIA):** perde tudo que estava vestido e nos bolsos, menos o contêiner seguro e o que estiver dentro dele. O PMC volta com a vida cheia.
   - Nos dois casos, o XP das skills ganho na raid fica.
 - **Skills na raid:**
@@ -126,7 +128,7 @@ Botão **Vendedores** no inventário. Cada vendedor tem uma especialidade, uma m
 
 - **Coronel Brás** — armas e munição, em rublos.
 - **Doutora Iara** — remédios e comida, em rublos.
-- **Mercador Tito** — coletes, capacetes, mochilas e coletes táticos, em dólares. Ele também troca rublos por dólares e euros.
+- **Mercador Tito** — coletes, capacetes, mochilas e coletes táticos, em dólares (o Capacete fechado K-3 no nível 2 e o Colete de placas Muralha, classe 4, no nível 3). Ele também troca rublos por dólares e euros.
 - **Sucateiro Nico** — compra quase tudo (pagando menos) e faz trocas de itens.
 
 - **Comprar:** o item vai para o estoque e o pagamento sai do estoque (dinheiro ou, nas trocas, os itens pedidos). Precisa haver espaço no estoque.

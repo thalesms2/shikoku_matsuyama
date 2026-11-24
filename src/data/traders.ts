@@ -132,6 +132,8 @@ export const TRADERS: readonly TraderDef[] = [
       { id: "armor", item: "armor_civil", level: 2, stock: 2 },
       { id: "hiker", item: "backpack_hiker", level: 2, stock: 2 },
       { id: "ammo-case", item: "ammo_case", level: 3, stock: 1 },
+      { id: "helmet-k3", item: "helmet_k3", level: 2, stock: 2 },
+      { id: "armor-heavy", item: "armor_heavy", level: 3, stock: 1 },
     ],
   },
   {

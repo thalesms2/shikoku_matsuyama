@@ -34,6 +34,23 @@
     }
   },
   {
+    "id": "ammo_545ap",
+    "name": "Cartucho 5.45 perfurante",
+    "shortName": "5.45 PF",
+    "category": "ammo",
+    "width": 1,
+    "height": 1,
+    "maxStack": 60,
+    "basePrice": 260,
+    "description": "Núcleo de aço temperado dentro da camisa de cobre. Fere um pouco menos, mas atravessa colete que o FMJ não passa.",
+    "image": "assets/items/ammo_545ap.webp",
+    "stats": {
+      "caliber": "Caliber545x39",
+      "damage": 40,
+      "penetration": 38
+    }
+  },
+  {
     "id": "ammo_9mm",
     "name": "Cartucho 9mm",
     "shortName": "9mm",
@@ -84,6 +101,22 @@
     "stats": {
       "armorClass": 2,
       "durability": 40
+    }
+  },
+  {
+    "id": "armor_heavy",
+    "name": "Colete de placas Muralha",
+    "shortName": "Muralha",
+    "category": "armor",
+    "width": 3,
+    "height": 3,
+    "basePrice": 48000,
+    "equipSlot": "armor",
+    "description": "Placas de cerâmica costuradas num colete de náilon grosso. Pesado e quente, mas segura munição de fuzil comum.",
+    "image": "assets/items/armor_heavy.webp",
+    "stats": {
+      "armorClass": 4,
+      "durability": 60
     }
   },
   {
@@ -188,6 +221,22 @@
     "image": "assets/items/food_water.webp",
     "stats": {
       "hydration": 60
+    }
+  },
+  {
+    "id": "helmet_k3",
+    "name": "Capacete fechado K-3",
+    "shortName": "K-3",
+    "category": "helmet",
+    "width": 2,
+    "height": 2,
+    "basePrice": 24000,
+    "equipSlot": "helmet",
+    "description": "Casco de aço reforçado que cobre a nuca e as orelhas. Abafa o som, mas para estilhaços e pistola sem esforço.",
+    "image": "assets/items/helmet_k3.webp",
+    "stats": {
+      "armorClass": 3,
+      "durability": 40
     }
   },
   {

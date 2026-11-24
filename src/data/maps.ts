@@ -6,21 +6,75 @@ export const ENEMIES: Readonly<Record<EnemyKind, EnemyDef>> = {
     kind: "scav",
     name: "um Scav",
     health: 110,
-    accuracy: 0.28,
-    damage: 42,
-    penetration: 15,
-    armorClasses: [0, 0, 1, 2],
-    burst: 2,
+    accuracy: 0.13,
+    // Dano, penetração, disparos e colete vêm do equipamento (`gear`)
+    damage: 0,
+    penetration: 0,
+    armorClasses: [0],
+    burst: 0,
+    gear: {
+      weapons: [
+        {
+          weight: 3,
+          weapon: "pistol_pk9",
+          magazine: "mag_pk9",
+          ammo: "ammo_9mm",
+          ammoCount: [0, 12],
+        },
+        {
+          weight: 1.5,
+          weapon: "rifle_vk74",
+          magazine: "mag_vk74",
+          ammo: "ammo_545",
+          ammoCount: [0, 20],
+        },
+      ],
+      armor: [
+        { weight: 5, item: null },
+        { weight: 2, item: "armor_civil" },
+      ],
+      helmet: [
+        { weight: 6, item: null },
+        { weight: 2, item: "helmet_tk1" },
+      ],
+    },
   },
   pmc: {
     kind: "pmc",
     name: "um PMC inimigo",
     health: 160,
     accuracy: 0.42,
-    damage: 48,
-    penetration: 30,
-    armorClasses: [2, 3, 4],
-    burst: 3,
+    damage: 0,
+    penetration: 0,
+    armorClasses: [0],
+    burst: 0,
+    gear: {
+      weapons: [
+        {
+          weight: 2,
+          weapon: "rifle_vk74",
+          magazine: "mag_vk74",
+          ammo: "ammo_545",
+          ammoCount: [10, 40],
+        },
+        {
+          weight: 2,
+          weapon: "rifle_vk74",
+          magazine: "mag_vk74",
+          ammo: "ammo_545ap",
+          ammoCount: [10, 40],
+        },
+      ],
+      armor: [
+        { weight: 2, item: "armor_civil" },
+        { weight: 2, item: "armor_heavy" },
+      ],
+      helmet: [
+        { weight: 1, item: null },
+        { weight: 2, item: "helmet_tk1" },
+        { weight: 2, item: "helmet_k3" },
+      ],
+    },
   },
 };
 

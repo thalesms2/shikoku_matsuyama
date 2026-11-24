@@ -41,6 +41,36 @@ export interface EnemyDef {
   readonly armorClasses: readonly number[];
   /** Disparos por troca de tiros */
   readonly burst: number;
+  /**
+   * Equipamento de verdade (itens do catálogo). Com ele, dano, penetração e
+   * disparos vêm da arma e da munição sorteadas, a classe vem do colete (e
+   * `armorClasses` é ignorado), e o corpo revistado deixa todo o equipamento.
+   */
+  readonly gear?: EnemyGear;
+}
+
+/** Uma opção de arma do inimigo, com o carregador e a munição */
+export interface EnemyWeapon {
+  readonly weight: number;
+  readonly weapon: string;
+  /** Carregador encaixado (armas com tubo não têm) */
+  readonly magazine?: string;
+  readonly ammo: string;
+  /** Cartuchos soltos que o corpo deixa (mín., máx.) */
+  readonly ammoCount: readonly [number, number];
+}
+
+/** Uma opção de peça vestida (`item: null` = sem a peça) */
+export interface EnemyGearOption {
+  readonly weight: number;
+  readonly item: string | null;
+}
+
+/** Equipamento sorteado a cada encontro, por peso */
+export interface EnemyGear {
+  readonly weapons: readonly EnemyWeapon[];
+  readonly armor: readonly EnemyGearOption[];
+  readonly helmet: readonly EnemyGearOption[];
 }
 
 export interface MapDef {

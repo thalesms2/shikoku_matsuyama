@@ -1,13 +1,16 @@
 import {
   durabilityOf,
   durabilityRatio,
+  maxDurability,
   wear,
 } from "../inventory/durability.ts";
 import { SLOT_NAMES } from "../inventory/equipment.ts";
 import type { Grid } from "../inventory/grid.ts";
 import { totalValue } from "../inventory/item.ts";
-import type { Item } from "../inventory/item.ts";
+import type { Item, ItemDef } from "../inventory/item.ts";
 import {
+  attachMagazine,
+  capacity,
   chamberRound,
   feedOf,
   fireRound,
@@ -20,6 +23,7 @@ import {
   weaponRounds,
 } from "../inventory/magazine.ts";
 import { detach } from "../inventory/operations.ts";
+import { maxStack } from "../inventory/size.ts";
 import {
   MAG_DRILLS_XP_PER_ROUND,
   isConsumable,
@@ -65,6 +69,7 @@ import { NO_MODIFIERS } from "./types.ts";
 import type {
   EnemyDef,
   EnemyKind,
+  EnemyWeapon,
   ExtractDef,
   ItemSummary,
   LootRule,
@@ -167,6 +172,28 @@ export interface RaidSetup {
   /** Ajustes da raid Scav (karma); sem eles, nada muda */
   modifiers?: RaidModifiers;
 }
+
+/** Colete de um inimigo, gasto pelos acertos do PMC durante a briga */
+export interface EnemyArmor {
+  readonly def: ItemDef;
+  durability: number;
+}
+
+/** Inimigo de um encontro, já com o equipamento sorteado */
+export interface Foe {
+  /** Perfil com dano, penetração e disparos da arma e munição sorteadas */
+  readonly def: EnemyDef;
+  readonly armorClass: number;
+  readonly armor: EnemyArmor | null;
+  /** Equipamento de verdade (só para inimigos com `gear`) */
+  readonly gear: {
+    readonly weapon: EnemyWeapon;
+    readonly helmet: ItemDef | null;
+  } | null;
+}
+
+/** Durabilidade do capacete do inimigo: de 50% a 100% do máximo */
+export const ENEMY_HELMET_DURABILITY: readonly [number, number] = [50, 100];
 
 export interface RaidRun {
   events: RaidEvent[];
@@ -646,13 +673,17 @@ export class RaidSimulation {
       );
       return;
     }
-    const armorClass = rng.pick(enemy.armorClasses);
+    const foe = this.armEnemy(enemy);
+    const { armorClass } = foe;
     let health = enemy.health;
+    const weapon = foe.gear
+      ? ` com ${this.player.factory.catalog.get(foe.gear.weapon.weapon).name}`
+      : "";
     this.log(
       "encounter",
       surprise
         ? `${enemy.name} apareceu no meio da cirurgia!`
-        : `Avistou ${enemy.name}${armorClass > 0 ? ` (colete classe ${armorClass})` : ""}`,
+        : `Avistou ${enemy.name}${weapon}${armorClass > 0 ? ` (colete classe ${armorClass})` : ""}`,
     );
     const avoid = strategy.avoid + skillBonus(player.skills, "stealth") / 2;
     if (!surprise && rng.chance(avoid)) {
@@ -670,15 +701,15 @@ export class RaidSimulation {
       this.t += MINUTES_PER_EXCHANGE;
       for (const side of playerFirst ? [0, 1] : [1, 0]) {
         if (side === 0) {
-          const result = this.playerTurn(enemy, armorClass);
+          const result = this.playerTurn(enemy, armorClass, foe.armor);
           if (result === "fled") return;
           health -= result;
           if (health <= 0) {
-            this.won(enemy);
+            this.won(enemy, foe);
             return;
           }
         } else {
-          this.enemyTurn(enemy, enemyHit);
+          this.enemyTurn(foe.def, enemyHit);
           if (isDead(player.pmc)) {
             this.killedBy = enemy.name;
             return;
@@ -690,8 +721,49 @@ export class RaidSimulation {
     this.afterFight();
   }
 
-  /** Dispara uma rajada; devolve o dano causado ou `"fled"` se fugiu */
-  playerTurn(enemy: EnemyDef, armorClass: number): number | "fled" {
+  /**
+   * Sorteia o equipamento do inimigo. Sem `gear`, só a classe do colete (de
+   * `armorClasses`); com `gear`, a arma (dano, penetração e disparos vêm dela
+   * e da munição), o colete (a classe) e o capacete.
+   */
+  armEnemy(enemy: EnemyDef): Foe {
+    const { rng } = this;
+    const gear = enemy.gear;
+    if (!gear) {
+      const armorClass = rng.pick(enemy.armorClasses);
+      return { def: enemy, armorClass, armor: null, gear: null };
+    }
+    const { catalog } = this.player.factory;
+    const option = <T>(list: readonly (T & { weight: number })[]) =>
+      rng.weighted(list.map((value) => ({ value, weight: value.weight })));
+    const weapon = option(gear.weapons);
+    const armorId = option(gear.armor).item;
+    const helmetId = option(gear.helmet).item;
+    const ammo = catalog.get(weapon.ammo);
+    const armor = armorId ? catalog.get(armorId) : null;
+    return {
+      def: {
+        ...enemy,
+        damage: statOf(ammo, "damage"),
+        penetration: statOf(ammo, "penetration"),
+        burst: burstFor(catalog.get(weapon.weapon)),
+      },
+      armorClass: armor ? statOf(armor, "armorClass") : 0,
+      armor: armor ? { def: armor, durability: maxDurability(armor) } : null,
+      gear: { weapon, helmet: helmetId ? catalog.get(helmetId) : null },
+    };
+  }
+
+  /**
+   * Dispara uma rajada; devolve o dano causado ou `"fled"` se fugiu. Com o
+   * colete do inimigo (`armor`), a proteção cai com a durabilidade e cada
+   * acerto gasta o colete.
+   */
+  playerTurn(
+    enemy: EnemyDef,
+    armorClass: number,
+    armor: EnemyArmor | null = null,
+  ): number | "fled" {
     const weapon = this.readyWeapon();
     if (!weapon) {
       if (this.swapMagazine() || this.reloadTube()) return 0;
@@ -712,9 +784,18 @@ export class RaidSimulation {
       const ammo = fireRound(weapon)!;
       if (!this.rng.chance(chance)) continue;
       hits++;
-      dealt +=
-        statOf(ammo, "damage") *
-        armorFactor(statOf(ammo, "penetration"), armorClass);
+      const damage = statOf(ammo, "damage");
+      const pen = statOf(ammo, "penetration");
+      if (!armor) {
+        dealt += damage * armorFactor(pen, armorClass);
+        continue;
+      }
+      const ratio = armor.durability / maxDurability(armor.def);
+      dealt += damage * wornArmorFactor(pen, armorClass, ratio);
+      armor.durability = Math.max(
+        0,
+        armor.durability - armorWear(damage, pen, armorClass),
+      );
     }
     addSkillXp(this.player.skills, "aim", hits * RAID_SKILL_XP.aimPerHit);
     this.log(
@@ -751,14 +832,60 @@ export class RaidSimulation {
     );
   }
 
-  won(enemy: EnemyDef): void {
+  /**
+   * Abate: conta o abate e o karma e, com a chance da estratégia, revista o
+   * corpo (1 item da tabela do mapa e, com equipamento de verdade, tudo que
+   * o inimigo usava).
+   */
+  won(enemy: EnemyDef, foe?: Foe): void {
     this.kills[enemy.kind]++;
     this.karma += enemy.kind === "scav" ? KARMA.killScav : KARMA.killPmc;
     this.log("kill", `Abateu ${enemy.name}`);
     if (this.rng.chance(this.strategy.searchBody)) {
       this.takeLoot(this.rollLoot(), " no corpo");
+      for (const item of foe ? this.bodyGear(foe) : []) {
+        this.takeLoot(item, " no corpo");
+      }
     }
     this.afterFight();
+  }
+
+  /**
+   * Itens do equipamento do inimigo abatido: a arma com o carregador (de 0 à
+   * capacidade), o colete gasto na briga, o capacete (50% a 100% da
+   * durabilidade) e os cartuchos soltos.
+   */
+  bodyGear(foe: Foe): Item[] {
+    const { gear } = foe;
+    if (!gear) return [];
+    const { factory } = this.player;
+    const { rng } = this;
+    const items: Item[] = [];
+    const weapon = factory.create(gear.weapon.weapon);
+    const magazine = gear.weapon.magazine
+      ? factory.create(gear.weapon.magazine)
+      : null;
+    if (magazine) attachMagazine(weapon, magazine);
+    // Os dados garantem carregador ou tubo (tests/data/enemies.test.ts)
+    const feed = feedOf(weapon)!;
+    const ammoDef = factory.catalog.get(gear.weapon.ammo);
+    const rounds = rng.int(0, Math.min(capacity(feed), maxStack(ammoDef)));
+    if (rounds > 0) loadRounds(feed, factory.create(ammoDef.id, rounds));
+    items.push(weapon);
+    const worn = (def: ItemDef, durability: number) => {
+      const item = factory.create(def.id);
+      if (durability < maxDurability(def)) item.durability = durability;
+      items.push(item);
+    };
+    if (foe.armor) worn(foe.armor.def, foe.armor.durability);
+    if (gear.helmet) {
+      const percent = rng.int(...ENEMY_HELMET_DURABILITY);
+      worn(gear.helmet, (maxDurability(gear.helmet) * percent) / 100);
+    }
+    const ammo = factory.catalog.get(gear.weapon.ammo);
+    const count = Math.min(maxStack(ammo), rng.int(...gear.weapon.ammoCount));
+    if (count > 0) items.push(factory.create(ammo.id, count));
+    return items;
   }
 
   afterFight(): void {

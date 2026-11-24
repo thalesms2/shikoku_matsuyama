@@ -1,11 +1,12 @@
 import type { SlotName } from "../inventory/equipment.ts";
 import type { PmcState } from "../pmc/pmc.ts";
 import type { SkillsState } from "../pmc/skills.ts";
+import type { QuestsState } from "../quests/types.ts";
 import type { RaidProfile, ScavProfile } from "../raid/types.ts";
 import type { TradersState } from "../trade/types.ts";
 
 /** Versão atual do formato do save. Mudou o formato? Incremente e migre. */
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 
 /** Item salvo; o conteúdo vai junto (grades, cartuchos, carregador) */
 export interface SavedItem {
@@ -18,6 +19,8 @@ export interface SavedItem {
   rounds?: [string, number][];
   /** Carregador encaixado na arma */
   magazine?: SavedItem;
+  /** v5: encontrado na raid */
+  fir?: true;
 }
 
 /** Item salvo dentro de uma grade, com a posição */
@@ -57,4 +60,6 @@ export interface SaveData {
   scav?: ScavProfile;
   /** v4: reputação, volume, compras e reposição de cada vendedor */
   traders?: TradersState;
+  /** v5: quests aceitas e concluídas (e `fir` nos itens) */
+  quests?: QuestsState;
 }

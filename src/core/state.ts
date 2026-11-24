@@ -5,6 +5,7 @@ import type { Item, ItemFactory } from "./inventory/item.ts";
 import { MagazineLoader } from "./inventory/loading.ts";
 import type { PmcState } from "./pmc/pmc.ts";
 import type { SkillsState } from "./pmc/skills.ts";
+import type { QuestsState } from "./quests/types.ts";
 import { createRaidProfile, createScavProfile } from "./raid/profile.ts";
 import type { RaidProfile, ScavProfile } from "./raid/types.ts";
 import type { TradersState } from "./trade/types.ts";
@@ -29,6 +30,8 @@ export interface PlayerState {
   scav: ScavProfile;
   /** Reputação, volume negociado e estoque comprado de cada vendedor */
   traders: TradersState;
+  /** Quests aceitas e concluídas, com o progresso */
+  quests: QuestsState;
 }
 
 /**
@@ -37,10 +40,14 @@ export interface PlayerState {
  * tem histórico (o estado de cada um é criado no primeiro acesso).
  */
 export function createPlayerState(
-  parts: Omit<PlayerState, "loader" | "raid" | "scav" | "traders"> & {
+  parts: Omit<
+    PlayerState,
+    "loader" | "raid" | "scav" | "traders" | "quests"
+  > & {
     raid?: RaidProfile;
     scav?: ScavProfile;
     traders?: TradersState;
+    quests?: QuestsState;
   },
   clock: Clock,
 ): PlayerState {
@@ -50,6 +57,7 @@ export function createPlayerState(
     raid: parts.raid ?? createRaidProfile(clock.now()),
     scav: parts.scav ?? createScavProfile(),
     traders: parts.traders ?? {},
+    quests: parts.quests ?? {},
   };
 }
 

@@ -744,6 +744,10 @@ export class RaidSimulation {
         this.kills.pmc * RAID_XP.kill.pmc +
         Math.floor((lootValue / 1000) * RAID_XP.per1000Value);
       addPmcXp(pmc, xp);
+      // O loot que saiu com o PMC passa a ser "encontrado na raid"
+      for (const item of this.found) {
+        if (isCarried(item, player)) item.fir = true;
+      }
       // Cirurgia de campo na saída (até existir a enfermaria)
       for (const part of BODY_PARTS) restorePart(pmc, part);
     } else {

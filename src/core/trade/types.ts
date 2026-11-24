@@ -34,6 +34,8 @@ export interface TraderOffer {
   readonly price?: number;
   /** Moeda do preço fixo (padrão: a do vendedor) */
   readonly currency?: string;
+  /** Quest que precisa estar concluída para liberar a oferta */
+  readonly quest?: string;
 }
 
 export interface TraderDef {

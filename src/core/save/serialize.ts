@@ -10,6 +10,7 @@ import { createPmc } from "../pmc/pmc.ts";
 import type { PmcState } from "../pmc/pmc.ts";
 import { createSkills } from "../pmc/skills.ts";
 import type { SkillsState } from "../pmc/skills.ts";
+import type { QuestState, QuestsState } from "../quests/types.ts";
 import { createRaidProfile, createScavProfile } from "../raid/profile.ts";
 import { LOOT_RULES } from "../raid/types.ts";
 import type { RaidProfile, ScavProfile } from "../raid/types.ts";
@@ -35,6 +36,7 @@ function saveItem(item: Item): SavedItem {
   if (item.grids.length > 0) saved.grids = item.grids.map(saveGrid);
   if (item.rounds) saved.rounds = item.rounds.map((r) => [r.def.id, r.count]);
   if (item.magazine) saved.magazine = saveItem(item.magazine);
+  if (item.fir) saved.fir = true;
   return saved;
 }
 
@@ -80,6 +82,7 @@ export function serializeGame(state: PlayerState, now: number): SaveData {
     raid: structuredClone(state.raid),
     scav: structuredClone(state.scav),
     traders: structuredClone(state.traders),
+    quests: structuredClone(state.quests),
   };
 }
 
@@ -106,6 +109,7 @@ class Loader {
       this.warnings.push(`${saved.uid}: ${(error as Error).message}`);
       return null;
     }
+    if (saved.fir === true) item.fir = true;
     this.byUid.set(item.uid, item);
     saved.grids?.forEach((items, i) => {
       const grid = item.grids[i];
@@ -177,6 +181,24 @@ function loadTraders(saved: TradersState | undefined): TradersState {
     };
   }
   return traders;
+}
+
+/**
+ * Quests salvas: status inválido descarta a quest; progresso inválido vira
+ * 0. Quests que saíram do jogo ficam guardadas sem efeito.
+ */
+function loadQuests(saved: QuestsState | undefined): QuestsState {
+  const quests: QuestsState = {};
+  for (const [id, raw] of Object.entries(saved ?? {})) {
+    const state = (raw ?? {}) as Partial<QuestState>;
+    if (state.status !== "active" && state.status !== "completed") continue;
+    const progress = Array.isArray(state.progress) ? state.progress : [];
+    quests[id] = {
+      status: state.status,
+      progress: progress.map((n) => Math.max(0, finite(n, 0))),
+    };
+  }
+  return quests;
 }
 
 /** Perfil Scav salvo; campos que faltam voltam ao padrão (liberada) */
@@ -281,6 +303,7 @@ export function deserializeGame(
       raid: loadRaid(data.raid, clock.now()),
       scav: loadScav(data.scav),
       traders: loadTraders(data.traders),
+      quests: loadQuests(data.quests),
     },
     clock,
   );

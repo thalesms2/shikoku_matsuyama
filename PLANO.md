@@ -118,7 +118,9 @@ O jogo **nunca consulta a API durante a execução**. A API ([tarkov.dev](https:
 - Estoque dos vendedores com restock periódico.
 - Moedas: moeda principal + 1–2 moedas estrangeiras.
 
-## Fase 6 — Quests
+## Fase 6 — Quests ✅
+
+**Estado:** feito. `src/core/quests/` (requisitos, aceitar, entregar, concluir, progresso depois da raid do PMC), 10 quests em `src/data/quests.ts` (6 na cadeia da fuga), itens "encontrados na raid" (`item.fir`), oferta liberada por quest no Coronel, `QuestsScene`, `EndingScene` e save v5.
 
 - Tipos de objetivo: entregar item, extrair de mapa X, eliminar N alvos, sobreviver com estratégia Y, encontrar item na raid ("found in raid").
 - Pré-requisitos (nível, quest anterior, lealdade) e recompensas (dinheiro, itens, reputação, desbloqueios).
@@ -168,3 +170,4 @@ O jogo **nunca consulta a API durante a execução**. A API ([tarkov.dev](https:
 8. ✅ Primeira raid simulada ponta a ponta (Fase 3).
 9. ✅ Raid Scav (Fase 4).
 10. ✅ Vendedores e economia (Fase 5).
+11. ✅ Quests e final do jogo (Fase 6).

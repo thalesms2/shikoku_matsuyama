@@ -37,6 +37,7 @@ export function describeItem(item: Item): string[] {
     const cells = item.grids.reduce((n, g) => n + g.width * g.height, 0);
     lines.push(`Contêiner: ${cells} células (duplo clique para abrir)`);
   }
+  if (item.fir) lines.push("Encontrado na raid ✓");
   return lines;
 }
 

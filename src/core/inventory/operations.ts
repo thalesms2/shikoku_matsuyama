@@ -45,6 +45,8 @@ export function canStack(source: Item, target: Item): boolean {
   return (
     source !== target &&
     source.def === target.def &&
+    // "Encontrado na raid" não se mistura com o resto
+    Boolean(source.fir) === Boolean(target.fir) &&
     maxStack(target.def) > 1 &&
     target.count < maxStack(target.def)
   );
@@ -75,6 +77,7 @@ export function splitStack(
     );
   }
   const part = factory.create(item.def.id, amount);
+  if (item.fir) part.fir = true;
   item.count -= amount;
   return part;
 }

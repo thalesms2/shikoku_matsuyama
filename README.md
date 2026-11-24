@@ -131,6 +131,16 @@ Botão **Vendedores** no inventário. Cada vendedor tem uma especialidade, uma m
 - **Vender:** escolha um item do estoque; o vendedor paga em sua moeda. Contêineres precisam estar vazios.
 - **Lealdade:** negociar com um vendedor (comprar e vender) aumenta a reputação com ele. Com nível de PMC, reputação e volume negociado suficientes, o vendedor sobe de nível, libera ofertas novas, cobra menos e paga mais. A tela mostra o que falta para o próximo nível.
 
+### Quests
+
+Botão **Quests** no inventário. Os vendedores dão quests com recompensas em dinheiro, itens, XP e reputação; algumas liberam ofertas novas nos vendedores.
+
+- **Aceitar:** quests disponíveis precisam ser aceitas antes de contar. As bloqueadas mostram o que falta (nível, outra quest ou lealdade com um vendedor).
+- **Objetivos:** entregar itens (botão **Entregar**, pode ser em partes), extrair de um mapa (às vezes por uma saída ou com uma estratégia), abater Scavs ou PMCs e sair de uma raid com um item. Só as raids do PMC contam; os abates contam mesmo se você morrer.
+- **Encontrado na raid:** o loot com que o PMC extrai fica marcado ("Encontrado na raid ✓" no tooltip). Algumas entregas só aceitam itens marcados. Morrer não marca nada, nem o que estava no contêiner seguro. Itens marcados e não marcados não se misturam na mesma pilha.
+- **Concluir:** com os objetivos cumpridos, conclua a quest para receber as recompensas (precisa haver espaço no estoque).
+- **A fuga:** a cadeia principal começa com o Coronel Brás e termina com o barco do contrabandista no Porto Velho. Concluir a última quest é o final do jogo, mas você pode continuar jogando depois.
+
 ### Raid Scav
 
 Na tela de preparação, escolha o mapa e a estratégia e clique em **Entrar como Scav**. Você entra com um Scav descartável e seu PMC não arrisca nada.

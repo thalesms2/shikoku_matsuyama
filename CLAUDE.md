@@ -52,10 +52,11 @@ O jogador gerencia seu **PMC** (o personagem principal), preso em uma cidade iso
 - `src/ui/` — telas e componentes PixiJS; apenas leem estado e disparam ações do core.
 - `src/game.ts` — `startGame()`: inicia o PixiJS, carrega assets e mostra a primeira cena. `src/main.ts` só chama `startGame`.
 - `src/ui/SceneManager.ts` — troca de cenas; toda tela implementa a interface `Scene` (`view`, `resize?`, `update?`, `destroy?`).
-- `src/core/state.ts` — `PlayerState` (inventário, PMC, skills, `ItemFactory`, `MagazineLoader`, o perfil de raid `raid`, o perfil Scav `scav` e os vendedores `traders`): tudo que vai para o save. `storageFor()` decide onde guardar o que sai de um item.
+- `src/core/state.ts` — `PlayerState` (inventário, PMC, skills, `ItemFactory`, `MagazineLoader`, o perfil de raid `raid`, o perfil Scav `scav`, os vendedores `traders` e as quests `quests`): tudo que vai para o save. `storageFor()` decide onde guardar o que sai de um item.
 - `src/core/pmc/` — PMC, skills e consumíveis. `src/core/save/` — formato, serialização, migrações e armazenamento do save.
 - `src/core/raid/` — raid do PMC: tipos (`types.ts`), estratégias e karma (`strategy.ts`), fórmulas de combate (`combat.ts`), loot (`loot.ts`), simulação (`simulate.ts`, classe `RaidSimulation`) e perfil/reprodução (`profile.ts`) e raid Scav (`scav.ts`). Mapas e inimigos ficam em `src/data/maps.ts`; o equipamento do Scav, em `src/data/scav.ts`.
 - `src/core/trade/` — vendedores: tipos (`types.ts`) e compra, venda, lealdade e reposição (`trade.ts`). Os vendedores ficam em `src/data/traders.ts`; a tela é `src/ui/scenes/TradersScene.ts`.
+- `src/core/quests/` — quests: tipos (`types.ts`) e regras (`quests.ts`: requisitos, status, aceitar, entregar, concluir, progresso depois da raid). As quests ficam em `src/data/quests.ts`; as telas são `src/ui/scenes/QuestsScene.ts` e `src/ui/scenes/EndingScene.ts`.
 - `src/data/newGame.ts` — `createNewPlayer()` e `loadOrCreatePlayer()`.
 - `src/core/rng.ts`, `src/core/events.ts`, `src/core/clock.ts` — `Rng` com seed, `EventBus` tipado e `Clock` injetável (use `ManualClock` nos testes).
 - `server/` — servidor Colyseus (sala `game`).
@@ -177,10 +178,11 @@ Modelo de entrada para novas mecânicas:
 ### Save
 
 - Arquivos: `src/core/save/` (`format.ts`, `serialize.ts`, `migrations.ts`, `storage.ts`); integração em `src/game.ts` e `src/data/newGame.ts`.
-- **Formato** (`SAVE_VERSION = 4`): `nextId` da fábrica, estoque (itens com posição/rotação), slots e bolsos, conteúdo aninhado (grades, cartuchos do carregador do fundo ao topo, carregador encaixado na arma), PMC, skills, o carregamento em andamento (por uid, com `startedAt`/`done`, então continua de onde parou) e, desde a v2, o perfil de raid (`raid`: karma, estatísticas, regra de loot, seed e a raid em andamento com log e resumo) desde a v3, o perfil Scav (`scav`: `readyAt` e estatísticas) e, desde a v4, os vendedores (`traders`: reputação, volume, compras desde a reposição e `restockAt` de cada um).
+- **Formato** (`SAVE_VERSION = 5`): `nextId` da fábrica, estoque (itens com posição/rotação), slots e bolsos, conteúdo aninhado (grades, cartuchos do carregador do fundo ao topo, carregador encaixado na arma), PMC, skills, o carregamento em andamento (por uid, com `startedAt`/`done`, então continua de onde parou) e, desde a v2, o perfil de raid (`raid`: karma, estatísticas, regra de loot, seed e a raid em andamento com log e resumo) desde a v3, o perfil Scav (`scav`: `readyAt` e estatísticas) desde a v4, os vendedores (`traders`: reputação, volume, compras desde a reposição e `restockAt` de cada um) e, desde a v5, as quests (`quests`: status e progresso) e a marca `fir: true` nos itens encontrados na raid.
 - **Migração 1 → 2:** adiciona `raid = createRaidProfile(savedAt)`. Ao carregar, campos do perfil que faltam voltam ao padrão e `lootRule` inválida vira `valuePerCell`.
 - **Migração 2 → 3:** adiciona `scav = createScavProfile()` (liberada). Ao carregar, `readyAt` inválido vira 0 e estatísticas que faltam voltam a 0.
 - **Migração 3 → 4:** adiciona `traders = {}`. Ao carregar, números inválidos voltam a 0 (`restockAt` 0 repõe no próximo acesso) e compras que não são inteiros positivos são descartadas. Vendedores e ofertas que não existem mais ficam guardados sem efeito.
+- **Migração 4 → 5:** adiciona `quests = {}` (itens antigos não são "encontrados na raid"). Ao carregar, quest com status inválido é descartada e progresso inválido ou negativo vira 0.
 - **Carregar save antigo/inconsistente:** item que saiu do catálogo é descartado com aviso; item que não cabe mais na posição vai para o primeiro espaço da mesma grade; se não couber nela (ou a grade não existir mais, ou o slot não aceitar mais o item, ou o carregador ficar incompatível), vai para o estoque; sem espaço no estoque, é perdido com aviso. Campos de PMC/skills que faltam recebem o valor padrão (skills novas começam em 0).
 - **Migrações:** `migrate()` aplica `MIGRATIONS[v]` de versão em versão até `SAVE_VERSION`; save sem versão, de versão mais nova ou com migração faltando lança `SaveError`.
 - **Armazenamento:** chave `escape-from-idle:save` no `localStorage`; erros do navegador são ignorados. Autosave a cada 5 s de jogo e no `beforeunload`. Save ilegível é copiado para `escape-from-idle:save:backup` e o jogo começa do zero (com aviso no console).
@@ -258,4 +260,30 @@ Modelo de entrada para novas mecânicas:
 - **Venda** (`sell`): o item precisa estar no estoque (pode estar dentro de contêiner) e fora do carregamento em andamento. Ele sai, e o dinheiro entra no estoque (em pilhas de até `maxStack`), podendo usar o espaço liberado. Se o dinheiro não couber, o item volta para o mesmo lugar. Soma ao volume e à reputação.
 - **Reposição** (`restock`): quando `agora ≥ restockAt`, zera `bought` e avança `restockAt` em quantos intervalos tiverem passado (mantém o ritmo com o jogo fechado). Brás, Iara e Tito: 1 h; Nico: 1,5 h. A tela repõe sozinha no `update`.
 - **Tela:** lista de vendedores; ficha com descrição, lealdade, próximo nível e contagem da reposição; dinheiro do jogador em todas as moedas; abas Comprar/Vender com 10 linhas por página. Na venda aparecem os itens do topo do estoque das categorias que o vendedor compra. Ofertas bloqueadas, esgotadas ou recusadas ficam apagadas, e o resultado aparece em verde ou vermelho. Voltar ao inventário salva o jogo.
-- Pendências: quests e reputação por quest (Fase 6), vender arrastando do inventário, preço por durabilidade, preços dinâmicos (flea market, Fase 8).
+- **Ofertas liberadas por quest** (`TraderOffer.quest`): só podem ser compradas com a quest concluída (`questUnlocked`; recusa "Exige uma quest"). Na tela, aparecem como `exige a quest "Nome"`. Ex.: o Fuzil VK-74 do Coronel no nível 1, liberado por "Limpeza".
+- Pendências: vender arrastando do inventário, preço por durabilidade, preços dinâmicos (flea market, Fase 8).
+
+### Quests e "encontrado na raid"
+
+- Arquivos: `src/core/quests/` (`types.ts`, `quests.ts`), dados em `src/data/quests.ts`, telas `src/ui/scenes/QuestsScene.ts` (botão "Quests" no inventário) e `src/ui/scenes/EndingScene.ts`. A marca `fir` fica em `Item` (`src/core/inventory/item.ts`).
+- **Encontrado na raid (`item.fir`):** ao extrair (`RaidSimulation.finish`), todo item de `found` que ainda está com o PMC recebe `fir = true`. Morrer ou ficar MIA não marca nada, nem o que estiver no contêiner seguro. Na raid Scav, o loot também é marcado (o equipamento sorteado não). Pilhas só se juntam se as duas tiverem a mesma marca (`canStack`). `splitStack` copia a marca. O tooltip mostra "Encontrado na raid ✓".
+- **Quest** (`QuestDef`): vendedor, descrição, `main` (cadeia da fuga), `final` (termina o jogo), requisitos (`pmcLevel`, `quests` concluídas, `loyalty` com um vendedor), até 3 objetivos e recompensas (`xp`, `items` com dinheiro e itens, `reputation`). As ofertas com `quest` também contam como recompensa ("libera ...").
+- **Objetivos** (o progresso fica limitado a `count`):
+  - `deliver`: entregar itens do estoque com o botão "Entregar", em partes. Mesmas regras de pagamento dos vendedores; com `fir`, só itens encontrados na raid.
+  - `extract`: extrair (opcional: mapa, saída `extract` por id e `strategy`). Cobre "sobreviver com a estratégia Y".
+  - `kill`: `kills[target]` da raid (opcional: mapa). Conta mesmo se o PMC morrer.
+  - `find`: unidades do item no loot de uma raid em que extraiu (opcional: mapa).
+- **Status** (`questStatus`): `locked` (requisitos faltando, listados por `missingRequirements`) → `available` → `active` (depois de "Aceitar") → `ready` (objetivos cumpridos) → `completed` (depois de "Concluir").
+- **Concluir** (`completeQuest`): guarda os itens da recompensa no estoque com `storeAll` (tudo ou nada; sem espaço, não conclui), soma o XP do PMC e a reputação com os vendedores.
+- **Progresso das raids** (`progressAfterRaid`): chamado em `game.ts` logo depois de a raid do PMC ser resolvida, antes de salvar. Raids Scav não contam, e só quests ativas avançam. Progresso salvo com menos objetivos que a quest atual começa em 0.
+- **Cadeia principal:**
+  1. Reconhecimento: extrair da Periferia.
+  2. Limpeza: abater 5 Scavs; libera o VK-74 com o Coronel.
+  3. Peças para o rádio: entregar uma placa de vídeo encontrada na raid; exige PMC nível 3.
+  4. Rota do porto: extrair do Porto com a estratégia Furtivo.
+  5. O preço da passagem: entregar 3 correntes de ouro encontradas na raid; exige lealdade 2 com Tito.
+  6. A última travessia (final): extrair pelo Barco do Contrabandista no Porto; exige PMC nível 8.
+  - Secundárias: Estoque de emergência, Água limpa, Caça na cimenteira, Garagem trancada.
+- **Final:** concluir a quest `final` abre a `EndingScene` ("VOCÊ ESCAPOU", com o nível e as estatísticas). "Continuar jogando" volta ao inventário; o jogo continua normalmente.
+- **Tela:** lista ordenada por status (prontas, ativas, disponíveis, bloqueadas, concluídas). A ficha mostra vendedor, se é da cadeia principal, descrição, objetivos com progresso (`2/3` ou "Feito", com "Entregar" nos de entrega), requisitos que faltam e recompensas. O botão de ação é "Aceitar" ou "Concluir", e a mensagem aparece em verde ou vermelho.
+- Pendências: mostrar no resumo da raid as quests que avançaram, quests que dependem de raids Scav, quests diárias/repetíveis.

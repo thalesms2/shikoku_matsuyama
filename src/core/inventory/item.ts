@@ -136,6 +136,8 @@ export interface Item {
   readonly rounds?: RoundStack[];
   /** Armas: carregador encaixado */
   magazine?: Item | null;
+  /** Encontrado na raid (saiu com o loot de uma raid em que extraiu) */
+  fir?: boolean;
 }
 
 /** Conjunto de definições de itens, indexado por id */

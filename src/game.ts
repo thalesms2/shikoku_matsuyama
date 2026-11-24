@@ -5,6 +5,8 @@ import { Application, Assets } from "pixi.js";
 import { assets } from "./assets.ts";
 import { systemClock } from "./core/clock.ts";
 import type { Clock } from "./core/clock.ts";
+import { progressAfterRaid } from "./core/quests/quests.ts";
+import type { QuestContext } from "./core/quests/types.ts";
 import {
   AutoSaver,
   SAVE_KEY,
@@ -14,12 +16,15 @@ import {
 import { ITEM_DEFS } from "./data/items.ts";
 import { ENEMIES, MAPS, mapById } from "./data/maps.ts";
 import { loadOrCreatePlayer } from "./data/newGame.ts";
+import { QUESTS } from "./data/quests.ts";
 import { TRADERS } from "./data/traders.ts";
 import { gameReady, initPlatform, setLoadingProgress } from "./platform.ts";
 import { loadItemTextures } from "./ui/inventory/textures.ts";
 import { SceneManager } from "./ui/SceneManager.ts";
 import { CharacterScene } from "./ui/scenes/CharacterScene.ts";
+import { EndingScene } from "./ui/scenes/EndingScene.ts";
 import { InventoryScene } from "./ui/scenes/InventoryScene.ts";
+import { QuestsScene } from "./ui/scenes/QuestsScene.ts";
 import { RaidScene } from "./ui/scenes/RaidScene.ts";
 import { RaidSetupScene } from "./ui/scenes/RaidSetupScene.ts";
 import { TitleScene } from "./ui/scenes/TitleScene.ts";
@@ -75,6 +80,11 @@ export async function startGame(
   for (const warning of warnings) console.warn(`Save: ${warning}`);
 
   const save = () => saveGame(player, storage, clock);
+  const questContext: QuestContext = {
+    quests: QUESTS,
+    traders: TRADERS,
+    maps: MAPS,
+  };
   const autosave = new AutoSaver(save);
   app.ticker.add((ticker) => autosave.update(ticker.deltaMS));
   window.addEventListener("beforeunload", save);
@@ -87,12 +97,29 @@ export async function startGame(
         onOpenCharacter: showCharacter,
         onOpenRaid: showRaidSetup,
         onOpenTraders: showTraders,
+        onOpenQuests: showQuests,
+      }),
+    );
+  const showQuests = () =>
+    scenes.change(
+      new QuestsScene(player, {
+        ctx: questContext,
+        clock,
+        onBack: () => {
+          save();
+          showInventory();
+        },
+        onEnding: () => {
+          save();
+          scenes.change(new EndingScene(player, showInventory));
+        },
       }),
     );
   const showTraders = () =>
     scenes.change(
       new TradersScene(player, {
         traders: TRADERS,
+        quests: QUESTS,
         clock,
         onBack: () => {
           save();
@@ -109,6 +136,8 @@ export async function startGame(
         enemies: ENEMIES,
         clock,
         onStart: () => {
+          // Quests avançam com o resultado (raids Scav não contam)
+          progressAfterRaid(player, questContext, player.raid.active!.summary);
           // Salva já com o resultado: recarregar não refaz a raid
           save();
           showRaid();

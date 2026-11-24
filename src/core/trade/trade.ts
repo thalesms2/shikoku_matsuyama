@@ -79,6 +79,11 @@ export function nextLevel(
   return def.levels.find((l) => l.level === level.level + 1) ?? null;
 }
 
+/** Oferta liberada pela quest que ela exige (ou sem quest) */
+export function questUnlocked(player: PlayerState, offer: TraderOffer) {
+  return !offer.quest || player.quests[offer.quest]?.status === "completed";
+}
+
 /** Preço em dinheiro de uma oferta (`null` se for troca) */
 export function offerPrice(
   def: TraderDef,
@@ -125,24 +130,38 @@ function inUse(player: PlayerState, item: Item): boolean {
   );
 }
 
-/** Itens do estoque que podem pagar `defId` (sem conteúdo, fora de uso) */
-function payable(player: PlayerState, defId: string): Item[] {
+/**
+ * Itens do estoque que podem ser entregues como `defId`: sem conteúdo, fora
+ * do carregamento em andamento e, com `firOnly`, encontrados na raid.
+ */
+function payable(player: PlayerState, defId: string, firOnly: boolean) {
   return stashItems(player.inventory.stash).filter(
     (i) =>
       i.def.id === defId &&
+      (!firOnly || i.fir === true) &&
       !inUse(player, i) &&
       i.grids.every((g) => g.items().length === 0),
   );
 }
 
-function available(player: PlayerState, defId: string): number {
-  return payable(player, defId).reduce((sum, i) => sum + i.count, 0);
+/** Unidades de `defId` no estoque que podem ser entregues */
+export function available(
+  player: PlayerState,
+  defId: string,
+  firOnly = false,
+): number {
+  return payable(player, defId, firOnly).reduce((sum, i) => sum + i.count, 0);
 }
 
 /** Tira `count` unidades do estoque (já conferido que há o bastante) */
-function take(player: PlayerState, defId: string, count: number): void {
+export function take(
+  player: PlayerState,
+  defId: string,
+  count: number,
+  firOnly = false,
+): void {
   let left = count;
-  for (const item of payable(player, defId)) {
+  for (const item of payable(player, defId, firOnly)) {
     if (left === 0) break;
     const used = Math.min(item.count, left);
     item.count -= used;
@@ -170,8 +189,12 @@ export function storeAll(items: readonly Item[], stash: Grid): boolean {
   return true;
 }
 
-/** Cria a quantia em pilhas de no máximo `maxStack` */
-function createMoney(player: PlayerState, def: ItemDef, amount: number) {
+/** Cria a quantidade em pilhas de no máximo `maxStack` */
+export function createStacks(
+  player: PlayerState,
+  def: ItemDef,
+  amount: number,
+): Item[] {
   const stacks: Item[] = [];
   for (let left = amount; left > 0;) {
     const n = Math.min(left, maxStack(def));
@@ -209,6 +232,9 @@ export function buy(
   const level = loyaltyLevel(def, state, player.pmc.xp);
   if (level.level < offer.level) {
     return { ok: false, reason: `Exige lealdade nível ${offer.level}` };
+  }
+  if (!questUnlocked(player, offer)) {
+    return { ok: false, reason: "Exige uma quest" };
   }
   if (stockLeft(offer, state) === 0) return { ok: false, reason: "Esgotado" };
   const price = offerPrice(def, offer, level, catalog);
@@ -286,7 +312,7 @@ export function sell(
   if (!price.ok) return price;
   const loc = item.location as Extract<Item["location"], { kind: "grid" }>;
   detach(item);
-  const money = createMoney(player, catalog.get(def.currency), price.amount);
+  const money = createStacks(player, catalog.get(def.currency), price.amount);
   if (!storeAll(money, stash)) {
     loc.grid.place(item, loc.x, loc.y, loc.rotated);
     return { ok: false, reason: "Sem espaço no estoque para o dinheiro" };

@@ -60,6 +60,14 @@ export const TRADERS: readonly TraderDef[] = [
       { id: "mag-vk74", item: "mag_vk74", level: 2, stock: 6 },
       { id: "ammo-545", item: "ammo_545", count: 60, level: 2, stock: 10 },
       { id: "rifle", item: "rifle_vk74", level: 2, stock: 2 },
+      // Liberado pela quest "Limpeza"
+      {
+        id: "rifle-cleanup",
+        item: "rifle_vk74",
+        level: 1,
+        stock: 1,
+        quest: "cleanup",
+      },
     ],
   },
   {

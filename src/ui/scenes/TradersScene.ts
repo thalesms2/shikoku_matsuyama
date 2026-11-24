@@ -2,6 +2,7 @@ import { Container, Text } from "pixi.js";
 
 import type { Clock } from "../../core/clock.ts";
 import type { Catalog, Item } from "../../core/inventory/item.ts";
+import type { QuestDef } from "../../core/quests/types.ts";
 import type { PlayerState } from "../../core/state.ts";
 import {
   buy,
@@ -9,6 +10,7 @@ import {
   loyaltyLevel,
   nextLevel,
   offerPrice,
+  questUnlocked,
   restock,
   sell,
   sellPrice,
@@ -80,13 +82,17 @@ export function describeLoyalty(
   return lines.join("\n");
 }
 
-/** Linha de uma oferta e se dá para comprar agora */
+/**
+ * Linha de uma oferta e se está bloqueada. `questLock`: nome da quest que
+ * falta concluir para liberar a oferta.
+ */
 export function describeOffer(
   def: TraderDef,
   offer: TraderOffer,
   state: TraderState,
   level: LoyaltyLevel,
   catalog: Catalog,
+  questLock?: string,
 ): { label: string; locked: boolean } {
   const item = catalog.get(offer.item);
   const count = offer.count ?? 1;
@@ -100,10 +106,13 @@ export function describeOffer(
           return c.count > 1 ? `${n} x${c.count}` : n;
         })
         .join(" + ")}`;
-  const locked = level.level < offer.level;
-  const status = locked
+  const levelLocked = level.level < offer.level;
+  const status = levelLocked
     ? `exige nível ${offer.level}`
-    : `estoque ${stockLeft(offer, state)}/${offer.stock}`;
+    : questLock
+      ? `exige a quest "${questLock}"`
+      : `estoque ${stockLeft(offer, state)}/${offer.stock}`;
+  const locked = levelLocked || questLock !== undefined;
   return { label: `${name} — ${cost} — ${status}`, locked };
 }
 
@@ -151,6 +160,8 @@ export class TradersScene implements Scene {
     readonly options: {
       traders: readonly TraderDef[];
       clock: Clock;
+      /** Para mostrar o nome da quest que libera uma oferta */
+      quests?: readonly QuestDef[];
       onBack: () => void;
     },
   ) {
@@ -398,12 +409,17 @@ export class TradersScene implements Scene {
   private buyRows() {
     const { state, level } = this;
     return this.trader.offers.map((offer) => {
+      const questLock = questUnlocked(this.player, offer)
+        ? undefined
+        : (this.options.quests?.find((q) => q.id === offer.quest)?.name ??
+          offer.quest);
       const { label, locked } = describeOffer(
         this.trader,
         offer,
         state,
         level,
         this.catalog,
+        questLock,
       );
       return {
         label,

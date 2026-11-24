@@ -69,6 +69,7 @@ export class InventoryScene implements Scene {
   characterButton: Button | null = null;
   raidButton: Button | null = null;
   tradersButton: Button | null = null;
+  questsButton: Button | null = null;
   readonly stashView: GridView;
   readonly slotViews = new Map<SlotName, SlotView>();
   readonly pocketViews: GridView[];
@@ -110,6 +111,8 @@ export class InventoryScene implements Scene {
       onOpenRaid?: () => void;
       /** Mostra o botão "Vendedores" */
       onOpenTraders?: () => void;
+      /** Mostra o botão "Quests" */
+      onOpenQuests?: () => void;
     } = {},
   ) {
     this.clock = options.clock ?? systemClock;
@@ -196,6 +199,15 @@ export class InventoryScene implements Scene {
         2,
       );
       this.content.addChild(this.tradersButton);
+    }
+    if (options.onOpenQuests) {
+      this.questsButton = new Button("Quests", options.onOpenQuests);
+      const right = this.tradersButton?.x ?? STASH_X;
+      this.questsButton.position.set(
+        right - this.questsButton.buttonWidth - GAP,
+        2,
+      );
+      this.content.addChild(this.questsButton);
     }
 
     this.view.addChild(this.content);

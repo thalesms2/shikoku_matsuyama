@@ -1,6 +1,8 @@
 import { Container, Text } from "pixi.js";
 
 import type { Clock } from "../../core/clock.ts";
+import { effect } from "../../core/hideout/hideout.ts";
+import type { HideoutData } from "../../core/hideout/types.ts";
 import type { Catalog } from "../../core/inventory/item.ts";
 import { raidWarnings, startRaid } from "../../core/raid/profile.ts";
 import {
@@ -21,6 +23,7 @@ import type {
   StrategyId,
 } from "../../core/raid/types.ts";
 import type { PlayerState } from "../../core/state.ts";
+import { HIDEOUT } from "../../data/hideout.ts";
 import { SCAV_LOADOUT } from "../../data/scav.ts";
 import { Button } from "../components/Button.ts";
 import { formatPrice } from "../inventory/layout.ts";
@@ -129,6 +132,8 @@ export class RaidSetupScene implements Scene {
       clock: Clock;
       /** Tabelas do Scav (padrão: `SCAV_LOADOUT`) */
       scavLoadout?: ScavLoadout;
+      /** Módulos do esconderijo, para o corte do cooldown (padrão: `HIDEOUT`) */
+      hideout?: HideoutData;
       /** Chamado depois que a raid foi resolvida (com `player.raid.active`) */
       onStart: () => void;
       onBack: () => void;
@@ -286,6 +291,11 @@ export class RaidSetupScene implements Scene {
       this.options.enemies,
       this.options.scavLoadout ?? SCAV_LOADOUT,
       this.options.clock,
+      effect(
+        this.player.hideout,
+        this.options.hideout ?? HIDEOUT,
+        "scavCooldown",
+      ),
     );
     this.options.onStart();
   }

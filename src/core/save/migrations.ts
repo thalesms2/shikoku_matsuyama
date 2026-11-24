@@ -1,3 +1,4 @@
+import { createHideoutState } from "../hideout/hideout.ts";
 import { createRaidProfile, createScavProfile } from "../raid/profile.ts";
 import { SAVE_VERSION } from "./format.ts";
 import type { SaveData } from "./format.ts";
@@ -23,6 +24,11 @@ export const MIGRATIONS: Record<number, Migration> = {
   3: (data) => ({ ...data, traders: {} }),
   // v4 → v5: quests (nenhuma aceita) e itens "encontrados na raid" (`fir`)
   4: (data) => ({ ...data, quests: {} }),
+  // v5 → v6: esconderijo vazio, contando a partir do savedAt
+  5: (data) => ({
+    ...data,
+    hideout: createHideoutState(Number(data.savedAt) || 0),
+  }),
 };
 
 export class SaveError extends Error {}

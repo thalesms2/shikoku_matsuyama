@@ -27,7 +27,7 @@ O coração do jogo; vem primeiro porque quase tudo depende dele.
 - [x] **Slots de equipamento:** arma primária/secundária, coldre, capacete, colete balístico, colete tático, mochila, contêiner seguro, 4 bolsos.
 - [x] **UI PixiJS:** grade, drag & drop, prévia verde/vermelha, `R` para girar, `Esc` para cancelar, tooltip, botão "Organizar", janela de contêiner por duplo clique.
 - [x] Catálogo inicial de itens originais (`src/data/items.ts`) e kit inicial (`src/data/starter.ts`).
-- [ ] Pendências para fases futuras: durabilidade dos itens (Fase 2/3), mover item com Ctrl+clique (separar pilha já existe no menu de contexto), rolagem do estoque quando ele crescer (Fase 7), janela de contêiner arrastável.
+- [ ] Pendências para fases futuras: durabilidade dos itens (Fase 2/3), mover item com Ctrl+clique (separar pilha já existe no menu de contexto), rolagem do estoque quando ele crescer (o Depósito da Fase 7 já aumenta o estoque; por enquanto a tela só reduz a escala), janela de contêiner arrastável.
 
 **Pronto quando:** dá para mover, girar, empilhar e guardar itens entre estoque, mochila e equipamento.
 
@@ -127,7 +127,9 @@ O jogo **nunca consulta a API durante a execução**. A API ([tarkov.dev](https:
 - **Cadeia principal de fuga** com o final do jogo.
 - Tela de quests com acompanhamento de progresso.
 
-## Fase 7 — Esconderijo
+## Fase 7 — Esconderijo ✅
+
+**Estado:** feito. `src/core/hideout/` com 7 módulos (gerador, depósito, enfermaria, cozinha, oficina, central de informantes, posto de vigia), obras e produções em tempo real (inclusive offline, pelo `hideoutTick` ao carregar), renda passiva, corte do cooldown Scav, `HideoutScene` e save v6. Combustível do gerador e rolagem do estoque ficaram para depois.
 
 - Módulos com níveis e requisitos (itens, dinheiro, lealdade, outros módulos): estoque (aumenta a grade), enfermaria (cura entre raids), cozinha/água, gerador, oficina (crafting), estação de renda passiva, módulo que reduz o cooldown do scav.
 - Produção/crafting com tempo real (continua com o jogo fechado — cálculo de progresso offline ao carregar o save).
@@ -171,3 +173,4 @@ O jogo **nunca consulta a API durante a execução**. A API ([tarkov.dev](https:
 9. ✅ Raid Scav (Fase 4).
 10. ✅ Vendedores e economia (Fase 5).
 11. ✅ Quests e final do jogo (Fase 6).
+12. ✅ Esconderijo (Fase 7).

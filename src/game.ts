@@ -5,6 +5,7 @@ import { Application, Assets } from "pixi.js";
 import { assets } from "./assets.ts";
 import { systemClock } from "./core/clock.ts";
 import type { Clock } from "./core/clock.ts";
+import { hideoutTick } from "./core/hideout/hideout.ts";
 import { progressAfterRaid } from "./core/quests/quests.ts";
 import type { QuestContext } from "./core/quests/types.ts";
 import {
@@ -13,6 +14,7 @@ import {
   browserStorage,
   saveGame,
 } from "./core/save/storage.ts";
+import { HIDEOUT } from "./data/hideout.ts";
 import { ITEM_DEFS } from "./data/items.ts";
 import { ENEMIES, MAPS, mapById } from "./data/maps.ts";
 import { loadOrCreatePlayer } from "./data/newGame.ts";
@@ -23,6 +25,7 @@ import { loadItemTextures } from "./ui/inventory/textures.ts";
 import { SceneManager } from "./ui/SceneManager.ts";
 import { CharacterScene } from "./ui/scenes/CharacterScene.ts";
 import { EndingScene } from "./ui/scenes/EndingScene.ts";
+import { HideoutScene } from "./ui/scenes/HideoutScene.ts";
 import { InventoryScene } from "./ui/scenes/InventoryScene.ts";
 import { QuestsScene } from "./ui/scenes/QuestsScene.ts";
 import { RaidScene } from "./ui/scenes/RaidScene.ts";
@@ -30,6 +33,9 @@ import { RaidSetupScene } from "./ui/scenes/RaidSetupScene.ts";
 import { TitleScene } from "./ui/scenes/TitleScene.ts";
 import { TradersScene } from "./ui/scenes/TradersScene.ts";
 import { theme } from "./ui/theme.ts";
+
+/** Intervalo do cálculo do esconderijo com o jogo aberto */
+export const HIDEOUT_TICK_MS = 1000;
 
 /** Inicia a aplicação PixiJS dentro de `container` e mostra a tela inicial */
 export async function startGame(
@@ -79,6 +85,16 @@ export async function startGame(
     console.warn(`Save não carregado, começando um jogo novo: ${error}`);
   for (const warning of warnings) console.warn(`Save: ${warning}`);
 
+  // Tempo do esconderijo com o jogo fechado (obras, cura, comida)
+  hideoutTick(player, HIDEOUT, clock.now());
+  let hideoutElapsed = 0;
+  app.ticker.add((ticker) => {
+    hideoutElapsed += ticker.deltaMS;
+    if (hideoutElapsed < HIDEOUT_TICK_MS) return;
+    hideoutElapsed = 0;
+    hideoutTick(player, HIDEOUT, clock.now());
+  });
+
   const save = () => saveGame(player, storage, clock);
   const questContext: QuestContext = {
     quests: QUESTS,
@@ -98,6 +114,19 @@ export async function startGame(
         onOpenRaid: showRaidSetup,
         onOpenTraders: showTraders,
         onOpenQuests: showQuests,
+        onOpenHideout: showHideout,
+      }),
+    );
+  const showHideout = () =>
+    scenes.change(
+      new HideoutScene(player, {
+        data: HIDEOUT,
+        traders: TRADERS,
+        clock,
+        onBack: () => {
+          save();
+          showInventory();
+        },
       }),
     );
   const showQuests = () =>

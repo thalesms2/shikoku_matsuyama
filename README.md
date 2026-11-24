@@ -141,6 +141,20 @@ Botão **Quests** no inventário. Os vendedores dão quests com recompensas em d
 - **Concluir:** com os objetivos cumpridos, conclua a quest para receber as recompensas (precisa haver espaço no estoque).
 - **A fuga:** a cadeia principal começa com o Coronel Brás e termina com o barco do contrabandista no Porto Velho. Concluir a última quest é o final do jogo, mas você pode continuar jogando depois.
 
+### Esconderijo
+
+Botão **Esconderijo** no inventário. Construa e melhore módulos pagando com dinheiro e itens do estoque; cada obra leva um tempo real (e continua com o jogo fechado), uma de cada vez.
+
+- **Gerador** — deixa as produções mais rápidas e é necessário para vários módulos.
+- **Depósito** — aumenta o estoque.
+- **Enfermaria** — cura o PMC aos poucos entre as raids.
+- **Cozinha** — recupera energia e hidratação entre as raids e ferve água.
+- **Oficina** — produz munição, carregadores e kits médicos a partir de sucata e remédios.
+- **Central de informantes** — gera rublos com o tempo, até um limite; colete de vez em quando.
+- **Posto de vigia** — diminui a espera da raid Scav.
+
+Cada módulo mostra o que faz agora, o que o próximo nível dá, quanto custa e o que falta. As produções usam os ingredientes ao começar; quando terminam, clique em **Retirar** (precisa haver espaço no estoque).
+
 ### Raid Scav
 
 Na tela de preparação, escolha o mapa e a estratégia e clique em **Entrar como Scav**. Você entra com um Scav descartável e seu PMC não arrisca nada.

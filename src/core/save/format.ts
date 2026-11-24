@@ -1,3 +1,4 @@
+import type { HideoutState } from "../hideout/types.ts";
 import type { SlotName } from "../inventory/equipment.ts";
 import type { PmcState } from "../pmc/pmc.ts";
 import type { SkillsState } from "../pmc/skills.ts";
@@ -6,7 +7,7 @@ import type { RaidProfile, ScavProfile } from "../raid/types.ts";
 import type { TradersState } from "../trade/types.ts";
 
 /** Versão atual do formato do save. Mudou o formato? Incremente e migre. */
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;
 
 /** Item salvo; o conteúdo vai junto (grades, cartuchos, carregador) */
 export interface SavedItem {
@@ -62,4 +63,6 @@ export interface SaveData {
   traders?: TradersState;
   /** v5: quests aceitas e concluídas (e `fir` nos itens) */
   quests?: QuestsState;
+  /** v6: esconderijo (módulos, obra, produções, renda, último cálculo) */
+  hideout?: HideoutState;
 }

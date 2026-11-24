@@ -52,11 +52,12 @@ O jogador gerencia seu **PMC** (o personagem principal), preso em uma cidade iso
 - `src/ui/` — telas e componentes PixiJS; apenas leem estado e disparam ações do core.
 - `src/game.ts` — `startGame()`: inicia o PixiJS, carrega assets e mostra a primeira cena. `src/main.ts` só chama `startGame`.
 - `src/ui/SceneManager.ts` — troca de cenas; toda tela implementa a interface `Scene` (`view`, `resize?`, `update?`, `destroy?`).
-- `src/core/state.ts` — `PlayerState` (inventário, PMC, skills, `ItemFactory`, `MagazineLoader`, o perfil de raid `raid`, o perfil Scav `scav`, os vendedores `traders` e as quests `quests`): tudo que vai para o save. `storageFor()` decide onde guardar o que sai de um item.
+- `src/core/state.ts` — `PlayerState` (inventário, PMC, skills, `ItemFactory`, `MagazineLoader`, o perfil de raid `raid`, o perfil Scav `scav`, os vendedores `traders`, as quests `quests` e o esconderijo `hideout`): tudo que vai para o save. `storageFor()` decide onde guardar o que sai de um item.
 - `src/core/pmc/` — PMC, skills e consumíveis. `src/core/save/` — formato, serialização, migrações e armazenamento do save.
 - `src/core/raid/` — raid do PMC: tipos (`types.ts`), estratégias e karma (`strategy.ts`), fórmulas de combate (`combat.ts`), loot (`loot.ts`), simulação (`simulate.ts`, classe `RaidSimulation`) e perfil/reprodução (`profile.ts`) e raid Scav (`scav.ts`). Mapas e inimigos ficam em `src/data/maps.ts`; o equipamento do Scav, em `src/data/scav.ts`.
 - `src/core/trade/` — vendedores: tipos (`types.ts`) e compra, venda, lealdade e reposição (`trade.ts`). Os vendedores ficam em `src/data/traders.ts`; a tela é `src/ui/scenes/TradersScene.ts`.
 - `src/core/quests/` — quests: tipos (`types.ts`) e regras (`quests.ts`: requisitos, status, aceitar, entregar, concluir, progresso depois da raid). As quests ficam em `src/data/quests.ts`; as telas são `src/ui/scenes/QuestsScene.ts` e `src/ui/scenes/EndingScene.ts`.
+- `src/core/hideout/` — esconderijo: tipos (`types.ts`) e regras (`hideout.ts`: obras, efeitos, cura/comida por minuto, produção, renda, `hideoutTick`). Módulos e receitas ficam em `src/data/hideout.ts`; a tela é `src/ui/scenes/HideoutScene.ts`.
 - `src/data/newGame.ts` — `createNewPlayer()` e `loadOrCreatePlayer()`.
 - `src/core/rng.ts`, `src/core/events.ts`, `src/core/clock.ts` — `Rng` com seed, `EventBus` tipado e `Clock` injetável (use `ManualClock` nos testes).
 - `server/` — servidor Colyseus (sala `game`).
@@ -178,11 +179,12 @@ Modelo de entrada para novas mecânicas:
 ### Save
 
 - Arquivos: `src/core/save/` (`format.ts`, `serialize.ts`, `migrations.ts`, `storage.ts`); integração em `src/game.ts` e `src/data/newGame.ts`.
-- **Formato** (`SAVE_VERSION = 5`): `nextId` da fábrica, estoque (itens com posição/rotação), slots e bolsos, conteúdo aninhado (grades, cartuchos do carregador do fundo ao topo, carregador encaixado na arma), PMC, skills, o carregamento em andamento (por uid, com `startedAt`/`done`, então continua de onde parou) e, desde a v2, o perfil de raid (`raid`: karma, estatísticas, regra de loot, seed e a raid em andamento com log e resumo) desde a v3, o perfil Scav (`scav`: `readyAt` e estatísticas) desde a v4, os vendedores (`traders`: reputação, volume, compras desde a reposição e `restockAt` de cada um) e, desde a v5, as quests (`quests`: status e progresso) e a marca `fir: true` nos itens encontrados na raid.
+- **Formato** (`SAVE_VERSION = 6`): `nextId` da fábrica, estoque (itens com posição/rotação), slots e bolsos, conteúdo aninhado (grades, cartuchos do carregador do fundo ao topo, carregador encaixado na arma), PMC, skills, o carregamento em andamento (por uid, com `startedAt`/`done`, então continua de onde parou) e, desde a v2, o perfil de raid (`raid`: karma, estatísticas, regra de loot, seed e a raid em andamento com log e resumo) desde a v3, o perfil Scav (`scav`: `readyAt` e estatísticas) desde a v4, os vendedores (`traders`: reputação, volume, compras desde a reposição e `restockAt` de cada um) e, desde a v5, as quests (`quests`: status e progresso) e a marca `fir: true` nos itens encontrados na raid e, desde a v6, o esconderijo (`hideout`: níveis, obra, produções, `incomeSince`, `lastTick`). O tamanho do estoque salvo já inclui as linhas do Depósito.
 - **Migração 1 → 2:** adiciona `raid = createRaidProfile(savedAt)`. Ao carregar, campos do perfil que faltam voltam ao padrão e `lootRule` inválida vira `valuePerCell`.
 - **Migração 2 → 3:** adiciona `scav = createScavProfile()` (liberada). Ao carregar, `readyAt` inválido vira 0 e estatísticas que faltam voltam a 0.
 - **Migração 3 → 4:** adiciona `traders = {}`. Ao carregar, números inválidos voltam a 0 (`restockAt` 0 repõe no próximo acesso) e compras que não são inteiros positivos são descartadas. Vendedores e ofertas que não existem mais ficam guardados sem efeito.
 - **Migração 4 → 5:** adiciona `quests = {}` (itens antigos não são "encontrados na raid"). Ao carregar, quest com status inválido é descartada e progresso inválido ou negativo vira 0.
+- **Migração 5 → 6:** adiciona `hideout = createHideoutState(savedAt)`. Ao carregar, níveis que não são inteiros positivos somem, obra ou produção inválida é descartada e `incomeSince`/`lastTick` inválidos viram o momento do carregamento (sem tempo offline).
 - **Carregar save antigo/inconsistente:** item que saiu do catálogo é descartado com aviso; item que não cabe mais na posição vai para o primeiro espaço da mesma grade; se não couber nela (ou a grade não existir mais, ou o slot não aceitar mais o item, ou o carregador ficar incompatível), vai para o estoque; sem espaço no estoque, é perdido com aviso. Campos de PMC/skills que faltam recebem o valor padrão (skills novas começam em 0).
 - **Migrações:** `migrate()` aplica `MIGRATIONS[v]` de versão em versão até `SAVE_VERSION`; save sem versão, de versão mais nova ou com migração faltando lança `SaveError`.
 - **Armazenamento:** chave `escape-from-idle:save` no `localStorage`; erros do navegador são ignorados. Autosave a cada 5 s de jogo e no `beforeunload`. Save ilegível é copiado para `escape-from-idle:save:backup` e o jogo começa do zero (com aviso no console).
@@ -238,7 +240,7 @@ Modelo de entrada para novas mecânicas:
 - **Cooldown** (`scavCooldownMs(karma, reduction)`): `SCAV_COOLDOWN_MS = 20 min × fator do karma × (1 − reduction)`. `reduction` (0 a 1, limitado) fica para o módulo do esconderijo (Fase 7). É contado pelo relógio real (`readyAt`), então anda com o jogo fechado.
 - **Transferência** (`transferToStash`): tira os itens soltos das grades do Scav e depois as peças vestidas (já vazias; a arma mantém o carregador), ordena por valor por célula (maior primeiro) e usa `autoPlace` no estoque. Uma pilha pode entrar só em parte. O que não coube vai para `left` (perdido).
 - **Balanceamento** (`tests/core/raid/scavBalance.test.ts`): Periferia equilibrado com karma 0 extrai 75–97%; Porto equilibrado com karma +10 extrai pelo menos 8 pontos a mais e traz pelo menos 1,8× o loot de karma −10; Porto agressivo extrai menos de 60%.
-- Pendências: karma mudar com o comportamento na raid Scav (matar Scavs como Scav), Scav com equipamento melhor ou pior pelo karma, redução do cooldown pelo esconderijo (Fase 7).
+- Pendências: karma mudar com o comportamento na raid Scav (matar Scavs como Scav), Scav com equipamento melhor ou pior pelo karma. (O Posto de vigia do esconderijo já corta o cooldown: `RaidSetupScene` passa `effect(hideout, "scavCooldown")` como `cooldownReduction`.)
 
 ### Vendedores e economia
 
@@ -287,3 +289,21 @@ Modelo de entrada para novas mecânicas:
 - **Final:** concluir a quest `final` abre a `EndingScene` ("VOCÊ ESCAPOU", com o nível e as estatísticas). "Continuar jogando" volta ao inventário; o jogo continua normalmente.
 - **Tela:** lista ordenada por status (prontas, ativas, disponíveis, bloqueadas, concluídas). A ficha mostra vendedor, se é da cadeia principal, descrição, objetivos com progresso (`2/3` ou "Feito", com "Entregar" nos de entrega), requisitos que faltam e recompensas. O botão de ação é "Aceitar" ou "Concluir", e a mensagem aparece em verde ou vermelho.
 - Pendências: mostrar no resumo da raid as quests que avançaram, quests que dependem de raids Scav, quests diárias/repetíveis.
+
+### Esconderijo
+
+- Arquivos: `src/core/hideout/` (`types.ts`, `hideout.ts`), dados em `src/data/hideout.ts` (`HIDEOUT_MODULES`, `RECIPES`, `HIDEOUT`), tela `src/ui/scenes/HideoutScene.ts` (botão "Esconderijo" no inventário). `Grid.addRows` faz o estoque crescer embaixo, sem mover os itens.
+- **Módulos** (`ModuleDef`): níveis a partir de 1 (0 = não construído). Cada nível tem custo (itens e dinheiro do estoque), requisitos (outros módulos, lealdade, nível do PMC), duração da obra e efeitos. Os efeitos valem para o nível atual, não se acumulam entre níveis, e `effect()` soma o efeito entre todos os módulos.
+  - Gerador: produções 10%/20% mais rápidas; é requisito da oficina, da central e de níveis de outros módulos.
+  - Depósito: +3/+6/+10 linhas no estoque (10x14 → 10x24).
+  - Enfermaria: cura 1/3 PV por minuto.
+  - Cozinha: +0,5/+1,5 de energia e de hidratação por minuto; receita "ferver água".
+  - Oficina: receitas de munição, carregadores e kit médico.
+  - Central de informantes: 1.500 ₽/h até 18.000 ₽, depois 4.000 ₽/h até 48.000 ₽.
+  - Posto de vigia: cooldown da raid Scav −15%/−30%.
+- **Obra** (`startUpgrade`): uma por vez. `upgradeBlockers` lista o que falta ("Nível máximo", "Outra obra em andamento", módulos, lealdade, PMC e "Faltam: Item (tem/precisa)"). O custo é tirado do estoque como nos vendedores, e a obra termina em `endsAt`.
+- **Tempo** (`hideoutTick(player, data, now)`): conclui a obra vencida, aplicando o nível e as linhas do Depósito (só a diferença). Também cura (`heal`), alimenta e hidrata o PMC pelos minutos desde `lastTick`; até o fim de uma obra conta a taxa antiga e depois a nova. Morto não regenera, e o relógio voltando não tira tempo. O jogo chama ao carregar (tempo com o jogo fechado) e a cada `HIDEOUT_TICK_MS = 1000` ms no ticker.
+- **Produção** (`startProduction`/`collectProduction`): uma por módulo. Exige o nível do módulo e os ingredientes (tirados ao começar). A duração é `base × (1 − min(0,9; productionSpeed))`. "Retirar" guarda o produto com `storeAll`, em pilhas; sem espaço, continua pronto. Receita que saiu do jogo é descartada.
+- **Renda** (`incomeAvailable`/`collectIncome`): `floor(incomePerHour × horas desde incomeSince)`, limitado a `incomeCap`. Coletar guarda os rublos e recomeça a contar. A primeira estação começa a contar quando fica pronta; melhorar não zera o acumulado.
+- **Tela:** módulos com nível (`Nome n/máx`), vida/energia/hidratação do PMC, efeitos atuais, próximo nível (efeitos, custo, duração, o que falta), contagem da obra e linhas de receitas ("ingredientes → produto · duração", com Produzir/Produzindo/Retirar) ou da renda (Coletar). Os textos se atualizam a cada `REFRESH_MS = 500` ms.
+- Pendências: combustível do gerador, rolagem do estoque grande (hoje o inventário só diminui a escala), várias obras ao mesmo tempo, cirurgia de partes destruídas na enfermaria (hoje é feita ao extrair).

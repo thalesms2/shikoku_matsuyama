@@ -1,4 +1,6 @@
 import type { Clock } from "../clock.ts";
+import { createHideoutState } from "../hideout/hideout.ts";
+import type { HideoutState } from "../hideout/types.ts";
 import { Equipment, SLOT_NAMES } from "../inventory/equipment.ts";
 import { Grid } from "../inventory/grid.ts";
 import { ItemFactory } from "../inventory/item.ts";
@@ -83,6 +85,7 @@ export function serializeGame(state: PlayerState, now: number): SaveData {
     scav: structuredClone(state.scav),
     traders: structuredClone(state.traders),
     quests: structuredClone(state.quests),
+    hideout: structuredClone(state.hideout),
   };
 }
 
@@ -181,6 +184,43 @@ function loadTraders(saved: TradersState | undefined): TradersState {
     };
   }
   return traders;
+}
+
+/**
+ * Esconderijo salvo: níveis inválidos somem, obra ou produção inválida é
+ * descartada e momentos inválidos viram `now` (sem tempo offline).
+ */
+function loadHideout(
+  saved: HideoutState | undefined,
+  now: number,
+): HideoutState {
+  const base = createHideoutState(now);
+  if (!saved) return base;
+  const modules: Record<string, number> = {};
+  for (const [id, level] of Object.entries(saved.modules ?? {})) {
+    if (Number.isInteger(level) && level > 0) modules[id] = level;
+  }
+  const c = saved.construction;
+  const construction =
+    c &&
+    typeof c.module === "string" &&
+    Number.isInteger(c.level) &&
+    Number.isFinite(c.endsAt)
+      ? { module: c.module, level: c.level, endsAt: c.endsAt }
+      : null;
+  const productions: HideoutState["productions"] = {};
+  for (const [id, p] of Object.entries(saved.productions ?? {})) {
+    if (p && typeof p.recipe === "string" && Number.isFinite(p.endsAt)) {
+      productions[id] = { recipe: p.recipe, endsAt: p.endsAt };
+    }
+  }
+  return {
+    modules,
+    construction,
+    productions,
+    incomeSince: finite(saved.incomeSince, now),
+    lastTick: finite(saved.lastTick, now),
+  };
 }
 
 /**
@@ -304,6 +344,7 @@ export function deserializeGame(
       scav: loadScav(data.scav),
       traders: loadTraders(data.traders),
       quests: loadQuests(data.quests),
+      hideout: loadHideout(data.hideout, clock.now()),
     },
     clock,
   );

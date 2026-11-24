@@ -1,4 +1,6 @@
 import type { Clock } from "./clock.ts";
+import { createHideoutState } from "./hideout/hideout.ts";
+import type { HideoutState } from "./hideout/types.ts";
 import type { Equipment } from "./inventory/equipment.ts";
 import type { Grid } from "./inventory/grid.ts";
 import type { Item, ItemFactory } from "./inventory/item.ts";
@@ -32,6 +34,8 @@ export interface PlayerState {
   traders: TradersState;
   /** Quests aceitas e concluídas, com o progresso */
   quests: QuestsState;
+  /** Módulos, obra, produções, renda e o último cálculo do esconderijo */
+  hideout: HideoutState;
 }
 
 /**
@@ -42,12 +46,13 @@ export interface PlayerState {
 export function createPlayerState(
   parts: Omit<
     PlayerState,
-    "loader" | "raid" | "scav" | "traders" | "quests"
+    "loader" | "raid" | "scav" | "traders" | "quests" | "hideout"
   > & {
     raid?: RaidProfile;
     scav?: ScavProfile;
     traders?: TradersState;
     quests?: QuestsState;
+    hideout?: HideoutState;
   },
   clock: Clock,
 ): PlayerState {
@@ -58,6 +63,7 @@ export function createPlayerState(
     scav: parts.scav ?? createScavProfile(),
     traders: parts.traders ?? {},
     quests: parts.quests ?? {},
+    hideout: parts.hideout ?? createHideoutState(clock.now()),
   };
 }
 

@@ -15,10 +15,11 @@ export interface Spot {
 export class Grid {
   private readonly cells: (Item | null)[];
   private readonly contents = new Set<Item>();
+  private rows: number;
 
   constructor(
     readonly width: number,
-    readonly height: number,
+    height: number,
     readonly filter: GridFilter = {},
     /** Item dono desta grade (mochila, colete...), `null` para o estoque */
     readonly owner: Item | null = null,
@@ -29,7 +30,21 @@ export class Grid {
     if (width < 1 || height < 1) {
       throw new RangeError("A grade deve ter ao menos 1x1");
     }
+    this.rows = height;
     this.cells = Array.from({ length: width * height }, () => null);
+  }
+
+  get height(): number {
+    return this.rows;
+  }
+
+  /** Aumenta a grade em `rows` linhas embaixo; os itens ficam onde estão */
+  addRows(rows: number): void {
+    if (!Number.isInteger(rows) || rows < 0) {
+      throw new RangeError("Linhas a adicionar devem ser inteiro ≥ 0");
+    }
+    this.rows += rows;
+    for (let i = 0; i < this.width * rows; i++) this.cells.push(null);
   }
 
   /** Itens guardados nesta grade (sem os de grades internas) */

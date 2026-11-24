@@ -20,6 +20,7 @@ import {
 import { addSkillXp } from "../../core/pmc/skills.ts";
 import { storageFor } from "../../core/state.ts";
 import type { PlayerState } from "../../core/state.ts";
+import { stashItems } from "../../core/trade/trade.ts";
 import { catalog } from "../../data/items.ts";
 import type { InventoryState } from "../../data/starter.ts";
 import { Button } from "../components/Button.ts";
@@ -107,6 +108,7 @@ export class InventoryScene implements Scene {
   readonly tooltipDelayMs: number;
   /** Painel do tutorial (se houver) */
   readonly tutorial: TutorialPanel | null;
+  private readonly onSellItem: ((item: Item) => void) | null;
   private pendingTooltip: {
     item: Item;
     x: number;
@@ -133,6 +135,11 @@ export class InventoryScene implements Scene {
       onOpenRaid?: () => void;
       /** Mostra o botão "Vendedores" */
       onOpenTraders?: () => void;
+      /**
+       * Item do estoque solto sobre o botão "Vendedores": abre a venda já
+       * com ele escolhido (precisa de `onOpenTraders`)
+       */
+      onSellItem?: (item: Item) => void;
       /** Mostra o botão "Quests" */
       onOpenQuests?: () => void;
       /** Mostra o botão "Esconderijo" */
@@ -145,6 +152,7 @@ export class InventoryScene implements Scene {
     this.clock = options.clock ?? systemClock;
     this.tooltipDelayMs = options.tooltipDelayMs ?? 0;
     this.tutorial = options.tutorial ?? null;
+    this.onSellItem = options.onSellItem ?? null;
     this.player = options.player ?? null;
     this.factory =
       options.player?.factory ?? options.factory ?? new ItemFactory(catalog);
@@ -157,6 +165,9 @@ export class InventoryScene implements Scene {
         onLoad: (magazine, ammo) => {
           this.magDrillsXp(loadInto(magazine, ammo));
         },
+        // Só itens do estoque podem ser vendidos
+        onSell: (item) => this.onSellItem?.(item),
+        canSell: (item) => stashItems(this.state.stash).includes(item),
       },
     );
 
@@ -306,6 +317,14 @@ export class InventoryScene implements Scene {
         this.stashView,
       ],
       slots: [...this.slotViews.values()],
+      ...(this.tradersButton &&
+        this.onSellItem && {
+          sell: {
+            view: this.tradersButton,
+            width: this.tradersButton.buttonWidth,
+            height: this.tradersButton.buttonHeight,
+          },
+        }),
     };
   }
 

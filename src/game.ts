@@ -9,6 +9,7 @@ import { systemClock } from "./core/clock.ts";
 import type { Clock } from "./core/clock.ts";
 import { fleaTick } from "./core/flea/flea.ts";
 import { hideoutTick } from "./core/hideout/hideout.ts";
+import type { Item } from "./core/inventory/item.ts";
 import { catchUp, hasNews } from "./core/offline.ts";
 import type { OfflineData } from "./core/offline.ts";
 import { recordRaidQuests } from "./core/quests/quests.ts";
@@ -171,7 +172,8 @@ export async function startGame(
         player,
         onOpenCharacter: showCharacter,
         onOpenRaid: showRaidSetup,
-        onOpenTraders: showTraders,
+        onOpenTraders: () => showTraders(),
+        onSellItem: (item) => showTraders(item),
         onOpenQuests: showQuests,
         onOpenHideout: showHideout,
         onOpenFlea: showFlea,
@@ -215,12 +217,13 @@ export async function startGame(
         },
       }),
     );
-  const showTraders = () =>
+  const showTraders = (sellItem?: Item) =>
     scenes.change(
       new TradersScene(player, {
         traders: TRADERS,
         quests: QUESTS,
         clock,
+        sellItem,
         onBack: () => {
           save();
           showInventory();

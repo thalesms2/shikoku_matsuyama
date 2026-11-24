@@ -282,7 +282,8 @@ Modelo de entrada para novas mecânicas:
 - **Tela:** lista de vendedores; ficha com descrição, lealdade, próximo nível e contagem da reposição; dinheiro do jogador em todas as moedas; abas Comprar/Vender com 10 linhas por página. Na venda aparecem os itens do topo do estoque das categorias que o vendedor compra. Ofertas bloqueadas, esgotadas ou recusadas ficam apagadas, e o resultado aparece em verde ou vermelho. Voltar ao inventário salva o jogo.
 - **Ofertas liberadas por quest** (`TraderOffer.quest`): só podem ser compradas com a quest concluída (`questUnlocked`; recusa "Exige uma quest"). Na tela, aparecem como `exige a quest "Nome"`. Ex.: o Fuzil VK-74 do Coronel no nível 1, liberado por "Limpeza".
 - **Conserto** (`TraderDef.repairRate`; só o Mercador Tito, 0,4): aba "Consertar" com os itens gastos do estoque, do equipamento e dos bolsos (veja Durabilidade da armadura).
-- Pendências: vender arrastando do inventário. (Preços dinâmicos ficam no mercado, Fase 8.)
+- **Vender arrastando** (Fase 11C): soltar um item do estoque (pode estar dentro de contêiner) sobre o botão "Vendedores" do inventário abre a `TradersScene` com `sellItem`. `focusSale` escolhe o vendedor que paga mais por ele (preço × `basePrice` da moeda, em rublos), abre a aba Vender na página em que o item está e destaca a linha dele (cor de destaque). Se ninguém compra, fica no vendedor atual com "Nenhum vendedor compra X". A venda em si continua no botão "Vender". No `DragController`, a área de venda é `DropTargets.sell` (drop `sell`), com os hooks `onSell`/`canSell`: só itens do estoque; fora dele, o botão fica apagado durante o arraste.
+- Pendências: vender arrastando para o mercado. (Preços dinâmicos ficam no mercado, Fase 8.)
 
 ### Quests e "encontrado na raid"
 

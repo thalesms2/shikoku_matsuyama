@@ -22,9 +22,18 @@ import { ItemView } from "./ItemView.ts";
 import { cellAt, dropCell } from "./layout.ts";
 import type { SlotView } from "./SlotView.ts";
 
+/** Área onde soltar um item abre a venda (o botão "Vendedores") */
+export interface SellTarget {
+  readonly view: Container;
+  readonly width: number;
+  readonly height: number;
+}
+
 export interface DropTargets {
   grids: readonly GridView[];
   slots: readonly SlotView[];
+  /** Soltar aqui chama `DragHooks.onSell` */
+  sell?: SellTarget;
 }
 
 /** Onde o item seria solto na posição atual do ponteiro */
@@ -36,7 +45,9 @@ export type Drop =
   | { kind: "load"; view: GridView | SlotView; target: Item; ok: boolean }
   /** Encaixar o carregador na arma `target` (na grade ou equipada) */
   | { kind: "attach"; view: GridView | SlotView; target: Item; ok: boolean }
-  | { kind: "slot"; view: SlotView; ok: boolean };
+  | { kind: "slot"; view: SlotView; ok: boolean }
+  /** Vender o item (soltou sobre o botão dos vendedores) */
+  | { kind: "sell"; view: SellTarget; ok: boolean };
 
 export interface DragHooks {
   /**
@@ -44,6 +55,10 @@ export interface DragHooks {
    * é carregada na hora.
    */
   onLoad?: (magazine: Item, ammo: Item) => void;
+  /** Item solto sobre a área de venda; sem o hook, a área não aceita nada */
+  onSell?: (item: Item) => void;
+  /** Se o item pode ser vendido (ex.: precisa estar no estoque) */
+  canSell?: (item: Item) => boolean;
 }
 
 interface DragState {
@@ -108,7 +123,9 @@ export class DragController {
     this.clearHighlights();
     const drop = this.resolve(global);
     if (!drop) return;
-    if (drop.kind === "grid") {
+    if (drop.kind === "sell") {
+      drop.view.view.alpha = drop.ok ? 1 : 0.4;
+    } else if (drop.kind === "grid") {
       const { w, h } = footprint(s.item.def, s.rotated);
       drop.view.showHighlight(drop.x, drop.y, w, h, drop.ok);
     } else if (drop.kind === "slot" || "equipment" in drop.view) {
@@ -154,6 +171,10 @@ export class DragController {
       } else {
         changed = loadInto(drop.target, s.item) > 0;
       }
+    } else if (drop.kind === "sell") {
+      // A venda acontece na tela dos vendedores; o inventário não muda aqui
+      this.hooks.onSell!(s.item);
+      return false;
     } else if (drop.kind === "attach") {
       changed = attachMagazine(drop.target, s.item);
     } else if (drop.view.equipment.get(drop.view.slot) === s.item) {
@@ -179,7 +200,20 @@ export class DragController {
   resolve(global: PointData): Drop | null {
     const s = this.state;
     if (!s) return null;
-    const { grids, slots } = this.targets();
+    const { grids, slots, sell } = this.targets();
+
+    if (sell && this.hooks.onSell) {
+      const local = sell.view.toLocal(global);
+      const inside =
+        local.x >= 0 &&
+        local.y >= 0 &&
+        local.x < sell.width &&
+        local.y < sell.height;
+      if (inside) {
+        const ok = this.hooks.canSell?.(s.item) ?? true;
+        return { kind: "sell", view: sell, ok };
+      }
+    }
 
     for (const view of grids) {
       const local = view.toLocal(global);
@@ -244,8 +278,9 @@ export class DragController {
   }
 
   private clearHighlights(): void {
-    const { grids, slots } = this.targets();
+    const { grids, slots, sell } = this.targets();
     for (const view of grids) view.hideHighlight();
     for (const view of slots) view.hideHighlight();
+    if (sell) sell.view.alpha = 1;
   }
 }

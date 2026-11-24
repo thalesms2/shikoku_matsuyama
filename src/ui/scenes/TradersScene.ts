@@ -148,6 +148,16 @@ export function describeRepair(
 
 type Tab = "buy" | "sell" | "repair";
 
+/** Uma linha da lista (oferta, item à venda ou item a consertar) */
+interface Row {
+  label: string;
+  enabled: boolean;
+  action: string;
+  run: () => void;
+  /** Destacada (item escolhido para vender) */
+  focus?: boolean;
+}
+
 /**
  * Vendedores: escolhe o vendedor, compra ofertas (dinheiro ou troca) e
  * vende itens do estoque. Mostra lealdade, dinheiro e reposição.
@@ -174,6 +184,8 @@ export class TradersScene implements Scene {
   trader: TraderDef;
   tab: Tab = "buy";
   page = 0;
+  /** Item destacado na aba de venda */
+  focus: Item | null = null;
 
   constructor(
     readonly player: PlayerState,
@@ -182,6 +194,11 @@ export class TradersScene implements Scene {
       clock: Clock;
       /** Para mostrar o nome da quest que libera uma oferta */
       quests?: readonly QuestDef[];
+      /**
+       * Item escolhido para vender (solto sobre o botão "Vendedores"): abre
+       * no vendedor que paga mais por ele, na aba de venda, com ele destacado
+       */
+      sellItem?: Item;
       onBack: () => void;
     },
   ) {
@@ -266,7 +283,37 @@ export class TradersScene implements Scene {
       this.messageText,
     );
     this.view.addChild(this.content);
+    if (options.sellItem) this.focusSale(options.sellItem);
+    else this.refresh();
+  }
+
+  /**
+   * Abre a venda do item no vendedor que paga mais por ele (em rublos), na
+   * página em que ele aparece. Se ninguém compra, fica na aba de venda do
+   * vendedor atual com o motivo. Devolve se algum vendedor compra.
+   */
+  focusSale(item: Item): boolean {
+    const now = this.options.clock.now();
+    let best: { def: TraderDef; rubles: number } | null = null;
+    for (const def of this.options.traders) {
+      const state = traderState(this.player.traders, def, now);
+      const level = loyaltyLevel(def, state, this.player.pmc.xp);
+      const price = sellPrice(def, item, level, this.catalog);
+      if (!price.ok) continue;
+      const rubles = price.amount * this.catalog.get(def.currency).basePrice;
+      if (!best || rubles > best.rubles) best = { def, rubles };
+    }
+    if (best) this.trader = best.def;
+    this.tab = "sell";
+    this.focus = item;
+    const index = this.saleItems().indexOf(item);
+    this.page = Math.max(0, Math.floor(index / ROWS_PER_PAGE));
     this.refresh();
+    this.messageText.text = best
+      ? ""
+      : `Nenhum vendedor compra ${item.def.name}`;
+    this.messageText.style.fill = ERROR_COLOR;
+    return best !== null;
   }
 
   get catalog(): Catalog {
@@ -437,7 +484,13 @@ export class TradersScene implements Scene {
       const label = new Text({
         text: entry.label,
         position: { x: 0, y: y + 6 },
-        style: style({ fill: entry.enabled ? theme.text : theme.textMuted }),
+        style: style({
+          fill: entry.focus
+            ? theme.accent
+            : entry.enabled
+              ? theme.text
+              : theme.textMuted,
+        }),
       });
       const button = new Button(entry.action, entry.run, 90, 26);
       button.position.set(WIDTH - RIGHT - 90, y);
@@ -451,7 +504,7 @@ export class TradersScene implements Scene {
     this.pageText.visible = pages > 1;
   }
 
-  private entries() {
+  private entries(): Row[] {
     if (this.tab === "buy") return this.buyRows();
     if (this.tab === "sell") return this.sellRows();
     return this.repairRows();
@@ -504,6 +557,7 @@ export class TradersScene implements Scene {
       return {
         label: describeSale(item, price, this.trader.currency, this.catalog),
         enabled: price.ok,
+        focus: item === this.focus,
         action: "Vender",
         run: () => {
           this.sellItem(item);

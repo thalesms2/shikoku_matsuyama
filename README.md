@@ -148,6 +148,7 @@ Botão **Vendedores** no inventário. Cada vendedor tem uma especialidade, uma m
 
 - Coletes e capacetes se gastam com os tiros que seguram. Quanto mais gastos, menos protegem, e quebrados não protegem nada. O log da raid avisa quando um quebra.
 - O tooltip mostra a durabilidade atual. Armadura gasta vale menos na venda.
+- **Vender arrastando:** arraste um item do estoque até o botão **Vendedores** do inventário. A tela abre no vendedor que paga mais por ele, na aba Vender, com o item destacado.
 - O **Mercador Tito** conserta na aba **Consertar**: paga-se pela parte gasta, e o item volta inteiro, mesmo vestido.
 
 ### Quests

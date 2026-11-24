@@ -94,7 +94,12 @@ export function itemSheet(item: Item): string[] {
     lines.push(`Classe de proteção: ${stats.armorClass}`);
   }
   if (stats.durability !== undefined) {
-    lines.push(`Durabilidade: ${stats.durability}`);
+    // gasta: atual/máx. (arredondado para cima: 0 só quando quebrou)
+    lines.push(
+      item.durability === undefined
+        ? `Durabilidade: ${stats.durability}`
+        : `Durabilidade: ${Math.ceil(item.durability)}/${stats.durability}`,
+    );
   }
   if (stats.capacity !== undefined) {
     lines.push(`Capacidade: ${stats.capacity} cartuchos`);

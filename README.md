@@ -131,6 +131,12 @@ Botão **Vendedores** no inventário. Cada vendedor tem uma especialidade, uma m
 - **Vender:** escolha um item do estoque; o vendedor paga em sua moeda. Contêineres precisam estar vazios.
 - **Lealdade:** negociar com um vendedor (comprar e vender) aumenta a reputação com ele. Com nível de PMC, reputação e volume negociado suficientes, o vendedor sobe de nível, libera ofertas novas, cobra menos e paga mais. A tela mostra o que falta para o próximo nível.
 
+### Durabilidade e conserto
+
+- Coletes e capacetes se gastam com os tiros que seguram. Quanto mais gastos, menos protegem, e quebrados não protegem nada. O log da raid avisa quando um quebra.
+- O tooltip mostra a durabilidade atual. Armadura gasta vale menos na venda.
+- O **Mercador Tito** conserta na aba **Consertar**: paga-se pela parte gasta, e o item volta inteiro, mesmo vestido.
+
 ### Quests
 
 Botão **Quests** no inventário. Os vendedores dão quests com recompensas em dinheiro, itens, XP e reputação; algumas liberam ofertas novas nos vendedores.

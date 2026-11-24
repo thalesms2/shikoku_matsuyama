@@ -10,7 +10,7 @@ import type { RaidProfile, ScavProfile } from "../raid/types.ts";
 import type { TradersState } from "../trade/types.ts";
 
 /** Versão atual do formato do save. Mudou o formato? Incremente e migre. */
-export const SAVE_VERSION = 9;
+export const SAVE_VERSION = 10;
 
 /** Item salvo; o conteúdo vai junto (grades, cartuchos, carregador) */
 export interface SavedItem {
@@ -25,6 +25,8 @@ export interface SavedItem {
   magazine?: SavedItem;
   /** v5: encontrado na raid */
   fir?: true;
+  /** v10: durabilidade atual (só quando não está inteira) */
+  dur?: number;
 }
 
 /** Item salvo dentro de uma grade, com a posição */

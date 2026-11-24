@@ -5,6 +5,7 @@ import {
   lotSize,
   tradeable,
 } from "../flea/flea.ts";
+import { durabilityRatio } from "../inventory/durability.ts";
 import { SLOT_NAMES } from "../inventory/equipment.ts";
 import type { Equipment } from "../inventory/equipment.ts";
 import type { Grid } from "../inventory/grid.ts";
@@ -86,11 +87,17 @@ export function requiredItems(loadout: Loadout): LoadoutItem[] {
   ]);
 }
 
-/** Itens do estoque que podem ir para o equipamento (carregadores mais cheios antes) */
+/**
+ * Itens do estoque que podem ir para o equipamento: carregadores mais cheios
+ * e armaduras mais inteiras antes
+ */
 function stashCandidates(player: PlayerState, defId: string): Item[] {
   return stashItems(player.inventory.stash)
     .filter((i) => i.def.id === defId && !inUse(player, i))
-    .sort((a, b) => rounds(b) - rounds(a));
+    .sort(
+      (a, b) =>
+        rounds(b) - rounds(a) || durabilityRatio(b) - durabilityRatio(a),
+    );
 }
 
 const rounds = (item: Item) => (isMagazine(item) ? loadedRounds(item) : 0);

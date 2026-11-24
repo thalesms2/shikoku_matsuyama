@@ -1,3 +1,4 @@
+import { durabilityValueFactor } from "./durability.ts";
 import type { Equipment, SlotName } from "./equipment.ts";
 import { Grid } from "./grid.ts";
 import { maxStack } from "./size.ts";
@@ -138,6 +139,8 @@ export interface Item {
   magazine?: Item | null;
   /** Encontrado na raid (saiu com o loot de uma raid em que extraiu) */
   fir?: boolean;
+  /** Durabilidade atual (armaduras); sem o campo = inteira */
+  durability?: number;
 }
 
 /** Conjunto de definições de itens, indexado por id */
@@ -244,7 +247,8 @@ export class ItemFactory {
 
 /** Valor total do item: pilha + tudo que está dentro dele */
 export function totalValue(item: Item): number {
-  let value = item.def.basePrice * item.count;
+  // Armadura gasta vale menos
+  let value = item.def.basePrice * item.count * durabilityValueFactor(item);
   for (const grid of item.grids) {
     for (const inner of grid.items()) value += totalValue(inner);
   }

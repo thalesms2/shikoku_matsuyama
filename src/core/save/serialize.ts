@@ -5,6 +5,7 @@ import { createFleaState } from "../flea/flea.ts";
 import type { FleaListing, FleaResult, FleaState } from "../flea/types.ts";
 import { createHideoutState } from "../hideout/hideout.ts";
 import type { HideoutState } from "../hideout/types.ts";
+import { maxDurability } from "../inventory/durability.ts";
 import { Equipment, SLOT_NAMES } from "../inventory/equipment.ts";
 import type { SlotName } from "../inventory/equipment.ts";
 import { Grid } from "../inventory/grid.ts";
@@ -46,6 +47,7 @@ function saveItem(item: Item): SavedItem {
   if (item.rounds) saved.rounds = item.rounds.map((r) => [r.def.id, r.count]);
   if (item.magazine) saved.magazine = saveItem(item.magazine);
   if (item.fir) saved.fir = true;
+  if (item.durability !== undefined) saved.dur = item.durability;
   return saved;
 }
 
@@ -137,6 +139,11 @@ class Loader {
       return null;
     }
     if (saved.fir === true) item.fir = true;
+    // durabilidade fora de 0..máx. é limitada; inteira = sem o campo
+    const max = maxDurability(item.def);
+    if (max > 0 && Number.isFinite(saved.dur) && saved.dur! < max) {
+      item.durability = Math.max(0, saved.dur!);
+    }
     this.byUid.set(item.uid, item);
     saved.grids?.forEach((items, i) => {
       const grid = item.grids[i];

@@ -1,16 +1,23 @@
 import { Container, Text } from "pixi.js";
 
 import type { Clock } from "../../core/clock.ts";
+import {
+  durabilityOf,
+  maxDurability,
+} from "../../core/inventory/durability.ts";
 import type { Catalog, Item } from "../../core/inventory/item.ts";
 import type { QuestDef } from "../../core/quests/types.ts";
 import type { PlayerState } from "../../core/state.ts";
 import {
   buy,
   countInStash,
+  damagedItems,
   loyaltyLevel,
   nextLevel,
   offerPrice,
   questUnlocked,
+  repair,
+  repairCost,
   restock,
   sell,
   sellPrice,
@@ -128,7 +135,18 @@ export function describeSale(
   return `${name} — ${price.ok ? formatMoney(price.amount, currency, catalog) : price.reason}`;
 }
 
-type Tab = "buy" | "sell";
+/** Linha de um item gasto na aba de conserto */
+export function describeRepair(
+  item: Item,
+  cost: TradeResult,
+  currency: string,
+  catalog: Catalog,
+): string {
+  const durability = `${Math.ceil(durabilityOf(item))}/${maxDurability(item.def)}`;
+  return `${item.def.name} — ${durability} — ${cost.ok ? formatMoney(cost.amount, currency, catalog) : cost.reason}`;
+}
+
+type Tab = "buy" | "sell" | "repair";
 
 /**
  * Vendedores: escolhe o vendedor, compra ofertas (dinheiro ou troca) e
@@ -144,6 +162,8 @@ export class TradersScene implements Scene {
   readonly moneyText: Text;
   readonly buyTab: Button;
   readonly sellTab: Button;
+  /** Só aparece nos vendedores que consertam */
+  readonly repairTab: Button;
   readonly rows = new Container({ label: "rows" });
   /** Botões de ação das linhas visíveis (comprar/vender) */
   rowButtons: Button[] = [];
@@ -209,6 +229,12 @@ export class TradersScene implements Scene {
     this.buyTab.position.set(RIGHT, 222);
     this.sellTab = new Button("Vender", () => this.selectTab("sell"), 110);
     this.sellTab.position.set(RIGHT + 120, 222);
+    this.repairTab = new Button(
+      "Consertar",
+      () => this.selectTab("repair"),
+      110,
+    );
+    this.repairTab.position.set(RIGHT + 240, 222);
     this.rows.position.set(RIGHT, ROWS_TOP);
     const pagerY = ROWS_TOP + ROWS_PER_PAGE * ROW_HEIGHT + 8;
     this.prevButton = new Button("<", () => this.changePage(-1), 36);
@@ -232,6 +258,7 @@ export class TradersScene implements Scene {
       this.moneyText,
       this.buyTab,
       this.sellTab,
+      this.repairTab,
       this.rows,
       this.prevButton,
       this.nextButton,
@@ -260,6 +287,7 @@ export class TradersScene implements Scene {
 
   selectTrader(def: TraderDef): void {
     this.trader = def;
+    if (this.tab === "repair" && def.repairRate === undefined) this.tab = "buy";
     this.page = 0;
     this.messageText.text = "";
     this.refresh();
@@ -290,8 +318,7 @@ export class TradersScene implements Scene {
   }
 
   pageCount(): number {
-    const total =
-      this.tab === "buy" ? this.trader.offers.length : this.saleItems().length;
+    const total = this.entries().length;
     return Math.max(1, Math.ceil(total / ROWS_PER_PAGE));
   }
 
@@ -304,6 +331,22 @@ export class TradersScene implements Scene {
     );
     const item = this.catalog.get(offer.item).name;
     this.showResult(result, result.ok ? `Comprou ${item}` : "");
+    return result;
+  }
+
+  repairItem(item: Item): TradeResult {
+    const result = repair(
+      this.player,
+      this.trader,
+      item,
+      this.options.clock.now(),
+    );
+    this.showResult(
+      result,
+      result.ok
+        ? `Consertou ${item.def.name} por ${formatMoney(result.amount, this.trader.currency, this.catalog)}`
+        : "",
+    );
     return result;
   }
 
@@ -355,6 +398,8 @@ export class TradersScene implements Scene {
     }
     this.buyTab.alpha = this.tab === "buy" ? 1 : 0.55;
     this.sellTab.alpha = this.tab === "sell" ? 1 : 0.55;
+    this.repairTab.alpha = this.tab === "repair" ? 1 : 0.55;
+    this.repairTab.visible = this.trader.repairRate !== undefined;
     this.nameText.text = `${this.trader.name} · ${this.trader.specialty}`;
     this.refreshInfo();
     this.refreshRows();
@@ -386,7 +431,7 @@ export class TradersScene implements Scene {
     for (const child of this.rows.removeChildren()) child.destroy();
     this.rowButtons = [];
     const start = this.page * ROWS_PER_PAGE;
-    const entries = this.tab === "buy" ? this.buyRows() : this.sellRows();
+    const entries = this.entries();
     entries.slice(start, start + ROWS_PER_PAGE).forEach((entry, i) => {
       const y = i * ROW_HEIGHT;
       const label = new Text({
@@ -404,6 +449,26 @@ export class TradersScene implements Scene {
     this.pageText.text = `${this.page + 1}/${pages}`;
     this.prevButton.visible = this.nextButton.visible = pages > 1;
     this.pageText.visible = pages > 1;
+  }
+
+  private entries() {
+    if (this.tab === "buy") return this.buyRows();
+    if (this.tab === "sell") return this.sellRows();
+    return this.repairRows();
+  }
+
+  private repairRows() {
+    return damagedItems(this.player).map((item) => {
+      const cost = repairCost(this.trader, item, this.catalog);
+      return {
+        label: describeRepair(item, cost, this.trader.currency, this.catalog),
+        enabled: cost.ok,
+        action: "Consertar",
+        run: () => {
+          this.repairItem(item);
+        },
+      };
+    });
   }
 
   private buyRows() {

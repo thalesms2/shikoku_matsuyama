@@ -40,6 +40,8 @@ export const MIGRATIONS: Record<number, Migration> = {
   7: (data) => ({ ...data, loadouts: [] }),
   // v8 → v9: raids automáticas paradas, com as regras padrão
   8: (data) => ({ ...data, auto: createAutoState() }),
+  // v9 → v10: durabilidade nos itens (sem o campo = inteira); nada muda
+  9: (data) => data,
 };
 
 export class SaveError extends Error {}

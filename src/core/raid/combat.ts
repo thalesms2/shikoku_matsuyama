@@ -38,6 +38,37 @@ export function armorFactor(penetration: number, armorClass: number): number {
   return Math.max(MIN_ARMOR_FACTOR, penetration / threshold);
 }
 
+/** Durabilidade perdida por ponto de dano de um acerto na armadura */
+export const ARMOR_WEAR = 0.05;
+
+/**
+ * Fração do dano que passa por uma armadura gasta: a proteção cai na mesma
+ * proporção da durabilidade (`1 − (1 − armorFactor) × durabilidade/máx.`).
+ * Quebrada (0), não protege.
+ */
+export function wornArmorFactor(
+  penetration: number,
+  armorClass: number,
+  durabilityRatio: number,
+): number {
+  return 1 - (1 - armorFactor(penetration, armorClass)) * durabilityRatio;
+}
+
+/**
+ * Durabilidade perdida num acerto: `dano × ARMOR_WEAR`, pela metade contra
+ * munição fraca e inteira quando a penetração chega à classe
+ * (`× (0,5 + 0,5 × min(1, pen / (classe × 10)))`).
+ */
+export function armorWear(
+  damage: number,
+  penetration: number,
+  armorClass: number,
+): number {
+  const share =
+    armorClass > 0 ? Math.min(1, penetration / (armorClass * 10)) : 1;
+  return damage * ARMOR_WEAR * (0.5 + 0.5 * share);
+}
+
 export const BASE_HIT_CHANCE = 0.5;
 /** Perda de precisão por braço destruído */
 export const ARM_PENALTY = 0.15;

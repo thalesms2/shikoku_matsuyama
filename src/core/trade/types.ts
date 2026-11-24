@@ -52,6 +52,11 @@ export interface TraderDef {
   readonly offers: readonly TraderOffer[];
   /** Intervalo de reposição do estoque (tempo real) */
   readonly restockMs: number;
+  /**
+   * Conserta armaduras: preço = basePrice × fração gasta × `repairRate`
+   * (sem o campo, não conserta)
+   */
+  readonly repairRate?: number;
 }
 
 /** O que o jogador tem com um vendedor (vai para o save) */

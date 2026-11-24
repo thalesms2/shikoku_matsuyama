@@ -1,3 +1,8 @@
+import {
+  durabilityRatio,
+  isDamaged,
+  restoreDurability,
+} from "../inventory/durability.ts";
 import type { Grid } from "../inventory/grid.ts";
 import { totalValue } from "../inventory/item.ts";
 import type { Catalog, Item, ItemDef } from "../inventory/item.ts";
@@ -319,4 +324,67 @@ export function sell(
   }
   addVolume(state, price.amount * catalog.get(def.currency).basePrice);
   return price;
+}
+
+/**
+ * Itens gastos que o jogador pode consertar: no estoque (com o conteúdo dos
+ * contêineres), vestidos (com o conteúdo) e nos bolsos.
+ */
+export function damagedItems(player: PlayerState): Item[] {
+  const { stash, equipment } = player.inventory;
+  const nested = (item: Item): Item[] => [
+    item,
+    ...item.grids.flatMap((g) => g.items().flatMap(nested)),
+  ];
+  return [
+    ...stashItems(stash),
+    ...equipment.equipped().flatMap(nested),
+    ...equipment.pockets.flatMap((p) => p.items()),
+  ].filter(isDamaged);
+}
+
+/**
+ * Preço do conserto na moeda do vendedor: `ceil(basePrice × (1 − durabilidade/
+ * máx.) × repairRate / basePrice da moeda)`, mínimo 1.
+ */
+export function repairCost(
+  def: TraderDef,
+  item: Item,
+  catalog: Catalog,
+): TradeResult {
+  if (def.repairRate === undefined) {
+    return { ok: false, reason: "Não faz consertos" };
+  }
+  if (!isDamaged(item)) return { ok: false, reason: "Não precisa de conserto" };
+  const rub = item.def.basePrice * (1 - durabilityRatio(item)) * def.repairRate;
+  const rate = catalog.get(def.currency).basePrice;
+  return { ok: true, amount: Math.max(1, Math.ceil(rub / rate)) };
+}
+
+/**
+ * Conserta o item (no estoque ou vestido) até a durabilidade máxima,
+ * pagando do estoque. Soma ao volume e à reputação como uma compra.
+ */
+export function repair(
+  player: PlayerState,
+  def: TraderDef,
+  item: Item,
+  now: number,
+): TradeResult {
+  const { catalog } = player.factory;
+  const cost = repairCost(def, item, catalog);
+  if (!cost.ok) return cost;
+  if (!damagedItems(player).includes(item)) {
+    return { ok: false, reason: "O item precisa estar com você ou no estoque" };
+  }
+  if (available(player, def.currency) < cost.amount) {
+    return { ok: false, reason: "Dinheiro insuficiente" };
+  }
+  take(player, def.currency, cost.amount);
+  restoreDurability(item);
+  addVolume(
+    traderState(player.traders, def, now),
+    cost.amount * catalog.get(def.currency).basePrice,
+  );
+  return cost;
 }

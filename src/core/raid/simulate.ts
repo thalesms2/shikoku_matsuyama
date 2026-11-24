@@ -1,3 +1,8 @@
+import {
+  durabilityOf,
+  durabilityRatio,
+  wear,
+} from "../inventory/durability.ts";
 import { SLOT_NAMES } from "../inventory/equipment.ts";
 import type { Grid } from "../inventory/grid.ts";
 import { totalValue } from "../inventory/item.ts";
@@ -41,6 +46,8 @@ import type { PlayerState } from "../state.ts";
 import {
   HIT_ZONES,
   armorFactor,
+  armorWear,
+  wornArmorFactor,
   burstFor,
   enemyHitChance,
   firstShotChance,
@@ -638,11 +645,15 @@ export class RaidSimulation {
       const slot = protectedBy(part);
       const armor = slot ? this.equipment.get(slot) : null;
       const armorClass = armor ? statOf(armor.def, "armorClass") : 0;
-      const dealt = this.hurt(
-        part,
-        enemy.damage * armorFactor(enemy.penetration, armorClass),
-      );
+      const factor = armor
+        ? wornArmorFactor(enemy.penetration, armorClass, durabilityRatio(armor))
+        : 1;
+      const dealt = this.hurt(part, enemy.damage * factor);
       wounds.push(`${BODY_PART_LABELS[part]} −${Math.round(dealt)}`);
+      if (armor && durabilityOf(armor) > 0) {
+        wear(armor, armorWear(enemy.damage, enemy.penetration, armorClass));
+        if (durabilityOf(armor) === 0) wounds.push(`${armor.def.name} quebrou`);
+      }
       if (isDead(this.player.pmc)) break;
     }
     this.log(

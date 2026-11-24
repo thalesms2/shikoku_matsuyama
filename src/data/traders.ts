@@ -104,6 +104,8 @@ export const TRADERS: readonly TraderDef[] = [
     levels: LOYALTY_LEVELS,
     buys: { armor: 1, helmet: 1, rig: 1, backpack: 1, container: 1 },
     restockMs: HOUR,
+    // conserta coletes e capacetes: 40% do preço pela parte gasta
+    repairRate: 0.4,
     offers: [
       {
         id: "usd",

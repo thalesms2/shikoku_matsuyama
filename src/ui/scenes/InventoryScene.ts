@@ -13,6 +13,7 @@ import { ItemFactory } from "../../core/inventory/item.ts";
 import type { Item } from "../../core/inventory/item.ts";
 import { loadInto } from "../../core/inventory/magazine.ts";
 import { sortGrid } from "../../core/inventory/operations.ts";
+import { quickMove } from "../../core/inventory/quickMove.ts";
 import {
   MAG_DRILLS_XP_PER_ROUND,
   useConsumable,
@@ -598,6 +599,11 @@ export class InventoryScene implements Scene {
         }
         if (e.button !== 0) return;
         this.hideTooltip();
+        // Ctrl+clique (⌘ no Mac): move direto entre estoque e equipamento
+        if (e.ctrlKey || e.metaKey) {
+          if (quickMove(view.item, this.state)) this.refresh();
+          return;
+        }
         this.drag.begin(view, e.global);
       });
       const release = (e: FederatedPointerEvent) => this.drag.end(e.global);

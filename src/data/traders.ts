@@ -92,6 +92,7 @@ export const TRADERS: readonly TraderDef[] = [
         barter: [{ item: "barter_bolts", count: 3 }],
       },
       { id: "med-kit", item: "med_kit", level: 2, stock: 5 },
+      { id: "surgery", item: "med_surgery", level: 1, stock: 2 },
     ],
   },
   {

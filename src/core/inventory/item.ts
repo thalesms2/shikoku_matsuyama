@@ -64,6 +64,8 @@ export interface ItemStats {
   readonly energy?: number;
   /** Consumíveis: hidratação recuperada (negativo gasta) */
   readonly hydration?: number;
+  /** Kit cirúrgico: minutos de raid que a cirurgia leva */
+  readonly surgery?: number;
 }
 
 /** Definição estática de um tipo de item */

@@ -34,7 +34,7 @@ const killer = {
 };
 
 describe("run", () => {
-  it("raid tranquila: loot, extração, XP e cirurgia de campo", () => {
+  it("raid tranquila: loot, extração, XP e sem kit as pernas continuam destruídas", () => {
     const { player } = armedPlayer();
     player.pmc.health.leftLeg = 0;
     player.pmc.health.rightLeg = 0;
@@ -76,7 +76,7 @@ describe("run", () => {
       strength: 0.8,
     });
     expect(player.pmc.xp).toBe(395);
-    expect(player.pmc.health.leftLeg).toBe(1);
+    expect(player.pmc.health.leftLeg).toBe(0);
     expect(player.pmc.energy).toBeCloseTo(100 - 0.15 * 15);
   });
 

@@ -88,6 +88,9 @@ export function describeEffects(effects: ModuleEffects, catalog: Catalog) {
       `espera da raid Scav −${Math.round(effects.scavCooldown * 100)}%`,
     );
   }
+  if (effects.surgeryMinutes) {
+    parts.push(`opera 1 parte destruída a cada ${effects.surgeryMinutes} min`);
+  }
   return parts.length > 0 ? parts.join(", ") : "libera receitas";
 }
 

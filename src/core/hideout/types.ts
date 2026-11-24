@@ -19,6 +19,8 @@ export interface ModuleEffects {
   readonly incomeCap?: number;
   /** Fração cortada do cooldown da raid Scav (0 a 1) */
   readonly scavCooldown?: number;
+  /** Minutos para operar uma parte do corpo destruída (fora da raid) */
+  readonly surgeryMinutes?: number;
 }
 
 export interface ModuleRequirements {
@@ -71,6 +73,8 @@ export interface HideoutState {
   incomeSince: number;
   /** Último momento em que cura, comida e obras foram calculadas */
   lastTick: number;
+  /** Minutos já passados na cirurgia da enfermaria (só durante uma) */
+  surgeryProgress?: number;
 }
 
 /** Dados que as regras do esconderijo consultam */

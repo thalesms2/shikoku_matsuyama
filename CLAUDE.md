@@ -97,7 +97,7 @@ Veja o plano completo em [`PLANO.md`](./PLANO.md).
 - Campos definidos no override têm prioridade sobre a API; `--clear width,height` volta a usar a referência.
 - No `/items`, `name`/`shortName`/`description` são chaves de tradução (`"<id> Name"`), resolvidas com `/items_en`; a categoria é o primeiro id de `categories`, buscado em `itemCategories`. `fetchApiItems` normaliza tudo para `ApiItem`, que o resto do pipeline usa.
 - `capacity` da fonte só vale para itens sem grade (carregadores); em contêineres ela é o total de células e é ignorada (`toReference`). Mudou a conversão? Rode `items -- sync` de novo, porque o banco guarda a referência já convertida.
-- Os 24 itens do jogo estão ligados a um `sourceId` só para a imagem placeholder: todos os outros campos vêm do override (nenhum `--clear`), então ligar um item não muda o balanceamento.
+- Todos os itens do jogo estão ligados a um `sourceId` só para a imagem placeholder: todos os outros campos vêm do override (nenhum `--clear`), então ligar um item não muda o balanceamento. Itens novos (ex.: `med_surgery`) seguem o mesmo fluxo: `override` com `--source` e todos os campos próprios, `images`, `export`.
 - Os testes dos scripts usam respostas da API gravadas (`tests/scripts/items/fixtures.ts`, convertidas para o formato JSON por `tarkovFixtures.ts`) e bancos em memória ou temporários; nenhum teste acessa a rede.
 
 ## Comandos
@@ -164,7 +164,7 @@ Modelo de entrada para novas mecânicas:
 - Arquivos: `src/core/pmc/pmc.ts`; tela em `src/ui/scenes/CharacterScene.ts` (botão "Personagem" no inventário).
 - **Vida por parte do corpo** (máx.): cabeça 35, tórax 85, estômago 70, braços 60, pernas 65 (total 440). Cabeça ou tórax em 0 = morte.
 - **Dano** (`damage`): tira da parte atingida, sem passar de 0 (o excesso se perde). Dano em parte já destruída (não vital) se espalha: `dano × 0,7` dividido igualmente entre as partes vivas. Morto não recebe dano.
-- **Cura** (`heal`): distribui os pontos pelas partes mais feridas primeiro (menor `vida/máx.`; em empate, vitais primeiro); não cura partes destruídas (`restorePart` volta uma parte destruída para 1 PV, para a cirurgia futura).
+- **Cura** (`heal`): distribui os pontos pelas partes mais feridas primeiro (menor `vida/máx.`; em empate, vitais primeiro); não cura partes destruídas (`restorePart` volta uma parte destruída para 1 PV, usado pela cirurgia).
 - **Energia e hidratação:** 0 a 100, mudadas por `changeEnergy`/`changeHydration`. Só caem durante a raid (veja Raid do PMC).
 - **Nível:** XP acumulado para o nível `n` = `1000 × n(n−1)/2` (nível 2 = 1000, nível 3 = 3000...), máximo 60.
 
@@ -185,7 +185,7 @@ Modelo de entrada para novas mecânicas:
 ### Save
 
 - Arquivos: `src/core/save/` (`format.ts`, `serialize.ts`, `migrations.ts`, `storage.ts`); integração em `src/game.ts` e `src/data/newGame.ts`.
-- **Formato** (`SAVE_VERSION = 10`): `nextId` da fábrica, estoque (itens com posição/rotação), slots e bolsos, conteúdo aninhado (grades, cartuchos do carregador do fundo ao topo, carregador encaixado na arma), PMC, skills, o carregamento em andamento (por uid, com `startedAt`/`done`, então continua de onde parou) e, desde a v2, o perfil de raid (`raid`: karma, estatísticas, regra de loot, seed e a raid em andamento com log e resumo) desde a v3, o perfil Scav (`scav`: `readyAt` e estatísticas) desde a v4, os vendedores (`traders`: reputação, volume, compras desde a reposição e `restockAt` de cada um) e, desde a v5, as quests (`quests`: status e progresso) e a marca `fir: true` nos itens encontrados na raid e, desde a v6, o esconderijo (`hideout`: níveis, obra, produções, `incomeSince`, `lastTick`) e, desde a v7, o mercado (`flea`: seed, anúncios com o item salvo como os do estoque, resultados, pressão, `lastCheck` e estatísticas) e, desde a v8, os loadouts (`loadouts`: nome, item de cada slot, carregador de cada arma e itens carregados) e, desde a v9, as raids automáticas (`auto`: regras, se está rodando, raids feitas, `nextAt`, `current` e histórico) e, desde a v10, a durabilidade atual dos itens (`dur`, só quando não estão inteiros). O tamanho do estoque salvo já inclui as linhas do Depósito.
+- **Formato** (`SAVE_VERSION = 11`): `nextId` da fábrica, estoque (itens com posição/rotação), slots e bolsos, conteúdo aninhado (grades, cartuchos do carregador do fundo ao topo, carregador encaixado na arma), PMC, skills, o carregamento em andamento (por uid, com `startedAt`/`done`, então continua de onde parou) e, desde a v2, o perfil de raid (`raid`: karma, estatísticas, regra de loot, seed e a raid em andamento com log e resumo) desde a v3, o perfil Scav (`scav`: `readyAt` e estatísticas) desde a v4, os vendedores (`traders`: reputação, volume, compras desde a reposição e `restockAt` de cada um) e, desde a v5, as quests (`quests`: status e progresso) e a marca `fir: true` nos itens encontrados na raid e, desde a v6, o esconderijo (`hideout`: níveis, obra, produções, `incomeSince`, `lastTick`) e, desde a v7, o mercado (`flea`: seed, anúncios com o item salvo como os do estoque, resultados, pressão, `lastCheck` e estatísticas) e, desde a v8, os loadouts (`loadouts`: nome, item de cada slot, carregador de cada arma e itens carregados) e, desde a v9, as raids automáticas (`auto`: regras, se está rodando, raids feitas, `nextAt`, `current` e histórico) e, desde a v10, a durabilidade atual dos itens (`dur`, só quando não estão inteiros) e, desde a v11, o progresso da cirurgia da enfermaria (`hideout.surgeryProgress`, só durante uma). O tamanho do estoque salvo já inclui as linhas do Depósito.
 - **Migração 1 → 2:** adiciona `raid = createRaidProfile(savedAt)`. Ao carregar, campos do perfil que faltam voltam ao padrão e `lootRule` inválida vira `valuePerCell`.
 - **Migração 2 → 3:** adiciona `scav = createScavProfile()` (liberada). Ao carregar, `readyAt` inválido vira 0 e estatísticas que faltam voltam a 0.
 - **Migração 3 → 4:** adiciona `traders = {}`. Ao carregar, números inválidos voltam a 0 (`restockAt` 0 repõe no próximo acesso) e compras que não são inteiros positivos são descartadas. Vendedores e ofertas que não existem mais ficam guardados sem efeito.
@@ -195,6 +195,7 @@ Modelo de entrada para novas mecânicas:
 - **Migração 7 → 8:** adiciona `loadouts = []`. Ao carregar, loadout sem nome em texto é descartado; slots desconhecidos ou sem texto somem; itens carregados sem id em texto ou com quantidade que não é inteiro positivo somem. Itens que saíram do jogo ficam e aparecem como faltando.
 - **Migração 8 → 9:** adiciona `auto = createAutoState()` (parada, regras padrão). Ao carregar, regras inválidas voltam ao padrão (raids de 1 a `MAX_AUTO_RAIDS`, vida mínima limitada a 0–1, estratégia e ação de vida baixa conhecidas), resultados inválidos somem, `running` só vale `true` se for exatamente `true`, `done` inválido vira 0 e `nextAt` inválido vira o momento do carregamento.
 - **Migração 9 → 10:** nada muda (item sem `dur` = inteiro). Ao carregar, `dur` só vale em itens com durabilidade, abaixo do máximo e finito; negativo vira 0.
+- **Migração 10 → 11:** nada muda (sem `surgeryProgress` = 0). Ao carregar, só um número positivo vale.
 - **Carregar save antigo/inconsistente:** item que saiu do catálogo é descartado com aviso; item que não cabe mais na posição vai para o primeiro espaço da mesma grade; se não couber nela (ou a grade não existir mais, ou o slot não aceitar mais o item, ou o carregador ficar incompatível), vai para o estoque; sem espaço no estoque, é perdido com aviso. Campos de PMC/skills que faltam recebem o valor padrão (skills novas começam em 0).
 - **Migrações:** `migrate()` aplica `MIGRATIONS[v]` de versão em versão até `SAVE_VERSION`; save sem versão, de versão mais nova ou com migração faltando lança `SaveError`.
 - **Armazenamento:** chave `escape-from-idle:save` no `localStorage`; erros do navegador são ignorados. Autosave a cada 5 s de jogo e no `beforeunload`. Save ilegível é copiado para `escape-from-idle:save:backup` e o jogo começa do zero (com aviso no console).
@@ -218,11 +219,11 @@ Modelo de entrada para novas mecânicas:
   - Dano = `dano × armorFactor(pen, classe)`, com `armorFactor` = 1 se `pen ≥ classe × 10`, senão `max(0,2; pen / (classe × 10))`. Armadura do PMC gasta protege menos: `wornArmorFactor = 1 − (1 − armorFactor) × durabilidade/máx.` (veja Durabilidade da armadura). O inimigo acerta as partes por peso (cabeça 10, tórax 30, estômago 15, braços 10, pernas 12,5); capacete protege a cabeça, colete o tórax e o estômago. Dano recebido × `(1 − Vitalidade/2)`.
   - Arma vazia: troca pelo carregador carregado do equipamento (o vazio vai para o lugar dele, se couber), gastando o turno. Sem munição: foge com 40% de chance.
   - Ao vencer: abate, karma, revista com a chance da estratégia (1 item da tabela). Depois de cada briga: cuidados e completar carregadores com a munição solta do equipamento.
-- **Cuidados automáticos:** enquanto houver parte curável e (vida total < 60% ou cabeça/tórax < 60%), usa o remédio com mais cura do equipamento. Energia ou hidratação < 35: come ou bebe o item com mais do stat. Perigos tiram 8–25 de uma parte (pernas, braços ou tronco).
+- **Cuidados automáticos:** primeiro a cirurgia das partes destruídas, se houver kit (veja Cirurgia); depois, enquanto houver parte curável e (vida total < 60% ou cabeça/tórax < 60%), usa o remédio com mais cura do equipamento. Energia ou hidratação < 35: come ou bebe o item com mais do stat. Perigos tiram 8–25 de uma parte (pernas, braços ou tronco).
 - **Loot** (`stashLoot`): `autoPlace` nas grades do equipamento e por último no contêiner seguro. Se não couber e a regra for `valuePerCell`, larga o loot desta raid de menor valor por célula (menor que o do item novo), do mais barato para o mais caro, até caber; o que foi tirado sem necessidade volta para o lugar; se nem assim couber, nada muda. O equipamento trazido nunca é largado. `keepFirst` não troca nada.
 - **Extração:** a saída usável de menor risco; paga a passagem se for `payment`; tocaia com chance `risco × encontro`; depois mais 2 min (se passar da duração, MIA).
 - **Resultado:**
-  - Extraiu: XP do PMC = 300 + 5/min + 120 por Scav + 400 por PMC + valor do loot / 1000, e partes destruídas voltam para 1 PV (cirurgia de campo provisória, até existir a enfermaria).
+  - Extraiu: XP do PMC = 300 + 5/min + 120 por Scav + 400 por PMC + valor do loot / 1000. Partes destruídas continuam destruídas (só voltam com cirurgia: kit na raid ou enfermaria).
   - Morreu/MIA: perde todos os slots menos `secure` e tudo dos bolsos; o loot salvo é o que estiver no contêiner seguro; vida, energia e hidratação voltam ao máximo; nenhum XP do PMC.
   - O XP de skills fica sempre: Resistência 0,5/min, Percepção 2 por loot, Furtividade 4 por briga evitada, Mira 1 por acerto, Vitalidade 0,05 por dano recebido, Força 0,2 por célula de loot guardada (+ Saúde/Metabolismo/Manuseio de carregador pelo uso).
 - **Karma** (`KARMA`): abater Scav −0,25, abater PMC +0,1, evitar briga +0,1, extrair +0,05, limitado a −10..10. Usado pela raid Scav.
@@ -307,7 +308,7 @@ Modelo de entrada para novas mecânicas:
 - **Módulos** (`ModuleDef`): níveis a partir de 1 (0 = não construído). Cada nível tem custo (itens e dinheiro do estoque), requisitos (outros módulos, lealdade, nível do PMC), duração da obra e efeitos. Os efeitos valem para o nível atual, não se acumulam entre níveis, e `effect()` soma o efeito entre todos os módulos.
   - Gerador: produções 10%/20% mais rápidas; é requisito da oficina, da central e de níveis de outros módulos.
   - Depósito: +3/+6/+10 linhas no estoque (10x14 → 10x24).
-  - Enfermaria: cura 1/3 PV por minuto.
+  - Enfermaria: cura 1/3 PV por minuto; no nível 2, opera uma parte destruída a cada 30 min (`surgeryMinutes`).
   - Cozinha: +0,5/+1,5 de energia e de hidratação por minuto; receita "ferver água".
   - Oficina: receitas de munição, carregadores e kit médico.
   - Central de informantes: 1.500 ₽/h até 18.000 ₽, depois 4.000 ₽/h até 48.000 ₽.
@@ -317,7 +318,7 @@ Modelo de entrada para novas mecânicas:
 - **Produção** (`startProduction`/`collectProduction`): uma por módulo. Exige o nível do módulo e os ingredientes (tirados ao começar). A duração é `base × (1 − min(0,9; productionSpeed))`. "Retirar" guarda o produto com `storeAll`, em pilhas; sem espaço, continua pronto. Receita que saiu do jogo é descartada.
 - **Renda** (`incomeAvailable`/`collectIncome`): `floor(incomePerHour × horas desde incomeSince)`, limitado a `incomeCap`. Coletar guarda os rublos e recomeça a contar. A primeira estação começa a contar quando fica pronta; melhorar não zera o acumulado.
 - **Tela:** módulos com nível (`Nome n/máx`), vida/energia/hidratação do PMC, efeitos atuais, próximo nível (efeitos, custo, duração, o que falta), contagem da obra e linhas de receitas ("ingredientes → produto · duração", com Produzir/Produzindo/Retirar) ou da renda (Coletar). Os textos se atualizam a cada `REFRESH_MS = 500` ms.
-- Pendências: combustível do gerador, rolagem do estoque grande (hoje o inventário só diminui a escala), várias obras ao mesmo tempo, cirurgia de partes destruídas na enfermaria (hoje é feita ao extrair).
+- Pendências: combustível do gerador, rolagem do estoque grande (hoje o inventário só diminui a escala), várias obras ao mesmo tempo.
 
 ### Mercado (flea market)
 
@@ -387,3 +388,17 @@ Modelo de entrada para novas mecânicas:
 - **Conserto** (`repair`): só vendedores com `repairRate`. Preço = `max(1, ceil(basePrice × (1 − durabilidade/máx.) × repairRate / basePrice da moeda))`, pago do estoque; o item (no estoque, vestido, dentro do equipamento ou nos bolsos) volta inteiro. Soma ao volume e à reputação.
 - **Outros:** o tooltip mostra `Durabilidade: atual/máx.` quando gasta (arredondado para cima); os loadouts preferem a armadura mais inteira do estoque.
 - Pendências: perda de durabilidade máxima a cada conserto, durabilidade de armas.
+
+### Cirurgia
+
+- Arquivos: `RaidSimulation.surgery` e `fight(kind, surprise)` em `src/core/raid/simulate.ts`, `ItemStats.surgery`, item `med_surgery` (Kit cirúrgico de campo, criado pelo pipeline: 2x1, 12.000 ₽, `surgery: 6`; vendido pela Doutora Iara no nível 1, estoque 2), `operate` em `src/core/hideout/hideout.ts`, aviso em `raidWarnings`.
+- **Parte destruída** (0 PV, não vital) não é curada por remédios e não volta sozinha ao extrair. Morrer ou ficar MIA continua restaurando tudo.
+- **Na raid** (início dos cuidados automáticos, `selfCare`): para cada parte destruída, se houver um item com `stats.surgery` no equipamento (bolsos, colete tático, mochila, contêiner seguro), usa um (some da pilha) e opera:
+  1. passam `stats.surgery` minutos (`advance`, com gasto de energia/hidratação; os cuidados de dentro desse tempo não começam outra cirurgia);
+  2. se o mapa tem ameaças, há encontro surpresa com chance `SURGERY_AMBUSH (0,35) × encontro da estratégia` (furtivo 0,21, equilibrado 0,35, agressivo 0,56). O inimigo é sorteado pelos pesos de ameaça do mapa;
+  3. na surpresa, o PMC **não pode evitar** a briga e a chance de atirar primeiro cai para `SURPRISE_FIRST_SHOT (0,5) ×` a normal. O resto é a briga normal, então Percepção (atirar primeiro), Mira (acertar) e Vitalidade (dano recebido) decidem se ele sobrevive e se abate o inimigo (com abate, karma e revista como sempre);
+  4. sobrevivendo, a parte volta com 1 PV (`restorePart`). Morrendo na emboscada, não volta.
+  - Log (`surgery`, em verde): "Começou a cirurgia: Parte (N min)" e "Cirurgia concluída: Parte recuperado"; a surpresa aparece como "X apareceu no meio da cirurgia!".
+- **Na enfermaria** (nível 2, `surgeryMinutes = 30`): a cada 30 min de esconderijo, uma parte destruída volta com 1 PV (na ordem de `BODY_PARTS`), antes da cura por minuto. O progresso fica em `hideout.surgeryProgress` entre os cálculos (também com o jogo fechado) e some quando não há mais parte destruída.
+- **Aviso antes da raid:** "Parte do corpo destruída e nenhum kit cirúrgico".
+- Pendências: kit com vários usos, perda de vida máxima da parte operada, kit no loot dos mapas.

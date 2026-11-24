@@ -81,6 +81,7 @@ export const RAID_EVENT_KINDS = [
   "disengage",
   "reload",
   "heal",
+  "surgery",
   "eat",
   "hazard",
   "starving",

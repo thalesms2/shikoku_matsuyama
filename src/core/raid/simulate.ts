@@ -95,6 +95,10 @@ export const HEAL_BELOW = 0.6;
 /** Come ou bebe abaixo deste valor */
 export const EAT_BELOW = 35;
 export const EXTRACT_MINUTES = 2;
+/** Chance de um encontro surpresa durante uma cirurgia (× encontro da estratégia) */
+export const SURGERY_AMBUSH = 0.35;
+/** Na surpresa, a chance de atirar primeiro cai para esta fração */
+export const SURPRISE_FIRST_SHOT = 0.5;
 
 /** XP do PMC, recebido só ao extrair */
 export const RAID_XP = {
@@ -182,7 +186,8 @@ export function statOf(
     | "armorClass"
     | "heal"
     | "energy"
-    | "hydration",
+    | "hydration"
+    | "surgery",
 ): number {
   return def.stats?.[key] ?? 0;
 }
@@ -227,6 +232,8 @@ export class RaidSimulation {
   /** Unidades de loot guardadas por tipo (inclui as que entraram em pilhas) */
   readonly gained = new Map<string, { def: Item["def"]; count: number }>();
   killedBy: string | null = null;
+  /** Durante uma cirurgia (não começa outra dentro dela) */
+  private operating = false;
   extract: ExtractDef | null = null;
   private readonly skillsBefore: Record<SkillId, number>;
 
@@ -439,6 +446,8 @@ export class RaidSimulation {
   selfCare(): void {
     const { pmc, skills } = this.player;
     if (isDead(pmc)) return;
+    this.surgery();
+    if (isDead(pmc)) return;
     // Só conta o que um remédio consegue curar (partes destruídas não)
     const healable = () =>
       BODY_PARTS.some(
@@ -462,6 +471,50 @@ export class RaidSimulation {
       const name = food.def.name;
       useConsumable(food, pmc, skills);
       this.log("eat", `Consumiu ${name}`);
+    }
+  }
+
+  /**
+   * Opera as partes destruídas com os kits cirúrgicos do equipamento (um kit
+   * por parte). A cirurgia leva `stats.surgery` minutos, e com chance
+   * `SURGERY_AMBUSH × encontro` aparece um inimigo de surpresa: o PMC não
+   * consegue evitar a briga e atira primeiro com metade da chance. Sobrevivendo,
+   * a parte volta com 1 PV.
+   */
+  surgery(): void {
+    const { pmc } = this.player;
+    if (this.operating) return;
+    for (const part of BODY_PARTS) {
+      if (pmc.health[part] > 0) continue;
+      const kit = this.carriedItems().find((i) => statOf(i.def, "surgery") > 0);
+      if (!kit) return;
+      const minutes = statOf(kit.def, "surgery");
+      kit.count -= 1;
+      if (kit.count === 0) detach(kit);
+      this.log(
+        "surgery",
+        `Começou a cirurgia: ${BODY_PART_LABELS[part]} (${minutes} min)`,
+      );
+      this.operating = true;
+      this.advance(minutes);
+      const { threats } = this.setup.map;
+      const ambush =
+        threats.scav + threats.pmc > 0 &&
+        this.rng.chance(SURGERY_AMBUSH * this.strategy.encounter);
+      if (ambush) {
+        const kind = this.rng.weighted<EnemyKind>([
+          { value: "scav", weight: threats.scav },
+          { value: "pmc", weight: threats.pmc },
+        ]);
+        this.fight(kind, true);
+      }
+      this.operating = false;
+      if (isDead(pmc)) return;
+      restorePart(pmc, part);
+      this.log(
+        "surgery",
+        `Cirurgia concluída: ${BODY_PART_LABELS[part]} recuperado`,
+      );
     }
   }
 
@@ -551,7 +604,8 @@ export class RaidSimulation {
 
   // ---------------------------------------------------------------- combate
 
-  fight(kind: EnemyKind): void {
+  /** Briga com um inimigo; `surprise`: pego durante uma cirurgia */
+  fight(kind: EnemyKind, surprise = false): void {
     const { player, rng, strategy } = this;
     const enemy = this.setup.enemies[kind];
     const friendly = this.mods.friendlyScav;
@@ -566,17 +620,20 @@ export class RaidSimulation {
     let health = enemy.health;
     this.log(
       "encounter",
-      `Avistou ${enemy.name}${armorClass > 0 ? ` (colete classe ${armorClass})` : ""}`,
+      surprise
+        ? `${enemy.name} apareceu no meio da cirurgia!`
+        : `Avistou ${enemy.name}${armorClass > 0 ? ` (colete classe ${armorClass})` : ""}`,
     );
     const avoid = strategy.avoid + skillBonus(player.skills, "stealth") / 2;
-    if (rng.chance(avoid)) {
+    if (!surprise && rng.chance(avoid)) {
       this.karma += KARMA.avoid;
       addSkillXp(player.skills, "stealth", RAID_SKILL_XP.stealthPerAvoid);
       this.log("avoid", `Evitou ${enemy.name} sem ser visto`);
       return;
     }
     const playerFirst = rng.chance(
-      firstShotChance(player.skills, strategy.initiative),
+      firstShotChance(player.skills, strategy.initiative) *
+        (surprise ? SURPRISE_FIRST_SHOT : 1),
     );
     const enemyHit = enemyHitChance(enemy, this.setup.map.difficulty);
     for (let exchange = 0; exchange < MAX_EXCHANGES; exchange++) {
@@ -759,8 +816,6 @@ export class RaidSimulation {
       for (const item of this.found) {
         if (isCarried(item, player)) item.fir = true;
       }
-      // Cirurgia de campo na saída (até existir a enfermaria)
-      for (const part of BODY_PARTS) restorePart(pmc, part);
     } else {
       lost = this.loseGear();
       // O que sobra é o loot guardado no contêiner seguro

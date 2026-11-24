@@ -245,13 +245,17 @@ function loadHideout(
       productions[id] = { recipe: p.recipe, endsAt: p.endsAt };
     }
   }
-  return {
+  const state: HideoutState = {
     modules,
     construction,
     productions,
     incomeSince: finite(saved.incomeSince, now),
     lastTick: finite(saved.lastTick, now),
   };
+  // progresso da cirurgia: só um número positivo
+  const surgery = saved.surgeryProgress;
+  if (Number.isFinite(surgery) && surgery! > 0) state.surgeryProgress = surgery;
+  return state;
 }
 
 const isInt = (n: unknown): n is number => Number.isInteger(n);

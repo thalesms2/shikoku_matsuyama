@@ -131,6 +131,13 @@ Botão **Vendedores** no inventário. Cada vendedor tem uma especialidade, uma m
 - **Vender:** escolha um item do estoque; o vendedor paga em sua moeda. Contêineres precisam estar vazios.
 - **Lealdade:** negociar com um vendedor (comprar e vender) aumenta a reputação com ele. Com nível de PMC, reputação e volume negociado suficientes, o vendedor sobe de nível, libera ofertas novas, cobra menos e paga mais. A tela mostra o que falta para o próximo nível.
 
+### Cirurgia
+
+- Uma parte do corpo destruída (braço, perna ou estômago em 0) não melhora com remédios e continua destruída depois da raid.
+- **Na raid:** leve um **Kit cirúrgico de campo** (vendido pela Doutora Iara). O PMC opera sozinho assim que precisa, mas a cirurgia leva 6 minutos e deixa você exposto: pode aparecer um inimigo de surpresa. Ele não tem como fugir e quase sempre leva o primeiro tiro. Percepção, Mira e Vitalidade decidem se ele sobrevive e se derruba o inimigo. A estratégia furtiva atrai menos surpresas que a agressiva.
+- **No esconderijo:** a Enfermaria nível 2 opera uma parte destruída a cada 30 minutos, também com o jogo fechado.
+- Antes da raid, a preparação avisa se há parte destruída e nenhum kit no equipamento.
+
 ### Durabilidade e conserto
 
 - Coletes e capacetes se gastam com os tiros que seguram. Quanto mais gastos, menos protegem, e quebrados não protegem nada. O log da raid avisa quando um quebra.

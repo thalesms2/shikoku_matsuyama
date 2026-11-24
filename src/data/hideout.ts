@@ -78,7 +78,7 @@ export const HIDEOUT_MODULES: readonly ModuleDef[] = [
     id: "medstation",
     name: "Enfermaria",
     description:
-      "Uma maca e um armário de remédios. Cura o PMC aos poucos entre as raids.",
+      "Uma maca e um armário de remédios. Cura o PMC aos poucos entre as raids e, no nível 2, opera partes destruídas.",
     levels: [
       {
         level: 1,
@@ -98,7 +98,8 @@ export const HIDEOUT_MODULES: readonly ModuleDef[] = [
         ],
         requires: { modules: [{ module: "generator", level: 1 }] },
         buildMs: HOUR,
-        effects: { healPerMinute: 3 },
+        // opera uma parte destruída a cada 30 min (sem kit cirúrgico)
+        effects: { healPerMinute: 3, surgeryMinutes: 30 },
       },
     ],
   },

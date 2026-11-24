@@ -43,6 +43,7 @@ export function eventColor(kind: RaidEventKind): number {
     case "kill":
     case "avoid":
     case "heal":
+    case "surgery":
       return GOOD;
     case "wounded":
     case "death":

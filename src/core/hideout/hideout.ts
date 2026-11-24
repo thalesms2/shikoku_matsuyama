@@ -1,9 +1,11 @@
 import {
+  BODY_PARTS,
   changeEnergy,
   changeHydration,
   heal,
   isDead,
   levelForXp,
+  restorePart,
 } from "../pmc/pmc.ts";
 import type { PlayerState } from "../state.ts";
 import {
@@ -190,11 +192,34 @@ function regen(player: PlayerState, data: HideoutData, until: number): number {
   state.lastTick = Math.max(state.lastTick, until);
   const { pmc } = player;
   if (minutes === 0 || isDead(pmc)) return minutes;
+  const interval = effect(state, data, "surgeryMinutes");
+  if (interval > 0) operate(player, minutes, interval);
   const healing = effect(state, data, "healPerMinute") * minutes;
   if (healing > 0) heal(pmc, healing);
   changeEnergy(pmc, effect(state, data, "energyPerMinute") * minutes);
   changeHydration(pmc, effect(state, data, "hydrationPerMinute") * minutes);
   return minutes;
+}
+
+/**
+ * Cirurgia da enfermaria: a cada `interval` minutos, uma parte destruída
+ * volta com 1 PV (na ordem de `BODY_PARTS`). O progresso fica guardado entre
+ * os cálculos e some quando não há mais parte destruída.
+ */
+function operate(player: PlayerState, minutes: number, interval: number) {
+  const { pmc, hideout } = player;
+  const destroyed = () => BODY_PARTS.find((p) => pmc.health[p] <= 0);
+  let progress = (hideout.surgeryProgress ?? 0) + minutes;
+  for (
+    let part = destroyed();
+    part && progress >= interval;
+    part = destroyed()
+  ) {
+    restorePart(pmc, part);
+    progress -= interval;
+  }
+  if (destroyed()) hideout.surgeryProgress = progress;
+  else delete hideout.surgeryProgress;
 }
 
 /** Duração de uma receita com o desconto do gerador */

@@ -276,6 +276,20 @@
     }
   },
   {
+    "id": "med_surgery",
+    "name": "Kit cirúrgico de campo",
+    "shortName": "Cirurg.",
+    "category": "medical",
+    "width": 2,
+    "height": 1,
+    "basePrice": 12000,
+    "description": "Bisturi, pinças, fio de sutura e talas numa bolsa à prova d'água. Permite operar uma parte do corpo destruída ali mesmo, na raid — mas a operação leva minutos e deixa você exposto.",
+    "image": "assets/items/med_surgery.webp",
+    "stats": {
+      "surgery": 6
+    }
+  },
+  {
     "id": "money_eur",
     "name": "Euros",
     "shortName": "€",

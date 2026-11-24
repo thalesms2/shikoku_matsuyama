@@ -42,6 +42,8 @@ export const MIGRATIONS: Record<number, Migration> = {
   8: (data) => ({ ...data, auto: createAutoState() }),
   // v9 → v10: durabilidade nos itens (sem o campo = inteira); nada muda
   9: (data) => data,
+  // v10 → v11: progresso da cirurgia da enfermaria (sem o campo = 0)
+  10: (data) => data,
 };
 
 export class SaveError extends Error {}

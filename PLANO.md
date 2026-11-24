@@ -151,13 +151,12 @@ Dividida em sub-fases (uma por commit): 9A resumo do tempo fora ✅, 9B loadouts
 - Balanceamento (planilhas/simulações via testes de Monte Carlo com seed).
 - Arte 2D (sprites de itens em escala de células), sons, animações, configurações, tutorial.
 
-
 ## Fase 10 — Pendências de jogo
 
 Uma sub-fase por commit:
 
 - ✅ **10A — Durabilidade da armadura:** colete e capacete se desgastam com os acertos, protegem menos quando gastos, valem menos e podem ser reparados por um vendedor.
-- **10B — Cirurgia na raid:** parte do corpo destruída só volta com um item de kit cirúrgico (nome próprio), usado **durante a raid**. A cirurgia leva tempo e dá uma chance de encontro surpresa enquanto o PMC está vulnerável; as skills do PMC aumentam a chance de sobreviver ao encontro e de abater o inimigo. Substitui a "cirurgia de campo provisória" ao extrair.
+- ✅ **10B — Cirurgia na raid:** parte do corpo destruída só volta com um item de kit cirúrgico (nome próprio), usado **durante a raid**. A cirurgia leva tempo e dá uma chance de encontro surpresa enquanto o PMC está vulnerável; as skills do PMC aumentam a chance de sobreviver ao encontro e de abater o inimigo. Substitui a "cirurgia de campo provisória" ao extrair. A Enfermaria nível 2 também opera, devagar.
 - **10C — Câmara da arma e escopeta:** cartucho na câmara e armas sem carregador (tubo interno).
 - **10D — Inimigos com equipamento de verdade:** arma, munição e armadura dos inimigos vêm de itens do catálogo, e o corpo revistado pode deixar esses itens.
 - **10E — Quests no resumo da raid:** mostrar as quests que avançaram.
@@ -194,3 +193,4 @@ Uma sub-fase por commit:
 16. ✅ Raids automáticas (Fase 9C).
 17. ✅ Configurações, tutorial e animações (Fase 9D).
 18. ✅ Durabilidade da armadura (Fase 10A).
+19. ✅ Cirurgia na raid e na enfermaria (Fase 10B).

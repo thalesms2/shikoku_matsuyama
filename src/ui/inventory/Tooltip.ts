@@ -112,6 +112,9 @@ export function itemSheet(item: Item): string[] {
   if (stats.hydration !== undefined) {
     lines.push(`Hidratação: ${signed(stats.hydration)}`);
   }
+  if (stats.surgery !== undefined) {
+    lines.push(`Cirurgia na raid: ${stats.surgery} min`);
+  }
   return [...lines, ...ammoSheet(item)];
 }
 

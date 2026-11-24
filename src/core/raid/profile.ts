@@ -1,6 +1,6 @@
 import type { Clock } from "../clock.ts";
 import { weaponRounds } from "../inventory/magazine.ts";
-import { MAX_HEALTH, VITAL_PARTS } from "../pmc/pmc.ts";
+import { BODY_PARTS, MAX_HEALTH, VITAL_PARTS } from "../pmc/pmc.ts";
 import { Rng } from "../rng.ts";
 import type { PlayerState } from "../state.ts";
 import { simulateRaid } from "./simulate.ts";
@@ -70,6 +70,16 @@ export function raidWarnings(player: PlayerState): string[] {
   if (!equipment.get("helmet")) warnings.push("Sem capacete");
   if (VITAL_PARTS.some((p) => player.pmc.health[p] < MAX_HEALTH[p] / 2)) {
     warnings.push("Cabeça ou tórax muito feridos");
+  }
+  const destroyed = BODY_PARTS.some((p) => player.pmc.health[p] <= 0);
+  const kit = [
+    ...equipment.carryGrids(),
+    ...(equipment.get("secure")?.grids ?? []),
+  ]
+    .flatMap((g) => g.items())
+    .some((i) => (i.def.stats?.surgery ?? 0) > 0);
+  if (destroyed && !kit) {
+    warnings.push("Parte do corpo destruída e nenhum kit cirúrgico");
   }
   return warnings;
 }

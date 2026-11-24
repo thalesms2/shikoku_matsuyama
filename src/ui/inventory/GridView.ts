@@ -32,9 +32,17 @@ export class GridView extends Container {
     return this.grid.height * CELL;
   }
 
-  /** Se o ponto (em coordenadas locais) está dentro da grade */
+  /**
+   * Faixa visível da grade (y local, em pixels), quando ela rola dentro de
+   * uma janela; `null` = toda visível
+   */
+  clip: { top: number; bottom: number } | null = null;
+
+  /** Se o ponto (em coordenadas locais) está dentro da parte visível da grade */
   containsLocal(x: number, y: number): boolean {
-    return x >= 0 && y >= 0 && x < this.pixelWidth && y < this.pixelHeight;
+    const top = this.clip?.top ?? 0;
+    const bottom = Math.min(this.pixelHeight, this.clip?.bottom ?? Infinity);
+    return x >= 0 && y >= top && x < this.pixelWidth && y < bottom;
   }
 
   /** Recria as views dos itens a partir da grade */

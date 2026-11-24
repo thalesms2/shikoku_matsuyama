@@ -151,7 +151,7 @@ Dividida em sub-fases (uma por commit): 9A resumo do tempo fora ✅, 9B loadouts
 - Balanceamento (planilhas/simulações via testes de Monte Carlo com seed).
 - Arte 2D (sprites de itens em escala de células), sons, animações, configurações, tutorial.
 
-## Fase 10 — Pendências de jogo
+## Fase 10 — Pendências de jogo ✅
 
 Uma sub-fase por commit:
 
@@ -160,7 +160,7 @@ Uma sub-fase por commit:
 - ✅ **10C — Câmara da arma e escopeta:** cartucho na câmara e armas sem carregador (tubo interno).
 - ✅ **10D — Inimigos com equipamento de verdade:** arma, munição e armadura dos inimigos vêm de itens do catálogo, e o corpo revistado pode deixar esses itens.
 - ✅ **10E — Quests no resumo da raid:** mostrar as quests que avançaram.
-- **10F — Rolagem do estoque grande:** o inventário rola em vez de só diminuir a escala.
+- ✅ **10F — Rolagem do estoque grande:** o inventário rola em vez de só diminuir a escala.
 
 ---
 
@@ -197,3 +197,4 @@ Uma sub-fase por commit:
 20. ✅ Câmara da arma e escopeta com tubo interno (Fase 10C).
 21. ✅ Inimigos com equipamento de verdade (Fase 10D).
 22. ✅ Quests que avançaram no resumo da raid (Fase 10E).
+23. ✅ Rolagem do estoque grande (Fase 10F).

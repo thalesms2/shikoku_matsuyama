@@ -56,6 +56,7 @@ Todo item ocupa um retângulo de células (por exemplo, 1x1 para uma atadura, 5x
 - **Equipamento:** arraste itens para os slots: arma primária e secundária, coldre, capacete, colete balístico, colete tático, mochila e contêiner seguro. Cada slot só aceita o tipo certo de item.
 - **Bolsos:** 4 espaços 1x1 que vão com você para a raid.
 - **Contêiner seguro:** o que estiver nele não é perdido quando o PMC morre na raid.
+- **Rolagem:** com o Depósito, o estoque passa de 14 linhas e ganha uma barra de rolagem. Use a roda do mouse sobre o estoque, ou arraste um item até a borda de cima ou de baixo para ele rolar sozinho.
 - **Organizar:** o botão organiza o estoque automaticamente, com os itens maiores primeiro. Se a nova organização não couber, nada muda.
 - **Informações:** pare o mouse sobre um item para ver a imagem, o nome, o tamanho, a quantidade, o valor (incluindo o que está dentro dele), os dados técnicos (calibre, dano, penetração, proteção, capacidade) e a descrição. O quadro muda de lado perto das bordas da tela.
 - **Menu do item:** clique com o botão direito em um item para ver as ações dele: abrir contêiner, descarregar carregador, remover o carregador da arma ou separar uma pilha pela metade.

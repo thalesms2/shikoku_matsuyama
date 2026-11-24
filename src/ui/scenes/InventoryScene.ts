@@ -1,5 +1,9 @@
-import { Container, Text } from "pixi.js";
-import type { FederatedPointerEvent, PointData } from "pixi.js";
+import { Container, Graphics, Rectangle, Text } from "pixi.js";
+import type {
+  FederatedPointerEvent,
+  FederatedWheelEvent,
+  PointData,
+} from "pixi.js";
 
 import { systemClock } from "../../core/clock.ts";
 import type { Clock } from "../../core/clock.ts";
@@ -52,6 +56,14 @@ const CONTAINER_SECTIONS: [SlotName, string][] = [
   ["secure", "Contêiner seguro"],
 ];
 export const STASH_X = 700;
+/** Linhas do estoque visíveis de uma vez; o resto rola */
+export const STASH_VISIBLE_ROWS = 14;
+/** Linhas roladas por passo da roda do mouse */
+export const WHEEL_ROWS = 2;
+/** Arrastando perto da borda do estoque: uma linha a cada intervalo */
+export const AUTOSCROLL_MS = 150;
+/** Largura da barra de rolagem do estoque */
+export const SCROLLBAR_WIDTH = 6;
 const MARGIN = 32;
 
 /** Tela do inventário: equipamento, bolsos, contêineres equipados e estoque */
@@ -78,6 +90,13 @@ export class InventoryScene implements Scene {
   readonly pocketViews: GridView[];
   readonly containerPanel = new Container({ label: "containers" });
   readonly sortButton: Button;
+  /** Máscara da janela visível do estoque */
+  readonly stashMask = new Graphics();
+  /** Barra de rolagem à direita do estoque (só quando rola) */
+  readonly scrollBar = new Graphics();
+  /** Primeira linha do estoque visível */
+  stashScroll = 0;
+  private autoscrollMs = 0;
   readonly drag: DragController;
   window: ContainerWindow | null = null;
   private containerGridViews: GridView[] = [];
@@ -184,7 +203,17 @@ export class InventoryScene implements Scene {
       STASH_X + this.stashView.pixelWidth - this.sortButton.buttonWidth,
       2,
     );
-    this.content.addChild(this.stashView, this.sortButton);
+    this.stashView.mask = this.stashMask;
+    this.stashView.eventMode = "static";
+    this.stashView.on("wheel", (e: FederatedWheelEvent) => {
+      this.scrollStash(Math.sign(e.deltaY) * WHEEL_ROWS);
+    });
+    this.content.addChild(
+      this.stashMask,
+      this.stashView,
+      this.scrollBar,
+      this.sortButton,
+    );
     if (options.onOpenCharacter) {
       this.characterButton = new Button("Personagem", options.onOpenCharacter);
       this.characterButton.position.set(
@@ -285,6 +314,7 @@ export class InventoryScene implements Scene {
   /** Redesenha tudo a partir do estado do inventário */
   refresh(): void {
     this.stashView.refresh();
+    this.applyStashScroll();
     for (const view of this.pocketViews) view.refresh();
     for (const view of this.slotViews.values()) view.refresh();
     this.buildContainerPanel();
@@ -310,6 +340,91 @@ export class InventoryScene implements Scene {
     this.window = null;
   }
 
+  /** Linhas do estoque visíveis (menos se o estoque for menor) */
+  get stashVisibleRows(): number {
+    return Math.min(STASH_VISIBLE_ROWS, this.state.stash.height);
+  }
+
+  /** Maior rolagem possível do estoque, em linhas */
+  get maxStashScroll(): number {
+    return Math.max(0, this.state.stash.height - STASH_VISIBLE_ROWS);
+  }
+
+  /**
+   * Rola o estoque `rows` linhas (positivo = para baixo), sem passar dos
+   * limites. Durante um arraste, a prévia acompanha. Devolve se mudou.
+   */
+  scrollStash(rows: number): boolean {
+    const next = Math.max(
+      0,
+      Math.min(this.maxStashScroll, this.stashScroll + rows),
+    );
+    if (next === this.stashScroll) return false;
+    this.stashScroll = next;
+    this.applyStashScroll();
+    if (this.drag.dragging) this.drag.move(this.lastPointer);
+    return true;
+  }
+
+  /** Posiciona o estoque, a máscara, a área de clique e a barra de rolagem */
+  private applyStashScroll(): void {
+    this.stashScroll = Math.min(this.stashScroll, this.maxStashScroll);
+    const view = this.stashView;
+    const top = this.stashScroll * CELL;
+    const height = this.stashVisibleRows * CELL;
+    view.y = ROW_TOP - top;
+    view.clip = { top, bottom: top + height };
+    view.hitArea = new Rectangle(0, top, view.pixelWidth, height);
+    this.stashMask
+      .clear()
+      .rect(STASH_X, ROW_TOP, view.pixelWidth, height)
+      .fill({ color: 0xffffff });
+    const bar = this.scrollBar.clear();
+    bar.visible = this.maxStashScroll > 0;
+    if (!bar.visible) return;
+    const x = STASH_X + view.pixelWidth + 4;
+    const total = this.state.stash.height;
+    bar
+      .rect(x, ROW_TOP, SCROLLBAR_WIDTH, height)
+      .fill({ color: 0x0d0f12 })
+      .rect(
+        x,
+        ROW_TOP + (this.stashScroll / total) * height,
+        SCROLLBAR_WIDTH,
+        (this.stashVisibleRows / total) * height,
+      )
+      .fill({ color: theme.accent, alpha: 0.8 });
+  }
+
+  /**
+   * Arrastando um item perto da borda de cima ou de baixo do estoque (meia
+   * célula para dentro ou fora dele), rola uma linha a cada `AUTOSCROLL_MS`.
+   */
+  private autoscroll(deltaMs: number): void {
+    const direction = this.drag.dragging ? this.edgeDirection() : 0;
+    if (direction === 0) {
+      this.autoscrollMs = 0;
+      return;
+    }
+    this.autoscrollMs += deltaMs;
+    if (this.autoscrollMs < AUTOSCROLL_MS) return;
+    this.autoscrollMs = 0;
+    this.scrollStash(direction);
+  }
+
+  /** −1 perto do topo da janela do estoque, +1 perto do fundo, senão 0 */
+  private edgeDirection(): number {
+    const p = this.content.toLocal(this.lastPointer);
+    const right = STASH_X + this.stashView.pixelWidth;
+    if (p.x < STASH_X || p.x >= right) return 0;
+    const top = ROW_TOP;
+    const bottom = ROW_TOP + this.stashVisibleRows * CELL;
+    const zone = CELL / 2;
+    if (p.y >= top - zone && p.y < top + zone) return -1;
+    if (p.y >= bottom - zone && p.y < bottom + zone) return 1;
+    return 0;
+  }
+
   sortStash(): boolean {
     const sorted = sortGrid(this.state.stash);
     this.refresh();
@@ -325,6 +440,7 @@ export class InventoryScene implements Scene {
   /** Conta o atraso do tooltip e avança o carregamento de carregadores */
   update(deltaMs: number): void {
     this.updateLoader();
+    this.autoscroll(deltaMs);
     const pending = this.pendingTooltip;
     if (!pending) return;
     pending.remaining -= deltaMs;
@@ -461,7 +577,7 @@ export class InventoryScene implements Scene {
     }
     this.contentHeight = Math.max(
       this.containerPanel.y + LABEL + height,
-      ROW_TOP + this.stashView.pixelHeight,
+      ROW_TOP + this.stashVisibleRows * CELL,
     );
   }
 

@@ -137,6 +137,7 @@ Modelo de entrada para novas mecânicas:
 - **UI:** arrastar com o botão esquerdo; prévia verde/vermelha; `R` gira durante o arraste; `Esc` cancela; soltar sobre uma pilha igual soma; soltar sobre um contêiner guarda dentro dele; duplo clique (≤ 350 ms) abre a janela do contêiner; o botão "Organizar" ordena o estoque. Soltar no mesmo lugar não conta como mudança (senão a view é recriada e o clique se perde).
 - **Menu de contexto (botão direito):** `src/ui/inventory/actions.ts` monta as opções por item: "Abrir" (contêiner), "Descarregar"/"Cancelar carregamento" (carregador), "Remover carregador" (arma), "Separar pilha pela metade" (pilhas; a metade vai para o primeiro espaço livre de `storageFor`, ou volta para a pilha se não couber). `storageFor(item)` = grade do item, depois `carryGrids()`, depois o estoque, sem repetir. O menu do navegador é bloqueado no canvas.
 - **Estoque inicial:** 10x14, com o kit de `src/data/starter.ts`.
+- **Rolagem do estoque** (`InventoryScene`): mostra no máximo `STASH_VISIBLE_ROWS = 14` linhas (a escala da tela usa só elas). Com mais linhas (Depósito), `stashScroll` (primeira linha visível, de 0 a `altura − 14`) desloca a `stashView`, uma máscara (`stashMask`) esconde o resto e uma barra (`scrollBar`, à direita) mostra a posição. A roda do mouse sobre o estoque rola `WHEEL_ROWS = 2` linhas por passo; arrastando um item a meia célula da borda de cima ou de baixo da janela, rola 1 linha a cada `AUTOSCROLL_MS = 150` ms, e a prévia do arraste acompanha. `GridView.clip` (faixa visível em y local) faz `containsLocal` ignorar as linhas escondidas, e a `hitArea` da view também se limita a elas, então não dá para soltar nem clicar fora da janela. `refresh` mantém a rolagem dentro do limite.
 
 ### Descrição e ficha no hover (tooltip)
 
@@ -323,7 +324,7 @@ Modelo de entrada para novas mecânicas:
 - **Produção** (`startProduction`/`collectProduction`): uma por módulo. Exige o nível do módulo e os ingredientes (tirados ao começar). A duração é `base × (1 − min(0,9; productionSpeed))`. "Retirar" guarda o produto com `storeAll`, em pilhas; sem espaço, continua pronto. Receita que saiu do jogo é descartada.
 - **Renda** (`incomeAvailable`/`collectIncome`): `floor(incomePerHour × horas desde incomeSince)`, limitado a `incomeCap`. Coletar guarda os rublos e recomeça a contar. A primeira estação começa a contar quando fica pronta; melhorar não zera o acumulado.
 - **Tela:** módulos com nível (`Nome n/máx`), vida/energia/hidratação do PMC, efeitos atuais, próximo nível (efeitos, custo, duração, o que falta), contagem da obra e linhas de receitas ("ingredientes → produto · duração", com Produzir/Produzindo/Retirar) ou da renda (Coletar). Os textos se atualizam a cada `REFRESH_MS = 500` ms.
-- Pendências: combustível do gerador, rolagem do estoque grande (hoje o inventário só diminui a escala), várias obras ao mesmo tempo.
+- Pendências: combustível do gerador, várias obras ao mesmo tempo.
 
 ### Mercado (flea market)
 

@@ -7,6 +7,7 @@ import type { PmcState } from "./pmc/pmc.ts";
 import type { SkillsState } from "./pmc/skills.ts";
 import { createRaidProfile, createScavProfile } from "./raid/profile.ts";
 import type { RaidProfile, ScavProfile } from "./raid/types.ts";
+import type { TradersState } from "./trade/types.ts";
 
 export interface InventoryState {
   stash: Grid;
@@ -26,16 +27,20 @@ export interface PlayerState {
   raid: RaidProfile;
   /** Cooldown e estatísticas da raid Scav */
   scav: ScavProfile;
+  /** Reputação, volume negociado e estoque comprado de cada vendedor */
+  traders: TradersState;
 }
 
 /**
  * Monta o estado do jogador. Sem `raid`, começa um perfil novo com a seed
- * tirada do relógio; sem `scav`, a raid Scav começa liberada.
+ * tirada do relógio; sem `scav`, a raid Scav começa liberada; sem `traders`, nenhum vendedor
+ * tem histórico (o estado de cada um é criado no primeiro acesso).
  */
 export function createPlayerState(
-  parts: Omit<PlayerState, "loader" | "raid" | "scav"> & {
+  parts: Omit<PlayerState, "loader" | "raid" | "scav" | "traders"> & {
     raid?: RaidProfile;
     scav?: ScavProfile;
+    traders?: TradersState;
   },
   clock: Clock,
 ): PlayerState {
@@ -44,6 +49,7 @@ export function createPlayerState(
     loader: new MagazineLoader(clock),
     raid: parts.raid ?? createRaidProfile(clock.now()),
     scav: parts.scav ?? createScavProfile(),
+    traders: parts.traders ?? {},
   };
 }
 

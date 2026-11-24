@@ -1,0 +1,172 @@
+import type { LoyaltyLevel, TraderDef } from "../core/trade/types.ts";
+
+const HOUR = 60 * 60 * 1000;
+
+/** Níveis de lealdade padrão (rublos negociados, reputação, nível do PMC) */
+export const LOYALTY_LEVELS: readonly LoyaltyLevel[] = [
+  {
+    level: 1,
+    minPmcLevel: 1,
+    minReputation: 0,
+    minVolume: 0,
+    buyMarkup: 1.25,
+    sellRate: 0.5,
+  },
+  {
+    level: 2,
+    minPmcLevel: 5,
+    minReputation: 0.1,
+    minVolume: 400_000,
+    buyMarkup: 1.15,
+    sellRate: 0.55,
+  },
+  {
+    level: 3,
+    minPmcLevel: 12,
+    minReputation: 0.4,
+    minVolume: 1_500_000,
+    buyMarkup: 1.05,
+    sellRate: 0.6,
+  },
+];
+
+export const TRADERS: readonly TraderDef[] = [
+  {
+    id: "colonel",
+    name: "Coronel Brás",
+    specialty: "Armas e munição",
+    description:
+      "Oficial reformado que ficou para trás quando o exército saiu. Guarda o arsenal do quartel num porão e não pergunta para que é.",
+    currency: "money_rub",
+    levels: LOYALTY_LEVELS,
+    buys: { weapon: 1, ammo: 1, magazine: 1 },
+    restockMs: HOUR,
+    offers: [
+      { id: "pistol", item: "pistol_pk9", level: 1, stock: 3 },
+      { id: "mag-pk9", item: "mag_pk9", level: 1, stock: 10 },
+      { id: "ammo-9mm", item: "ammo_9mm", count: 50, level: 1, stock: 10 },
+      { id: "shotgun", item: "shotgun_m12", level: 1, stock: 2 },
+      { id: "ammo-12g", item: "ammo_12g", count: 20, level: 1, stock: 10 },
+      {
+        id: "rifle-barter",
+        item: "rifle_vk74",
+        level: 1,
+        stock: 1,
+        barter: [
+          { item: "barter_gpu", count: 1 },
+          { item: "barter_bolts", count: 2 },
+        ],
+      },
+      { id: "mag-vk74", item: "mag_vk74", level: 2, stock: 6 },
+      { id: "ammo-545", item: "ammo_545", count: 60, level: 2, stock: 10 },
+      { id: "rifle", item: "rifle_vk74", level: 2, stock: 2 },
+    ],
+  },
+  {
+    id: "doctor",
+    name: "Doutora Iara",
+    specialty: "Remédios e comida",
+    description:
+      "Médica do antigo posto de saúde. Troca curativos por qualquer coisa útil e cobra caro de quem chega sangrando.",
+    currency: "money_rub",
+    levels: LOYALTY_LEVELS,
+    buys: { medical: 1, food: 1 },
+    restockMs: HOUR,
+    offers: [
+      { id: "bandage", item: "med_bandage", level: 1, stock: 10 },
+      { id: "food-can", item: "food_can", level: 1, stock: 8 },
+      { id: "water", item: "food_water", level: 1, stock: 8 },
+      {
+        id: "kit-barter",
+        item: "med_kit",
+        level: 1,
+        stock: 2,
+        barter: [{ item: "barter_bolts", count: 3 }],
+      },
+      { id: "med-kit", item: "med_kit", level: 2, stock: 5 },
+    ],
+  },
+  {
+    id: "merchant",
+    name: "Mercador Tito",
+    specialty: "Equipamento e câmbio",
+    description:
+      "Contrabandista que traz equipamento de fora da cidade. Só aceita dólares, mas troca rublos por moeda estrangeira com uma boa margem.",
+    currency: "money_usd",
+    levels: LOYALTY_LEVELS,
+    buys: { armor: 1, helmet: 1, rig: 1, backpack: 1, container: 1 },
+    restockMs: HOUR,
+    offers: [
+      {
+        id: "usd",
+        item: "money_usd",
+        count: 100,
+        level: 1,
+        stock: 20,
+        price: 14_000,
+        currency: "money_rub",
+      },
+      { id: "sack", item: "backpack_sack", level: 1, stock: 3 },
+      { id: "rig", item: "rig_cargo", level: 1, stock: 3 },
+      { id: "helmet", item: "helmet_tk1", level: 1, stock: 2 },
+      {
+        id: "eur",
+        item: "money_eur",
+        count: 100,
+        level: 2,
+        stock: 10,
+        price: 15_500,
+        currency: "money_rub",
+      },
+      { id: "armor", item: "armor_civil", level: 2, stock: 2 },
+      { id: "hiker", item: "backpack_hiker", level: 2, stock: 2 },
+      { id: "ammo-case", item: "ammo_case", level: 3, stock: 1 },
+    ],
+  },
+  {
+    id: "scrapper",
+    name: "Sucateiro Nico",
+    specialty: "Sucata e trocas",
+    description:
+      "Compra qualquer coisa, sempre pelo menor preço da cidade. Em troca, tem as peças e chaves que ninguém mais encontra.",
+    currency: "money_rub",
+    levels: LOYALTY_LEVELS,
+    buys: {
+      weapon: 0.7,
+      ammo: 0.7,
+      magazine: 0.7,
+      armor: 0.7,
+      helmet: 0.7,
+      rig: 0.7,
+      backpack: 0.7,
+      container: 0.7,
+      medical: 0.7,
+      food: 0.7,
+      barter: 1,
+      key: 0.8,
+    },
+    restockMs: 1.5 * HOUR,
+    offers: [
+      { id: "bolts", item: "barter_bolts", level: 1, stock: 10 },
+      { id: "garage-key", item: "key_garage", level: 1, stock: 1 },
+      {
+        id: "gold-barter",
+        item: "barter_goldchain",
+        level: 1,
+        stock: 2,
+        barter: [{ item: "barter_bolts", count: 6 }],
+      },
+      {
+        id: "gpu-barter",
+        item: "barter_gpu",
+        level: 2,
+        stock: 1,
+        barter: [{ item: "barter_goldchain", count: 5 }],
+      },
+    ],
+  },
+];
+
+export function traderById(id: string): TraderDef | null {
+  return TRADERS.find((t) => t.id === id) ?? null;
+}

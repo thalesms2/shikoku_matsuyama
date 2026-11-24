@@ -14,6 +14,7 @@ import {
 import { ITEM_DEFS } from "./data/items.ts";
 import { ENEMIES, MAPS, mapById } from "./data/maps.ts";
 import { loadOrCreatePlayer } from "./data/newGame.ts";
+import { TRADERS } from "./data/traders.ts";
 import { gameReady, initPlatform, setLoadingProgress } from "./platform.ts";
 import { loadItemTextures } from "./ui/inventory/textures.ts";
 import { SceneManager } from "./ui/SceneManager.ts";
@@ -22,6 +23,7 @@ import { InventoryScene } from "./ui/scenes/InventoryScene.ts";
 import { RaidScene } from "./ui/scenes/RaidScene.ts";
 import { RaidSetupScene } from "./ui/scenes/RaidSetupScene.ts";
 import { TitleScene } from "./ui/scenes/TitleScene.ts";
+import { TradersScene } from "./ui/scenes/TradersScene.ts";
 import { theme } from "./ui/theme.ts";
 
 /** Inicia a aplicação PixiJS dentro de `container` e mostra a tela inicial */
@@ -84,6 +86,18 @@ export async function startGame(
         player,
         onOpenCharacter: showCharacter,
         onOpenRaid: showRaidSetup,
+        onOpenTraders: showTraders,
+      }),
+    );
+  const showTraders = () =>
+    scenes.change(
+      new TradersScene(player, {
+        traders: TRADERS,
+        clock,
+        onBack: () => {
+          save();
+          showInventory();
+        },
       }),
     );
   const showCharacter = () =>

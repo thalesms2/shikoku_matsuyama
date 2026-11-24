@@ -276,6 +276,18 @@
     }
   },
   {
+    "id": "money_eur",
+    "name": "Euros",
+    "shortName": "€",
+    "category": "money",
+    "width": 1,
+    "height": 1,
+    "maxStack": 50000,
+    "basePrice": 132,
+    "description": "Euros guardados por quem planejava fugir antes do cerco. Raros e muito procurados.",
+    "image": "assets/items/money_eur.webp"
+  },
+  {
     "id": "money_rub",
     "name": "Rublos-velhos",
     "shortName": "₽",
@@ -286,6 +298,18 @@
     "basePrice": 1,
     "description": "Notas da antiga moeda local. Ainda aceitas por vendedores, contrabandistas e quem tiver algo para vender.",
     "image": "assets/items/money_rub.webp"
+  },
+  {
+    "id": "money_usd",
+    "name": "Dólares",
+    "shortName": "$",
+    "category": "money",
+    "width": 1,
+    "height": 1,
+    "maxStack": 50000,
+    "basePrice": 122,
+    "description": "Notas de dólar que entram na cidade pelo contrabando. Vendedores de equipamento estrangeiro só aceitam isto.",
+    "image": "assets/items/money_usd.webp"
   },
   {
     "id": "pistol_pk9",

@@ -108,7 +108,9 @@ O jogo **nunca consulta a API durante a execução**. A API ([tarkov.dev](https:
 - Chance de extração e qualidade/quantidade do loot modificadas pelo karma.
 - Ao extrair, o loot é transferido para o estoque do esconderijo (precisa caber!).
 
-## Fase 5 — Vendedores e economia
+## Fase 5 — Vendedores e economia ✅
+
+**Estado:** feito. `src/core/trade/` (compra com dinheiro ou troca, venda, lealdade em 3 níveis, reposição em tempo real), 4 vendedores em `src/data/traders.ts`, dólar e euro no pipeline de itens, `TradersScene` e save v4. A reputação por quest fica para a Fase 6.
 
 - 4–6 vendedores originais, cada um com especialidade (armas, meds, roupas/equipamentos, peças, barter).
 - **Lealdade:** níveis baseados em nível do PMC, reputação e dinheiro gasto; liberam itens e melhores preços.
@@ -165,3 +167,4 @@ O jogo **nunca consulta a API durante a execução**. A API ([tarkov.dev](https:
 7. ✅ PMC + skills + save (2D).
 8. ✅ Primeira raid simulada ponta a ponta (Fase 3).
 9. ✅ Raid Scav (Fase 4).
+10. ✅ Vendedores e economia (Fase 5).

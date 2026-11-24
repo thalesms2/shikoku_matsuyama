@@ -15,6 +15,7 @@ import { LOOT_RULES } from "../raid/types.ts";
 import type { RaidProfile, ScavProfile } from "../raid/types.ts";
 import { createPlayerState, storageFor } from "../state.ts";
 import type { PlayerState } from "../state.ts";
+import type { TraderState, TradersState } from "../trade/types.ts";
 import { SAVE_VERSION } from "./format.ts";
 import type {
   SaveData,
@@ -78,6 +79,7 @@ export function serializeGame(state: PlayerState, now: number): SaveData {
     loader: saveJob(state),
     raid: structuredClone(state.raid),
     scav: structuredClone(state.scav),
+    traders: structuredClone(state.traders),
   };
 }
 
@@ -150,6 +152,31 @@ function loadPmc(saved: Partial<PmcState> | undefined): PmcState {
 
 function loadSkills(saved: Partial<SkillsState> | undefined): SkillsState {
   return { ...createSkills(), ...saved };
+}
+
+const finite = (value: unknown, fallback: number): number =>
+  typeof value === "number" && Number.isFinite(value) ? value : fallback;
+
+/**
+ * Vendedores salvos: números inválidos voltam a 0 (`restockAt` 0 = repõe no
+ * próximo acesso) e compras inválidas são descartadas.
+ */
+function loadTraders(saved: TradersState | undefined): TradersState {
+  const traders: TradersState = {};
+  for (const [id, raw] of Object.entries(saved ?? {})) {
+    const state = (raw ?? {}) as Partial<TraderState>;
+    const bought: Record<string, number> = {};
+    for (const [offer, n] of Object.entries(state.bought ?? {})) {
+      if (Number.isInteger(n) && n > 0) bought[offer] = n;
+    }
+    traders[id] = {
+      reputation: finite(state.reputation, 0),
+      volume: finite(state.volume, 0),
+      bought,
+      restockAt: finite(state.restockAt, 0),
+    };
+  }
+  return traders;
 }
 
 /** Perfil Scav salvo; campos que faltam voltam ao padrão (liberada) */
@@ -253,6 +280,7 @@ export function deserializeGame(
       factory,
       raid: loadRaid(data.raid, clock.now()),
       scav: loadScav(data.scav),
+      traders: loadTraders(data.traders),
     },
     clock,
   );

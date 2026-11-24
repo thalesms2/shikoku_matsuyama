@@ -118,6 +118,19 @@ Botão **Raid** no inventário. Escolha o mapa, a estratégia e a regra de loot 
   - **Força:** sobe com o loot carregado.
 - **Karma:** abater Scavs diminui o karma; evitar brigas, abater PMCs inimigos e extrair aumentam. Ele muda a raid Scav (veja abaixo). A tela de preparação mostra o karma e as suas estatísticas.
 
+### Vendedores
+
+Botão **Vendedores** no inventário. Cada vendedor tem uma especialidade, uma moeda e um estoque que se repõe de tempos em tempos (inclusive com o jogo fechado):
+
+- **Coronel Brás** — armas e munição, em rublos.
+- **Doutora Iara** — remédios e comida, em rublos.
+- **Mercador Tito** — coletes, capacetes, mochilas e coletes táticos, em dólares. Ele também troca rublos por dólares e euros.
+- **Sucateiro Nico** — compra quase tudo (pagando menos) e faz trocas de itens.
+
+- **Comprar:** o item vai para o estoque e o pagamento sai do estoque (dinheiro ou, nas trocas, os itens pedidos). Precisa haver espaço no estoque.
+- **Vender:** escolha um item do estoque; o vendedor paga em sua moeda. Contêineres precisam estar vazios.
+- **Lealdade:** negociar com um vendedor (comprar e vender) aumenta a reputação com ele. Com nível de PMC, reputação e volume negociado suficientes, o vendedor sobe de nível, libera ofertas novas, cobra menos e paga mais. A tela mostra o que falta para o próximo nível.
+
 ### Raid Scav
 
 Na tela de preparação, escolha o mapa e a estratégia e clique em **Entrar como Scav**. Você entra com um Scav descartável e seu PMC não arrisca nada.

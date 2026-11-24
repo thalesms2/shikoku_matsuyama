@@ -19,6 +19,8 @@ export const MIGRATIONS: Record<number, Migration> = {
   }),
   // v2 → v3: raid Scav (começa liberada)
   2: (data) => ({ ...data, scav: createScavProfile() }),
+  // v3 → v4: vendedores (sem histórico; cada um nasce no primeiro acesso)
+  3: (data) => ({ ...data, traders: {} }),
 };
 
 export class SaveError extends Error {}

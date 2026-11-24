@@ -52,9 +52,10 @@ O jogador gerencia seu **PMC** (o personagem principal), preso em uma cidade iso
 - `src/ui/` — telas e componentes PixiJS; apenas leem estado e disparam ações do core.
 - `src/game.ts` — `startGame()`: inicia o PixiJS, carrega assets e mostra a primeira cena. `src/main.ts` só chama `startGame`.
 - `src/ui/SceneManager.ts` — troca de cenas; toda tela implementa a interface `Scene` (`view`, `resize?`, `update?`, `destroy?`).
-- `src/core/state.ts` — `PlayerState` (inventário, PMC, skills, `ItemFactory`, `MagazineLoader`, o perfil de raid `raid` e o perfil Scav `scav`): tudo que vai para o save. `storageFor()` decide onde guardar o que sai de um item.
+- `src/core/state.ts` — `PlayerState` (inventário, PMC, skills, `ItemFactory`, `MagazineLoader`, o perfil de raid `raid`, o perfil Scav `scav` e os vendedores `traders`): tudo que vai para o save. `storageFor()` decide onde guardar o que sai de um item.
 - `src/core/pmc/` — PMC, skills e consumíveis. `src/core/save/` — formato, serialização, migrações e armazenamento do save.
 - `src/core/raid/` — raid do PMC: tipos (`types.ts`), estratégias e karma (`strategy.ts`), fórmulas de combate (`combat.ts`), loot (`loot.ts`), simulação (`simulate.ts`, classe `RaidSimulation`) e perfil/reprodução (`profile.ts`) e raid Scav (`scav.ts`). Mapas e inimigos ficam em `src/data/maps.ts`; o equipamento do Scav, em `src/data/scav.ts`.
+- `src/core/trade/` — vendedores: tipos (`types.ts`) e compra, venda, lealdade e reposição (`trade.ts`). Os vendedores ficam em `src/data/traders.ts`; a tela é `src/ui/scenes/TradersScene.ts`.
 - `src/data/newGame.ts` — `createNewPlayer()` e `loadOrCreatePlayer()`.
 - `src/core/rng.ts`, `src/core/events.ts`, `src/core/clock.ts` — `Rng` com seed, `EventBus` tipado e `Clock` injetável (use `ManualClock` nos testes).
 - `server/` — servidor Colyseus (sala `game`).
@@ -176,9 +177,10 @@ Modelo de entrada para novas mecânicas:
 ### Save
 
 - Arquivos: `src/core/save/` (`format.ts`, `serialize.ts`, `migrations.ts`, `storage.ts`); integração em `src/game.ts` e `src/data/newGame.ts`.
-- **Formato** (`SAVE_VERSION = 3`): `nextId` da fábrica, estoque (itens com posição/rotação), slots e bolsos, conteúdo aninhado (grades, cartuchos do carregador do fundo ao topo, carregador encaixado na arma), PMC, skills, o carregamento em andamento (por uid, com `startedAt`/`done`, então continua de onde parou) e, desde a v2, o perfil de raid (`raid`: karma, estatísticas, regra de loot, seed e a raid em andamento com log e resumo) e, desde a v3, o perfil Scav (`scav`: `readyAt` e estatísticas).
+- **Formato** (`SAVE_VERSION = 4`): `nextId` da fábrica, estoque (itens com posição/rotação), slots e bolsos, conteúdo aninhado (grades, cartuchos do carregador do fundo ao topo, carregador encaixado na arma), PMC, skills, o carregamento em andamento (por uid, com `startedAt`/`done`, então continua de onde parou) e, desde a v2, o perfil de raid (`raid`: karma, estatísticas, regra de loot, seed e a raid em andamento com log e resumo) desde a v3, o perfil Scav (`scav`: `readyAt` e estatísticas) e, desde a v4, os vendedores (`traders`: reputação, volume, compras desde a reposição e `restockAt` de cada um).
 - **Migração 1 → 2:** adiciona `raid = createRaidProfile(savedAt)`. Ao carregar, campos do perfil que faltam voltam ao padrão e `lootRule` inválida vira `valuePerCell`.
 - **Migração 2 → 3:** adiciona `scav = createScavProfile()` (liberada). Ao carregar, `readyAt` inválido vira 0 e estatísticas que faltam voltam a 0.
+- **Migração 3 → 4:** adiciona `traders = {}`. Ao carregar, números inválidos voltam a 0 (`restockAt` 0 repõe no próximo acesso) e compras que não são inteiros positivos são descartadas. Vendedores e ofertas que não existem mais ficam guardados sem efeito.
 - **Carregar save antigo/inconsistente:** item que saiu do catálogo é descartado com aviso; item que não cabe mais na posição vai para o primeiro espaço da mesma grade; se não couber nela (ou a grade não existir mais, ou o slot não aceitar mais o item, ou o carregador ficar incompatível), vai para o estoque; sem espaço no estoque, é perdido com aviso. Campos de PMC/skills que faltam recebem o valor padrão (skills novas começam em 0).
 - **Migrações:** `migrate()` aplica `MIGRATIONS[v]` de versão em versão até `SAVE_VERSION`; save sem versão, de versão mais nova ou com migração faltando lança `SaveError`.
 - **Armazenamento:** chave `escape-from-idle:save` no `localStorage`; erros do navegador são ignorados. Autosave a cada 5 s de jogo e no `beforeunload`. Save ilegível é copiado para `escape-from-idle:save:backup` e o jogo começa do zero (com aviso no console).
@@ -235,3 +237,25 @@ Modelo de entrada para novas mecânicas:
 - **Transferência** (`transferToStash`): tira os itens soltos das grades do Scav e depois as peças vestidas (já vazias; a arma mantém o carregador), ordena por valor por célula (maior primeiro) e usa `autoPlace` no estoque. Uma pilha pode entrar só em parte. O que não coube vai para `left` (perdido).
 - **Balanceamento** (`tests/core/raid/scavBalance.test.ts`): Periferia equilibrado com karma 0 extrai 75–97%; Porto equilibrado com karma +10 extrai pelo menos 8 pontos a mais e traz pelo menos 1,8× o loot de karma −10; Porto agressivo extrai menos de 60%.
 - Pendências: karma mudar com o comportamento na raid Scav (matar Scavs como Scav), Scav com equipamento melhor ou pior pelo karma, redução do cooldown pelo esconderijo (Fase 7).
+
+### Vendedores e economia
+
+- Arquivos: `src/core/trade/` (`types.ts`, `trade.ts`), dados em `src/data/traders.ts`, tela `src/ui/scenes/TradersScene.ts` (botão "Vendedores" no inventário). Moedas: `money_rub` (principal, `basePrice` 1), `money_usd` (122) e `money_eur` (132), criadas pelo pipeline de itens.
+- **Vendedores** (`TraderDef`): moeda própria, níveis de lealdade, categorias que compra (com multiplicador), ofertas e intervalo de reposição.
+  - Coronel Brás: armas e munição, ₽.
+  - Doutora Iara: remédios e comida, ₽.
+  - Mercador Tito: equipamento, em $; também vende $ e € por ₽ (câmbio).
+  - Sucateiro Nico: compra quase tudo por 0,7 (permutas 1, chaves 0,8), ₽; vende permutas e chaves e faz trocas.
+- **Estado** (`TraderState`, em `player.traders[id]`, criado no primeiro acesso por `traderState`): `reputation`, `volume` (rublos negociados, compras + vendas), `bought` (compras de cada oferta desde a reposição) e `restockAt`.
+- **Lealdade** (`loyaltyLevel`): o maior nível cujos requisitos (nível do PMC, reputação e volume) o jogador cumpre. `LOYALTY_LEVELS`:
+  - nível 1: sem requisitos, compra × 1,25, venda × 0,5;
+  - nível 2: PMC nível 5, reputação 0,1, 400.000 ₽ negociados, × 1,15 / × 0,55;
+  - nível 3: PMC nível 12, reputação 0,4, 1.500.000 ₽, × 1,05 / × 0,6.
+  - Reputação: +0,02 a cada 100.000 ₽ negociados (`REPUTATION_PER_100K`); as quests (Fase 6) vão dar mais.
+- **Preço de compra** (`offerPrice`): preço fixo da oferta (na moeda da oferta ou do vendedor) ou `ceil(basePrice × quantidade × markup / basePrice da moeda)`, mínimo 1. Troca (`barter`): itens no lugar de dinheiro.
+- **Compra** (`buy`): repõe o estoque se passou da hora; confere a oferta, o nível (`Exige lealdade nível N`), o estoque (`Esgotado`) e se há o pagamento no estoque (dinheiro ou itens). Só pagam itens do estoque, incluindo os de dentro de contêineres, sem conteúdo e fora do carregamento em andamento. Guarda o item com `storeAll` (tudo ou nada: desfaz pilhas completadas) e só então paga; sem espaço, nada muda. Soma o valor em rublos (preço, ou `basePrice` dos itens da troca) ao volume e à reputação.
+- **Preço de venda** (`sellPrice`): `floor(totalValue × sellRate × multiplicador da categoria / basePrice da moeda)`. Não compra dinheiro nem categorias fora de `buys`, pede para esvaziar contêineres e recusa itens que valem menos de 1.
+- **Venda** (`sell`): o item precisa estar no estoque (pode estar dentro de contêiner) e fora do carregamento em andamento. Ele sai, e o dinheiro entra no estoque (em pilhas de até `maxStack`), podendo usar o espaço liberado. Se o dinheiro não couber, o item volta para o mesmo lugar. Soma ao volume e à reputação.
+- **Reposição** (`restock`): quando `agora ≥ restockAt`, zera `bought` e avança `restockAt` em quantos intervalos tiverem passado (mantém o ritmo com o jogo fechado). Brás, Iara e Tito: 1 h; Nico: 1,5 h. A tela repõe sozinha no `update`.
+- **Tela:** lista de vendedores; ficha com descrição, lealdade, próximo nível e contagem da reposição; dinheiro do jogador em todas as moedas; abas Comprar/Vender com 10 linhas por página. Na venda aparecem os itens do topo do estoque das categorias que o vendedor compra. Ofertas bloqueadas, esgotadas ou recusadas ficam apagadas, e o resultado aparece em verde ou vermelho. Voltar ao inventário salva o jogo.
+- Pendências: quests e reputação por quest (Fase 6), vender arrastando do inventário, preço por durabilidade, preços dinâmicos (flea market, Fase 8).

@@ -1,200 +1,187 @@
 # Plano de desenvolvimento — Escape from Idle
 
-Cada fase entrega algo jogável/testável. Em todas as fases valem as regras do `CLAUDE.md`: 100% de cobertura, não alterar testes existentes, registrar cada mecânica no `CLAUDE.md` e no `README.md`.
+O primeiro plano (Fases 0 a 10) terminou e virou documentação em [`docs/historico.md`](./docs/historico.md). Este é o plano atual. A numeração continua a partir da Fase 11, porque o `CLAUDE.md` cita as fases antigas.
+
+Como trabalhamos:
+
+- Uma sub-fase por commit. O usuário faz os commits; cada sub-fase termina com `npm run lint && npm run typecheck && npm run format:check && npm run test:coverage` e o build passando.
+- Valem as regras do `CLAUDE.md`: 100% de cobertura, toda mecânica registrada no `CLAUDE.md` e no `README.md`, save com versão e migração testada, itens novos só pelo pipeline e com nomes próprios.
+- **Testes de sistemas substituídos** (autorizado pelo usuário para este plano): quando uma sub-fase substitui um sistema (carregamento progressivo, motor de raid atual, karma na raid do PMC), os testes antigos desse sistema podem ser removidos ou reescritos. O relatório da sub-fase lista cada teste antigo que mudou e por quê. Fora desses casos, testes existentes continuam intocáveis sem autorização.
+- Mudanças que alteram o balanceamento são medidas com Monte Carlo (seed fixa) e os números vão no relatório.
+- Ordem: 11 → 12 → 13 → 14 → 15. O balanceamento e a janela de admin (11I a 11K) vêm antes da raid nova, para os valores da Fase 12 já nascerem ajustáveis. O karma (13) depende dos encontros da raid nova (12).
 
 ---
 
-## Fase 0 — Fundação do projeto ✅
+## Fase 11 — Inventário e carregadores
 
-- [x] Projeto Vite + TypeScript strict + PixiJS v8 (a partir do template `create-pixi`, com servidor Colyseus mantido).
-- [x] Vitest com `@vitest/coverage-v8` e `thresholds` de 100% (lines, functions, branches, statements).
-- [x] oxlint + oxfmt (do template), scripts `dev`, `build`, `test`, `test:coverage`, `lint`, `typecheck`, `format`.
-- [x] `git init`, `.gitignore`, CI (GitHub Actions) rodando lint, typecheck, formatação, cobertura e build.
-- [x] Utilitários base do core: `Rng` (mulberry32 com seed), `EventBus` tipado, `Clock` injetável (`systemClock` / `ManualClock`).
-- [x] Tela PixiJS mínima: `SceneManager` + `TitleScene`.
-- [x] Removida a demo do template (`src/scene.ts`, `src/cube.ts`, `@pixi/3d`).
+- **11A — Carregamento instantâneo:** soltar munição sobre um carregador carrega na hora (até encher ou acabar a pilha). Descarregar também é instantâneo. O carregamento progressivo (`MagazineLoader`, barra de progresso, tempo por cartucho) sai.
+  - Fora da raid, a skill Manuseio de carregador deixa de ter efeito. Ela passa a valer dentro da raid (12F): quando a munição acaba em combate, ela define quão rápido o PMC recarrega e volta a atirar.
+- **11B — Munição sobre a arma:** soltar munição sobre uma arma (no estoque ou equipada): com a câmara vazia, 1 cartucho vai para a câmara; o resto (ou tudo, com a câmara cheia) vai para o carregador encaixado ou para o tubo. Arma sem carregador e com a câmara vazia recebe só o cartucho da câmara. Calibre errado fica vermelho.
+- **11C — Vender arrastando:** soltar um item do inventário sobre o vendedor abre a venda já com o item escolhido.
+- **11D — Atalhos de movimento:** Ctrl+clique move o item para o estoque (ou para o equipamento, vindo do estoque).
+- **11E — Janela de contêiner arrastável** e mais de uma janela aberta.
+- **11F — Loadouts melhores:** renomear loadouts e carregar os carregadores ao montar (agora instantâneo).
+- **11G — Painel do PMC no inventário:** a tela de equipamento ganha um painel com o estado do PMC, no estilo de HUD dos extraction shooters (com arte e layout próprios): silhueta do corpo com a vida de cada parte (cores por gravidade, partes destruídas marcadas), vida total, nível com a barra de XP, energia e hidratação. Atualiza na hora (uso de remédio, comida, esconderijo).
+  - O botão "Personagem" vira "Skills", e a tela dele passa a mostrar só as skills (a vida, o nível, a energia e a hidratação ficam no painel).
+  - Autorizado: a 11G conta como sistema substituído, então os testes antigos do botão "Personagem" (`InventoryScene.player.test.ts`) e da tela de personagem (`CharacterScene.test.ts`) são atualizados.
+  - O botão "Organizar" do estoque vira um botão de ícone azul (com dica "Organizar" ao passar o mouse).
+- **11H — Skills por categoria:** as skills passam a ter quatro categorias, com a lista completa. Por enquanto as skills novas só acumulam XP onde já fizer sentido e aparecem na tela; o que cada uma influencia (na raid ou fora dela) será descrito depois. As skills atuais mantêm os efeitos de hoje.
+  - **Físicas:** Resistência, Força, Saúde, Metabolismo, Resistência ao estresse, Vitalidade.
+  - **Combate:** Mira, Fuzis de assalto, Fuzis de ferrolho, Fuzis de precisão (DMR), Metralhadoras pesadas, Metralhadoras leves, Corpo a corpo, Pistolas, Revólveres, Lança-granadas, Escopetas, Submetralhadoras, Arremessáveis, Solução de panes.
+  - **Práticas:** Furtividade, Fabricação, Coletes pesados, Coletes leves, Gestão do esconderijo, Manuseio de carregador, Busca, Cirurgia, Manutenção de armas, Manutenção de coletes.
+  - **Mentais:** Atenção, Carisma, Intelecto, Percepção.
+  - A tela de Skills (11G) mostra as skills agrupadas pela categoria, com nível e barra de XP.
+  - Save: as skills novas começam em 0 (versão nova do save com migração).
+- **11I — Valores de balanceamento centralizados:** todos os números de balanceamento (chances de drop, dano das armas, chances de spawn, fórmulas de combate, karma, preços, tempos do esconderijo...) saem das constantes espalhadas e vão para um objeto `Balance` com os padrões. O core recebe o `Balance` injetado e continua puro e testável.
+- **11J — Balanceamento no servidor:** os valores ficam num banco no servidor Colyseus (`server/`, SQLite com `node:sqlite`).
+  - O cliente conecta ao abrir o jogo, recebe os valores e passa a usá-los. Sem servidor, usa o último valor recebido (guardado no navegador) ou os padrões.
+  - Quando um valor muda no banco, o servidor avisa todos os clientes conectados, e eles atualizam na hora.
+  - Uma raid já resolvida não muda: ela usa os valores do momento em que começou.
+- **11K — Janela de admin (só em desenvolvimento):** uma janela no jogo, que só existe com `import.meta.env.DEV`, para editar em tempo de execução todos os valores do `Balance`, agrupados (loot, armas, inimigos, combate, economia...).
+  - Salvar grava no banco do servidor, que avisa os clientes (11J). Tem um botão para restaurar os padrões.
+  - A janela não aparece durante uma raid.
+  - O servidor só aceita alterações em modo de desenvolvimento; em produção os valores são só lidos.
+- **11L — Catálogo ampliado:** muitos itens novos, de todas as categorias (armas e calibres, munições de várias qualidades, carregadores, coletes e capacetes de várias classes, coletes táticos, mochilas, óculos e balaclavas, remédios, comida e bebida, permutas, chaves, itens de inteligência e itens raros), para alimentar as tabelas de loot dos contêineres (12A e 12D) e dos inimigos.
+  - Todos pelo pipeline, com nomes e descrições próprios e imagem placeholder; dados de dano, dado de dano, penetração e classe já no formato da raid nova.
+  - Os vendedores ganham parte deles. As ofertas passam de uma página (10 linhas), e o teste antigo que espera todas as ofertas do primeiro vendedor numa página (`TradersScene.test.ts`) passa a aceitar a paginação (autorizado).
 
-**Pronto quando:** `npm run test:coverage` passa e a aplicação abre uma tela com o título.
+## Fase 12 — Raid em matriz (novo motor de raid)
 
-## Fase 1 — Inventário em grade ("tetris") ✅
+O motor atual (passos sorteados) é substituído. A raid passa a ser um mapa em matriz que o personagem atravessa célula por célula, da esquerda para a direita. O motor novo é construído ao lado do atual (12A a 12G) e assume no 12H, quando o antigo sai.
 
-O coração do jogo; vem primeiro porque quase tudo depende dele.
+- **12A — Mapa em matriz:** cada mapa tem uma matriz fixa (`MapDef`), maior conforme a dificuldade.
+  - Spawn dos personagens na coluna da esquerda; extrações na ponta direita, e as que têm requisito (chave, pagamento, sem mochila) ficam mais perto do spawn que a extração livre.
+  - Pontos fixos de spawn de Scavs e de PMCs inimigos (os de PMC mais raros).
+  - **Spawn de inimigos:** a cada turno rola-se um d10, e aparece um inimigo num ponto de spawn com `d10 ≥ 11 − ⌈1,5 × dificuldade⌉`. Os inimigos voltam a aparecer durante a raid, e um ponto pode juntar mais de um.
 
-- [x] **Modelo de item:** `ItemDef` (catálogo) + `Item` (instância com uid, quantidade, grades internas e localização). Tamanho `w×h`, `maxStack`, preço base, categoria, slot de equipamento.
-- [x] **Grade (`Grid`):** ocupação por célula, `canPlace`, `place`, `remove`, `findFreeSpot` (com rotação), filtros por categoria.
-- [x] **Operações:** mover entre grades e slots, girar, somar e separar pilhas, auto-encaixe (`autoPlace`), soltar sobre item (`dropOnItem`), organizar (`sortGrid`, que desfaz se não couber).
-- [x] **Contêineres aninhados:** grades internas (mochila, colete com várias grades, caixa de munição, contêiner seguro); um contêiner nunca entra nele mesmo.
-- [x] **Slots de equipamento:** arma primária/secundária, coldre, capacete, colete balístico, colete tático, mochila, contêiner seguro, 4 bolsos.
-- [x] **UI PixiJS:** grade, drag & drop, prévia verde/vermelha, `R` para girar, `Esc` para cancelar, tooltip, botão "Organizar", janela de contêiner por duplo clique.
-- [x] Catálogo inicial de itens originais (`src/data/items.ts`) e kit inicial (`src/data/starter.ts`).
-- [ ] Pendências para fases futuras: durabilidade dos itens (Fase 2/3), mover item com Ctrl+clique (separar pilha já existe no menu de contexto), rolagem do estoque quando ele crescer (o Depósito da Fase 7 já aumenta o estoque; por enquanto a tela só reduz a escala), janela de contêiner arrastável.
+    | Dificuldade | Aparece com | Chance |
+    | ----------- | ----------- | ------ |
+    | 1           | 9–10        | 20%    |
+    | 2           | 8–10        | 30%    |
+    | 3           | 6–10        | 50%    |
+    | 4           | 5–10        | 60%    |
+    | 5           | 3–10        | 80%    |
 
-**Pronto quando:** dá para mover, girar, empilhar e guardar itens entre estoque, mochila e equipamento.
+  - Contêineres de loot em células fixas, de 17 tipos: cofre (safe), barril enterrado (buried barrel cache), caixa registradora (cash register), corpo (dead body), gaveta (drawer), esconderijo no chão (ground cache), caixa de granadas (grenade box), jaqueta (jacket), bolsa médica (medbag), caixa de suprimentos (supply crate), gabinete de PC (pc block), mala (suitcase), bolsa esportiva (sports bag), caixa de ferramentas (toolbox), caixa de armas (weapon box), caixa de munição (ammo box) e caixote (crate). Os nomes no jogo serão próprios, em português.
+  - Cada tipo tem a sua tabela de loot (ex.: gabinete de PC nunca tem munição) e a sua chance de item raro.
+- **12B — Movimento e estratégia:** o personagem anda só para células vizinhas (de 0,0 para 0,1 e depois 1,1; nunca na diagonal).
+  - **Turnos e ações:** em cada célula, o personagem escolhe uma ação pela estratégia e pelo objetivo (andar, revistar um contêiner, se cuidar, operar...). Cada ação gasta turnos:
+    - andar gasta 1 turno ou mais, conforme a parte do mapa (cada célula tem um custo de movimento: rua livre, escombros, mato...);
+    - revistar um contêiner gasta de 2 a 5 turnos, conforme o tipo de contêiner e o quanto ele conhece aquele contêiner (conhecer deixa mais rápido);
+    - a cada turno acontecem as rolagens de spawn e de movimento dos inimigos (12A e 12E). Por isso, ações longas são mais arriscadas.
+  - **Sem tempo de raid e sem MIA:** a raid é contada em turnos. O que hoje depende de minutos passa a depender de turnos: gasto de energia e hidratação, XP de Resistência, o ritmo do log na tela (um movimento por vez, com x1/x4/x16) e a sequência das raids automáticas.
+  - **Turnos viram tempo real:** cada turno tem uma duração no ritmo do log, então gastar mais turnos faz a raid demorar mais para terminar, e o rendimento por tempo (loot e dinheiro por hora) cai.
+  - **Cinco estratégias** (substituem furtivo, equilibrado e agressivo): Rato, Seguro, Neutro, Agressivo e Psicopata. Cada uma define o caminho (reto para a extração ou por pontos de interesse), quando revistar, quando brigar ou fugir e os seus modificadores.
+    - **Rato:** a prioridade é sair vivo, com qualquer loot, mesmo pouco.
+      - Revista só o que está no caminho.
+      - Prefere as rotas pelas bordas do mapa, longe dos pontos de spawn.
+      - Anda devagar (mais turnos por célula), sem fazer barulho, o que deixa a raid mais demorada e rende menos por tempo.
+      - Bônus enorme de furtividade: os inimigos só o percebem se estiverem na mesma célula.
+      - Desesperado: tem desvantagem na rolagem de fuga e nas rolagens de acerto dos tiros.
+    - **Seguro, Neutro, Agressivo e Psicopata:** a definir.
+  - As opções escolhidas (estratégia, regra de loot) ficam guardadas **por mapa**.
+- **12C — Conhecimento do mapa:** uma habilidade por mapa, que sobe com a exploração.
+  - XP por raid = células percorridas + um fixo se sobreviveu + um fixo na primeira vez que acha cada contêiner do mapa.
+  - No começo o personagem não sabe onde é a extração: anda até a ponta direita e precisa procurar.
+  - Conforme a habilidade sobe, ele "lembra" de pontos (extrações, contêineres, spawns), e o caminho passa a usar o que ele conhece.
+- **12D — Loot nos contêineres:** numa célula com contêiner, há uma chance de achar o loot (Percepção ajuda). Achando, sorteia o item pela tabela daquele tipo de contêiner, com a chance de raro do tipo. O item precisa caber no equipamento (regras de loot atuais).
+- **12E — Inimigos andando e percepção:**
+  - **Movimento:** a cada turno, cada inimigo rola um d6 para andar uma célula numa direção aleatória (nunca na diagonal). Quanto maior a dificuldade, maior a chance de andar.
+  - **Perto (2 células ou menos):** os dois rolam d20 de percepção, com os modificadores:
+    - bônus de Percepção e Furtividade, de itens como óculos e balaclava, e da dificuldade para o inimigo;
+    - desvantagem por mochila colorida ou muito grande.
+  - **O personagem percebe o inimigo:** decide se briga pela estratégia e pela condição (machucado ou sangrando, ele não briga).
+    - Brigando, pula a disputa de quem vê primeiro: tenta o headshot e começa a briga.
+  - **O inimigo percebe o personagem:** vem na direção dele, e a cada célula o personagem rola a percepção de novo.
+    - Se o inimigo chega sem ser notado, ele tem a chance de headshot.
+    - Se o personagem nota antes, pode lutar ou fugir, pela estratégia.
+    - Para fugir, os dois rolam d20, e o do personagem precisa ser pelo menos o dobro do do inimigo. Conseguindo, o inimigo perde o rastro, e o personagem escolhe seguir fugindo ou atacar com a chance de headshot e a vantagem de começar a briga.
+  - Itens novos pelo pipeline (óculos, balaclava, mochilas com penalidade) e slots novos de equipamento para óculos e cobertura do rosto.
+- **12F — Combate d20:**
+  - Quem ataca primeiro (12E) pode tentar um **headshot** (chance pelas skills), que mata na hora. Errando, a briga continua.
+  - A cada turno, começando por quem atacou primeiro, cada lado rola **d20 + bônus**:
+    - 1 a 5 (limiar de falha): errou o tiro;
+    - acima disso, a classe da armadura do alvo decide se o tiro passou. Se a armadura segurou o tiro, ela perde durabilidade;
+    - se o tiro passou, a armadura ainda reduz o dano e perde durabilidade.
+  - Bônus de acerto vêm das skills: Mira e a skill do tipo da arma (Pistolas, Fuzis de assalto, Escopetas, Submetralhadoras...; categoria Combate, 11H).
+  - Dano = dado da arma + dano fixo da munição (ex.: pistola d6; fuzil d20; fuzil com munição boa d20 + 5). Dado e fixo ficam nos `stats` dos itens, pelo pipeline.
+  - Cada disparo gasta munição de verdade (câmara, carregador, tubo).
+  - **Recarga em combate:** quando a munição da arma acaba, o PMC recarrega (troca de carregador ou enche o tubo). A skill Manuseio de carregador define quantos turnos ele leva para voltar a atirar.
+  - **Skills de armadura:** Coletes leves e Coletes pesados ganham XP quando o PMC toma dano vestindo a armadura e quando ela segura um tiro.
+  - **Conserto da armadura:** o Mercador Tito continua consertando por dinheiro, e a Oficina do esconderijo passa a consertar também.
+  - A briga vai até um dos dois morrer. Vencendo, o PMC revista o corpo, que deixa o equipamento do inimigo (como na 10D).
+- **12G — Sangramento:** todo dano rola uma chance de sangramento, nos dois lados. Sangrando, perde vida a cada célula até tratar (atadura e kits). Os cuidados automáticos tratam sangramento.
+- **12H — Troca do motor:** a raid nova assume `startRaid` e o motor antigo sai.
+  - Passam a usar a raid nova: raid Scav, raids automáticas, quests (abates, extração, itens achados), cirurgia (com o encontro surpresa), durabilidade da armadura, avisos antes da raid e resumo.
+  - Os testes de balanceamento são reescritos para a raid nova.
+- **12I — Matriz na tela:** a `RaidScene` desenha a matriz ao lado do log, com o personagem andando célula por célula no ritmo do log.
+  - O que há em cada célula não aparece: só os pontos que o personagem conhece (12C) e os que ele descobriu nesta raid.
 
-## Fase 2 — Dados do jogo e PMC
+- **12J — Editor de mapas (admin, só em desenvolvimento):** uma tela que desenha a matriz de um mapa por inteiro, sem neblina, e permite alterar:
+  - o tamanho da matriz e o custo de movimento de cada célula;
+  - os contêineres: colocar, tirar ou trocar o tipo de cada célula;
+  - o loot: a tabela de cada tipo de contêiner (itens, pesos, quantidades, chance de raro) e, opcionalmente, uma tabela própria para uma célula;
+  - a chance de achar o loot;
+  - os pontos de spawn (Scav e PMC);
+  - as extrações (lugar e requisito), mantendo a regra de pelo menos uma extração livre na ponta direita.
+  - Os mapas ficam no banco do servidor, como o balanceamento (11J): salvar avisa os clientes, que atualizam na hora. Há um botão para restaurar o mapa padrão e outro para exportá-lo para os dados do jogo.
+  - O editor valida antes de salvar: spawn alcançável até alguma extração, sem células fora da matriz, itens que existem no catálogo.
+  - Não aparece durante uma raid, e o servidor só aceita alterações em modo de desenvolvimento.
+  - **Versão do mapa:** cada mapa salvo ganha uma versão nova. Ao salvar, o servidor compara com a versão anterior e lista as células que mudaram (custo, contêiner, loot, spawn, extração, ou células que entraram e saíram com o tamanho).
+  - **Esquecer o que mudou:** as células que mudaram voltam a "não descoberta" para todos os jogadores. O conhecimento do mapa (12C) guarda a versão que o jogador conhece, e ao receber a versão nova o jogo apaga o que ele sabia dessas células. Jogadores fora do jogo apagam ao abrir, comparando as versões.
+  - **Aviso:** o jogo mostra uma notificação "O mapa X foi atualizado; suas rotas nele podem ter ficado inválidas" (na hora, para quem está conectado; ao abrir, para os outros). Durante uma raid, o aviso espera ela terminar.
+- **12K — Centro de inteligência e rotas:** um módulo novo no esconderijo, o Centro de inteligência (diferente da Central de informantes, que dá renda). Construído, ele libera um editor de rotas sobre a matriz de cada mapa.
+  - Custo baixo, exige PMC nível 5 e itens de inteligência (ex.: pen drive, pasta de documentos; itens novos pelo pipeline, achados em contêineres como gabinete de PC e gaveta).
+  - O jogador desenha um caminho célula por célula, só entre vizinhas, do spawn até uma extração.
+  - **Rota inválida:** depois de uma atualização do mapa, uma rota que passa por célula que mudou ou que ficou "não descoberta" aparece marcada como inválida na preparação da raid e não pode ser usada até ser redesenhada.
+  - As rotas são salvas por mapa com um nome, como os loadouts, e escolhidas na preparação da raid (e nas raids automáticas) no lugar do caminho da estratégia.
+  - **Raid Scav sem rotas:** na raid Scav só se escolhe a estratégia; as rotas do Centro de inteligência valem só para o PMC.
 
-### 2A — Base de dados local de itens (sincronizada da API tarkov.dev) ✅
+## Fase 13 — Karma só na raid Scav
 
-**Estado:** pipeline completo e testado (`scripts/items/`, comando `npm run items`). O `sync` usa os dados JSON do tarkov.dev (a API GraphQL respondia 422) e já sincronizou a referência completa (5.498 itens). Os 24 itens do jogo estão ligados ao seu `sourceId` (só para a imagem placeholder; os outros campos continuam no override) e as imagens são baixadas com `items -- images`. Itens novos entram com o mesmo fluxo.
+- **13A — Karma muda só na raid Scav:** a raid do PMC não mexe mais no karma. Na raid Scav: abater Scavs tira karma; evitar brigas e extrair dão.
+- **13B — Equipamento do Scav pelo karma:** karma alto melhora as tabelas de equipamento do Scav; karma baixo piora.
+- **13C — Quests da raid Scav:** objetivos que só contam em raids Scav.
 
-Decisões de implementação: SQLite nativo do Node (`node:sqlite`) no lugar de `better-sqlite3`, que dispensa compilação nativa; `tsx` para rodar os scripts; uma CLI única (`npm run items -- <comando>`) no lugar de vários scripts npm.
+## Fase 14 — Progressão
 
-O jogo **nunca consulta a API durante a execução**. A API ([tarkov.dev](https://tarkov.dev), dados JSON em `https://json.tarkov.dev`: lista em `/endpoints`; o `sync` usa `GET /regular/items` e as traduções `GET /regular/items_en`) só é usada em desenvolvimento, por um script, para puxar itens novos ou atualizar dados. Tudo fica salvo no repositório.
+- **14A — Quests repetíveis:** quests geradas com objetivos aleatórios: abater um número de Scavs ou achar itens sorteados. Ao concluir, outra é gerada.
+- **14B — Obras sem limite:** vários módulos em obra ao mesmo tempo, sem limite.
+- **14C — Combustível do gerador:** o gerador consome combustível; sem ele, produções e renda param.
 
-- **Sincronização** `npm run items -- sync`: consulta a API, normaliza os dados e grava na base local. Roda só manualmente, nunca no build nem no CI.
-  - Campos de referência: `width`/`height` em células, categoria/tipos, `basePrice`, limite de pilha, calibre, capacidade de carregador, dano/penetração da munição, classe/durabilidade de armadura, slots e grades de contêineres (`grids` de mochilas e coletes táticos).
-  - O id externo (tarkov.dev) é guardado como `sourceId`, para correlacionar em sincronizações futuras sem duplicar itens.
-- **Banco de dados:** SQLite (`data/items.db`, via `node:sqlite`, só em desenvolvimento, commitado) como fonte da verdade da curadoria:
-  - `items`: id do jogo, `sourceId`, dados de referência vindos da API.
-  - `item_overrides`: nome, nome curto, descrição e ajustes de balanceamento próprios do jogo (sobrescrevem a referência).
-  - `item_assets`: correlação item ↔ imagem (`public/assets/items/<id>.webp`), com origem, licença e `status` (`placeholder` ou `final`).
-  - `sync_runs`: histórico de sincronizações (data, itens novos, itens alterados).
-- **Exportação para o jogo** `npm run items -- export`: gera `src/data/generated/items.json` (dados) a partir do banco. O jogo importa esse JSON no build; o navegador não precisa de SQLite.
-- **Validação:** testes garantem que o JSON exportado é válido para o `Catalog` (tamanhos, pilhas, grades), que todo item tem imagem correlacionada (ou placeholder) e que nenhum id se repete. Testes do sync usam respostas da API gravadas como fixtures (sem rede nos testes).
-- **Imagens:** o carregamento é por id (`assets/items/<id>.webp`, com um placeholder por categoria quando a imagem faltar); a `ItemView` desenha o sprite escalado para as células do item.
-- **Imagens placeholder do tarkov.dev (temporárias):** `npm run items -- images` baixa a imagem de grade de cada item (`gridImageLink`, que já vem no tamanho certo em células) para `public/assets/items/`, registrada em `item_assets` com `source = "tarkov.dev"` e `status = "placeholder"`.
-  - Ficam **fora do git** (`public/assets/items/` no `.gitignore`): cada desenvolvedor baixa localmente e elas não são redistribuídas pelo repositório.
-  - Ao colocar uma arte própria em `public/assets/items/<id>.webp` e rodar `npm run items -- final <id>`, o item é marcado `status = "final"` e o download não a sobrescreve mais.
-  - `npm run items -- placeholders` lista os itens que ainda usam placeholder.
-- **Restrição de conteúdo** (ver "Direção criativa" no `CLAUDE.md`): da API vêm dados factuais e de balanceamento e, só durante o desenvolvimento, as imagens placeholder. **Nomes e descrições são próprios do jogo**, cadastrados em `item_overrides`; os textos do Escape from Tarkov não são copiados. Armas e calibres reais (ex.: 5.45x39, 9x19) podem usar a nomenclatura técnica real.
+## Fase 15 — Contas e save no servidor
 
-### 2B — Descrição dos itens no hover ✅
+- **15A — Contas:** cadastro e login com usuário e senha no servidor (senha com hash `scrypt` do `node:crypto`, sessão por token). Tela de login antes do título.
+- **15B — Save no servidor:** o save da conta fica no banco do servidor, com as mesmas versões e migrações. O save local de antes pode ser levado para a conta no primeiro login.
+- **15C — Jogo sem conexão:** o que acontece quando o servidor cai no meio do jogo (continuar com o save local e sincronizar depois, ou bloquear).
+- O tempo com o jogo fechado (esconderijo, mercado, raids automáticas) continua calculado pelo relógio, agora a partir do save da conta.
 
-**Estado:** feito. Os 24 itens têm descrição própria (no banco, `item_overrides.description`). O atraso de 300 ms é uma opção da cena (`tooltipDelayMs`), com padrão 0 para manter o comportamento testado na Fase 1. Ficha de contêiner (células internas) já existia na linha de dados básicos.
+## Fase 16 — Arte e som próprios (aguardando arquivos)
 
-- Campo `description` no `ItemDef`.
-- Tooltip com atraso curto (~300 ms), mostrando: imagem, nome, descrição (com quebra de linha) e uma ficha conforme a categoria (munição: calibre, dano, penetração; arma: calibre, carregador; armadura: classe, durabilidade; contêiner: células internas; carregador: munição carregada/capacidade).
-- O tooltip se reposiciona para não sair da tela.
+- Substituir as imagens placeholder dos itens (`npm run items -- final <id>`), músicas e efeitos sonoros, animações nas telas de raid e inventário.
 
-### 2C — Carregadores e munição ✅
+## Pendências do plano (decidir antes da sub-fase)
 
-**Estado:** feito, com duas pendências: (1) a **câmara** da arma (um cartucho a mais fora do carregador) ainda não existe; (2) a escopeta M-12 usa tubo interno e ainda não tem como ser carregada; fica para quando a raid (Fase 3) consumir munição. Dados técnicos próprios (calibre, capacidade, dano, penetração) ficam em `item_overrides.stats` e são mesclados por cima dos da API. Itens novos: `mag_vk74` (30 × 5.45) e `mag_pk9` (12 × 9mm); a pistola inicial já vem com um carregador cheio.
+- **Estratégias Seguro, Neutro, Agressivo e Psicopata (12B):** caminho, revista, briga e fuga, e modificadores de cada uma.
 
-- Nova categoria `magazine`: `capacity` e `caliber`; armas têm `caliber` e aceitam carregadores compatíveis.
-- O carregador guarda a munição como uma **pilha ordenada de cartuchos** (`{ ammoDefId, count }[]`): munição de tipos diferentes fica na ordem em que foi carregada, e o último cartucho carregado é o primeiro a ser disparado.
-- **Carregar:** soltar uma pilha de munição compatível sobre o carregador carrega até `capacity` (o resto continua na pilha). Calibre incompatível fica com a prévia vermelha.
-- **Descarregar:** ação no carregador (menu de contexto ou atalho) que devolve a munição como pilhas para o inventário, usando `autoPlace`; se não couber, o que sobrar fica no carregador.
-- **Tempo de carga:** carregar/descarregar leva tempo por cartucho (ex.: 0,5 s, reduzido pela skill "Manuseio de carregador"), feito de forma idle com barra de progresso; pode ser cancelado.
-- **Arma ↔ carregador:** a arma tem um slot de carregador (a câmara fica para depois); arrastar o carregador para a arma (na grade ou equipada) o encaixa; "Remover carregador" no menu de contexto tira. Na raid (Fase 3), a munição disponível = carregadores na arma, no colete tático e nos bolsos; o tipo de cartucho usado afeta o combate.
-- Valor do carregador = valor dele + valor da munição dentro dele.
+## Regras já decididas
 
-### 2D — PMC, skills e save ✅
+- **Rotas do Centro de inteligência (12K):**
+  - a rota só passa por células que o personagem conhece (pela habilidade do mapa ou por já ter passado por elas);
+  - brigas, sangramento e cuidados não interrompem: depois deles, ele segue a rota de onde parou;
+  - a rota só é abandonada quando a extração do fim não pode ser usada (falta chave ou dinheiro, ou tem "sem mochila"). Aí ele volta ao caminho da estratégia até a extração conhecida mais próxima, ou procura uma.
+- **Inimigos andando (12E):** o inimigo anda com `d6 ≥ 7 − dificuldade` (dificuldade 1 = 1 em 6; 3 = metade; 5 = 5 em 6).
+- **Empate na percepção (12E):** quem tirar mais percebe o outro; empate = ninguém percebe, e os dois rolam de novo no próximo turno.
+- **Headshot do inimigo (12E):** a classe do capacete dá uma chance de segurar o tiro, e o capacete perde durabilidade.
+- **Fuga que falha (12E):** o personagem continua o que estava fazendo e o plano que já seguia, e pode tentar fugir de novo a cada turno, até o inimigo chegar.
+  - O inimigo que o persegue sempre anda: uma célula por turno na direção do personagem.
+  - Enquanto tenta fugir, o personagem gasta 1 turno a mais por célula andada.
+  - Quando o inimigo chega, a briga começa sem headshot, porque o personagem o notou, e quem ataca primeiro sai de um d20 dos dois.
+- **Cirurgia na matriz (12H):** cada parte do corpo leva 2 turnos parado (com o spawn e o movimento dos inimigos). Durante a cirurgia, as rolagens de percepção têm uma desvantagem fixa, que diminui com uma skill nova, Cirurgia.
 
-**Estado:** feito. PMC (`src/core/pmc/pmc.ts`), skills (`skills.ts`), consumíveis com "Usar" no menu (`consumables.ts`), tela de personagem (`CharacterScene`) e save versionado no `localStorage` com autosave (`src/core/save/`). Energia e hidratação ainda não caem com o tempo: o gasto vai acontecer nas raids (Fase 3), e a recuperação de vida no esconderijo fica para a enfermaria (Fase 7). XP do PMC também vem das raids.
+## Ideias para depois
 
-- **PMC:** nível/XP, vida por parte do corpo (cabeça, tórax, estômago, braços, pernas), energia e hidratação.
-- **Skills:** resistência, força, saúde, vitalidade, percepção, furtividade, mira, manuseio de carregador etc. Cada skill tem XP próprio e dá bônus pequenos e cumulativos.
-- Kit inicial básico, montado a partir do catálogo gerado.
-- **Save/load:** serialização versionada no `localStorage` com migrações (inclui `ItemFactory.nextId`, munição dentro dos carregadores e o estado de carregamentos em andamento).
-
-## Fase 3 — Raid do PMC (simulação idle) ✅
-
-**Estado:** feito. Núcleo em `src/core/raid/` (mapas e inimigos em `src/data/maps.ts`), telas `RaidSetupScene` e `RaidScene`, perfil de raid no save v2 (com migração). A raid é resolvida inteira ao entrar (seed salva no perfil) e o log é revelado em tempo real. Ficaram para depois: desgaste da armadura, armas sem carregador (escopeta), itens "encontrados na raid" (Fase 6) e equipamento real dos inimigos.
-
-- **Mapas:** cada mapa com dificuldade, duração, tabela de loot, extrações (algumas com requisito: chave, pagamento, sem mochila) e tipos de ameaça.
-- **Estratégias:** furtivo / equilibrado / agressivo — afetam encontros, loot e risco.
-- **Simulação por eventos:** a raid é uma sequência de eventos sorteados (encontrar loot, encontro com IA, encontro com PMC inimigo, ferimento, extração). Cada combate é resolvido por fórmula com equipamento (penetração da munição × classe da armadura, durabilidade), skills e estratégia.
-- **Loot durante a raid:** o loot só é guardado se couber na grade do equipamento (reutiliza o inventário da Fase 1). Regra automática configurável: priorizar valor por célula.
-- **Resultado:** extraiu (mantém tudo + XP) / morreu (perde equipamento e loot, exceto o contêiner seguro; mantém XP de skills) / MIA (tempo esgotado = morte).
-- **Tela de raid:** log de eventos em tempo real (com acelerar/pular) e tela de resumo pós-raid.
-- **Karma:** comportamento acumulado do PMC (ex.: matar Scavs, ajudar, agressividade) registrado para a Fase 4.
-
-## Fase 4 — Raid Scav ✅
-
-**Estado:** feito. `src/core/raid/scav.ts` (equipamento sorteado por `src/data/scav.ts`, modificadores de karma na `RaidSimulation`, transferência para o estoque, cooldown em `player.scav`) e save v3 com migração. A entrada é o botão "Entrar como Scav" na tela de preparação. A redução do cooldown pelo esconderijo já tem o parâmetro (`cooldownReduction`) e espera a Fase 7.
-
-- Cooldown baseado em tempo real (relógio injetável), reduzível pelo esconderijo e pelo karma.
-- Equipamento Scav aleatório gerado por tabelas.
-- Chance de extração e qualidade/quantidade do loot modificadas pelo karma.
-- Ao extrair, o loot é transferido para o estoque do esconderijo (precisa caber!).
-
-## Fase 5 — Vendedores e economia ✅
-
-**Estado:** feito. `src/core/trade/` (compra com dinheiro ou troca, venda, lealdade em 3 níveis, reposição em tempo real), 4 vendedores em `src/data/traders.ts`, dólar e euro no pipeline de itens, `TradersScene` e save v4. A reputação por quest fica para a Fase 6.
-
-- 4–6 vendedores originais, cada um com especialidade (armas, meds, roupas/equipamentos, peças, barter).
-- **Lealdade:** níveis baseados em nível do PMC, reputação e dinheiro gasto; liberam itens e melhores preços.
-- Compra, venda (preço por vendedor/categoria) e trocas por barter.
-- Estoque dos vendedores com restock periódico.
-- Moedas: moeda principal + 1–2 moedas estrangeiras.
-
-## Fase 6 — Quests ✅
-
-**Estado:** feito. `src/core/quests/` (requisitos, aceitar, entregar, concluir, progresso depois da raid do PMC), 10 quests em `src/data/quests.ts` (6 na cadeia da fuga), itens "encontrados na raid" (`item.fir`), oferta liberada por quest no Coronel, `QuestsScene`, `EndingScene` e save v5.
-
-- Tipos de objetivo: entregar item, extrair de mapa X, eliminar N alvos, sobreviver com estratégia Y, encontrar item na raid ("found in raid").
-- Pré-requisitos (nível, quest anterior, lealdade) e recompensas (dinheiro, itens, reputação, desbloqueios).
-- **Cadeia principal de fuga** com o final do jogo.
-- Tela de quests com acompanhamento de progresso.
-
-## Fase 7 — Esconderijo ✅
-
-**Estado:** feito. `src/core/hideout/` com 7 módulos (gerador, depósito, enfermaria, cozinha, oficina, central de informantes, posto de vigia), obras e produções em tempo real (inclusive offline, pelo `hideoutTick` ao carregar), renda passiva, corte do cooldown Scav, `HideoutScene` e save v6. Combustível do gerador e rolagem do estoque ficaram para depois.
-
-- Módulos com níveis e requisitos (itens, dinheiro, lealdade, outros módulos): estoque (aumenta a grade), enfermaria (cura entre raids), cozinha/água, gerador, oficina (crafting), estação de renda passiva, módulo que reduz o cooldown do scav.
-- Produção/crafting com tempo real (continua com o jogo fechado — cálculo de progresso offline ao carregar o save).
-
-## Fase 8 — Flea market ✅
-
-- Desbloqueado por nível do PMC.
-- Preços dinâmicos (oferta/demanda simuladas, variação com o tempo, influência das vendas do jogador).
-- Taxa de anúncio, listagem de itens do jogador com venda probabilística ao longo do tempo.
-- Itens "found in raid" exigidos para vender certos itens.
-
-## Fase 9 — Progressão idle e polimento ✅ (menos arte e sons próprios)
-
-Dividida em sub-fases (uma por commit): 9A resumo do tempo fora ✅, 9B loadouts salvos e reequipar com um clique ✅, 9C raids automáticas em sequência ✅, 9D configurações, tutorial e animações ✅. Arte e sons próprios ficam para quando houver os arquivos.
-
-- Progresso offline (produção, cooldowns, vendas no flea).
-- Raids automáticas em sequência com regras do jogador (ex.: "parar se vida < X", "usar loadout salvo").
-- Loadouts salvos e "reequipar com um clique" comprando faltantes.
-- Balanceamento (planilhas/simulações via testes de Monte Carlo com seed).
-- Arte 2D (sprites de itens em escala de células), sons, animações, configurações, tutorial.
-
-## Fase 10 — Pendências de jogo ✅
-
-Uma sub-fase por commit:
-
-- ✅ **10A — Durabilidade da armadura:** colete e capacete se desgastam com os acertos, protegem menos quando gastos, valem menos e podem ser reparados por um vendedor.
-- ✅ **10B — Cirurgia na raid:** parte do corpo destruída só volta com um item de kit cirúrgico (nome próprio), usado **durante a raid**. A cirurgia leva tempo e dá uma chance de encontro surpresa enquanto o PMC está vulnerável; as skills do PMC aumentam a chance de sobreviver ao encontro e de abater o inimigo. Substitui a "cirurgia de campo provisória" ao extrair. A Enfermaria nível 2 também opera, devagar.
-- ✅ **10C — Câmara da arma e escopeta:** cartucho na câmara e armas sem carregador (tubo interno).
-- ✅ **10D — Inimigos com equipamento de verdade:** arma, munição e armadura dos inimigos vêm de itens do catálogo, e o corpo revistado pode deixar esses itens.
-- ✅ **10E — Quests no resumo da raid:** mostrar as quests que avançaram.
-- ✅ **10F — Rolagem do estoque grande:** o inventário rola em vez de só diminuir a escala.
-
----
-
-## Estratégia de testes
-
-- **Scripts de dados (`scripts/`)**: testados com fixtures das respostas da API e um banco SQLite em memória; nenhum teste acessa a rede.
-
-- **Core (`src/core`)**: testes unitários puros com Vitest; RNG e relógio injetados tornam tudo determinístico. Testes de propriedade para a grade (nenhuma célula ocupada duas vezes, itens sempre dentro dos limites).
-- **UI (`src/ui`)**: lógica de interação (drag & drop, cálculo de célula sob o cursor, prévias) separada em funções puras testáveis; componentes PixiJS testados com o ambiente `jsdom` e PixiJS mockado onde necessário.
-- **Simulação**: testes estatísticos com seed fixa para garantir que taxas de sobrevivência ficam dentro das faixas de balanceamento.
-- Cobertura de 100% obrigatória no CI.
-
-## Ordem sugerida das primeiras tarefas
-
-1. Fase 0 completa.
-2. `Grid` + testes (sem UI).
-3. Itens e contêineres aninhados + testes.
-4. UI da grade com drag & drop.
-5. ✅ Base de dados local de itens (2A) e tooltip com descrição (2B).
-6. ✅ Carregadores e munição (2C).
-7. ✅ PMC + skills + save (2D).
-8. ✅ Primeira raid simulada ponta a ponta (Fase 3).
-9. ✅ Raid Scav (Fase 4).
-10. ✅ Vendedores e economia (Fase 5).
-11. ✅ Quests e final do jogo (Fase 6).
-12. ✅ Esconderijo (Fase 7).
-13. ✅ Flea market (Fase 8).
-14. ✅ Resumo do tempo fora (Fase 9A).
-15. ✅ Loadouts (Fase 9B).
-16. ✅ Raids automáticas (Fase 9C).
-17. ✅ Configurações, tutorial e animações (Fase 9D).
-18. ✅ Durabilidade da armadura (Fase 10A).
-19. ✅ Cirurgia na raid e na enfermaria (Fase 10B).
-20. ✅ Câmara da arma e escopeta com tubo interno (Fase 10C).
-21. ✅ Inimigos com equipamento de verdade (Fase 10D).
-22. ✅ Quests que avançaram no resumo da raid (Fase 10E).
-23. ✅ Rolagem do estoque grande (Fase 10F).
+- Mercado avançado (vagas por nível, anúncios de outros jogadores, preço sugerido).
+- Automação das raids automáticas (retomar depois de curar, alternar mapas, dinheiro mínimo) e quests no resumo do tempo fora.
+- Durabilidade das armas, kit cirúrgico com vários usos, novos mapas e vendedores.
+- Multiplayer sobre o servidor Colyseus (já usado pelo balanceamento e pelas contas).

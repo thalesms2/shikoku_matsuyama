@@ -2,7 +2,7 @@
 
 RPG idle 2D de extração feito com PixiJS. Gerencie seu PMC, equipe-o, mande-o para raids, organize o loot no esconderijo e complete as quests para escapar da cidade.
 
-> Projeto em desenvolvimento. Veja o [plano de desenvolvimento](./PLANO.md).
+> Projeto em desenvolvimento. Veja o [plano de desenvolvimento](./PLANO.md) e o [histórico](./docs/historico.md).
 
 ## Como rodar
 

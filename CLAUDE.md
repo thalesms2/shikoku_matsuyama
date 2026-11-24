@@ -33,7 +33,7 @@ O jogador gerencia seu **PMC** (o personagem principal), preso em uma cidade iso
 - O jogo é **original**: nomes de vendedores, mapas, cidade, facções e itens devem ser próprios — não usar nomes, personagens, arte ou marcas de Escape from Tarkov. Apenas as mecânicas do gênero servem de inspiração.
 - A API do tarkov.dev pode ser usada **só em desenvolvimento** e **só para dados factuais e de balanceamento** (tamanho em células, pilha, calibre, capacidade, dano, penetração, preço de referência). Nomes e descrições dos itens são próprios (os textos do Escape from Tarkov não entram no projeto).
 - As imagens dos itens do tarkov.dev podem ser usadas **só como placeholder temporário em desenvolvimento**: ficam fora do git (`public/assets/items/` no `.gitignore`), são marcadas `status = "placeholder"` no banco e serão todas substituídas por arte própria.
-- O jogo **nunca acessa a API em execução**: os dados ficam no banco local (`data/items.db`, SQLite) e são exportados para `src/data/generated/items.json`. Veja a Fase 2A do `PLANO.md`.
+- O jogo **nunca acessa a API em execução**: os dados ficam no banco local (`data/items.db`, SQLite) e são exportados para `src/data/generated/items.json`. Veja [`docs/pipeline-de-itens.md`](./docs/pipeline-de-itens.md).
 
 ## Stack técnica
 
@@ -78,7 +78,7 @@ O jogador gerencia seu **PMC** (o personagem principal), preso em uma cidade iso
 - Para testar a simulação da raid passo a passo, use `ScriptRng` (`tests/core/raid/raidFixtures.ts`): filas de respostas para `chance`, `int`, `pick` e `weighted`, consumidas na ordem em que a simulação chama o RNG.
 - `view.emit(...)` do Pixi não propaga o evento para os pais; para testar handlers no container pai (ex.: fechar o menu de contexto), emita o evento no pai com o `target` desejado.
 
-Veja o plano completo em [`PLANO.md`](./PLANO.md).
+Veja o plano atual em [`PLANO.md`](./PLANO.md). O histórico das Fases 0 a 10, o pipeline de itens e a estratégia de testes estão em [`docs/`](./docs/) (`historico.md`, `pipeline-de-itens.md`, `testes.md`).
 
 ## Regras obrigatórias para o agente
 

@@ -183,6 +183,11 @@ Na tela de preparação da raid, o botão **Automático** faz raids uma depois d
 - **Como anda:** cada raid começa 5 segundos depois de o log da anterior terminar. Sem arma com munição, ou faltando algo do loadout, a sequência para e mostra o motivo.
 - **Acompanhar:** a tela mostra a situação, os totais e as últimas raids, e **Ver raid atual** abre o log da raid em andamento. Ao voltar ao jogo, o resumo diz quantas raids aconteceram enquanto você estava fora.
 
+### Configurações e tutorial
+
+- **Tutorial:** num jogo novo, um painel no inventário explica o básico em 8 passos. Dá para pular, e ele pode ser revisto nas configurações.
+- **Configurações** (botão na tela de título): volume dos efeitos, atraso do tooltip, velocidade inicial do log da raid e animações (transição entre telas). As configurações ficam neste navegador, separadas do save.
+
 ### Enquanto você estava fora
 
 O tempo continua passando com o jogo fechado: obras e produções do esconderijo terminam, a central junta renda, o PMC se recupera, os anúncios do mercado vendem ou vencem, a raid Scav libera e os vendedores repõem o estoque. Ao voltar (depois de pelo menos 1 minuto), uma tela mostra um resumo do que aconteceu antes de seguir para o jogo.

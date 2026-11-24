@@ -51,7 +51,7 @@ O jogador gerencia seu **PMC** (o personagem principal), preso em uma cidade iso
 - `src/data/` — definições estáticas (itens, mapas, vendedores, quests, módulos do esconderijo).
 - `src/ui/` — telas e componentes PixiJS; apenas leem estado e disparam ações do core.
 - `src/game.ts` — `startGame()`: inicia o PixiJS, carrega assets e mostra a primeira cena. `src/main.ts` só chama `startGame`.
-- `src/ui/SceneManager.ts` — troca de cenas; toda tela implementa a interface `Scene` (`view`, `resize?`, `update?`, `destroy?`).
+- `src/ui/SceneManager.ts` — troca de cenas; toda tela implementa a interface `Scene` (`view`, `resize?`, `update?`, `destroy?`). `fadeMs` (padrão 0) faz a cena nova entrar com fade.
 - `src/core/state.ts` — `PlayerState` (inventário, PMC, skills, `ItemFactory`, `MagazineLoader`, o perfil de raid `raid`, o perfil Scav `scav`, os vendedores `traders`, as quests `quests`, o esconderijo `hideout`, o mercado `flea`, os loadouts `loadouts` e as raids automáticas `auto`): tudo que vai para o save. `storageFor()` decide onde guardar o que sai de um item.
 - `src/core/pmc/` — PMC, skills e consumíveis. `src/core/save/` — formato, serialização, migrações e armazenamento do save.
 - `src/core/raid/` — raid do PMC: tipos (`types.ts`), estratégias e karma (`strategy.ts`), fórmulas de combate (`combat.ts`), loot (`loot.ts`), simulação (`simulate.ts`, classe `RaidSimulation`) e perfil/reprodução (`profile.ts`) e raid Scav (`scav.ts`). Mapas e inimigos ficam em `src/data/maps.ts`; o equipamento do Scav, em `src/data/scav.ts`.
@@ -61,6 +61,7 @@ O jogador gerencia seu **PMC** (o personagem principal), preso em uma cidade iso
 - `src/core/flea/` — mercado: tipos (`types.ts`) e regras (`flea.ts`: preço com tendência e pressão, compra, anúncio, taxa, sorteio das vendas, `fleaTick`). A configuração fica em `src/data/flea.ts`; a tela é `src/ui/scenes/FleaScene.ts`.
 - `src/core/loadout/` — loadouts: tipos (`types.ts`) e regras (`loadout.ts`: foto do equipamento, o que falta, montar do estoque, onde comprar, comprar o que falta). A tela é `src/ui/scenes/LoadoutScene.ts` (aberta pela preparação da raid).
 - `src/core/auto/` — raids automáticas: tipos (`types.ts`) e regras (`auto.ts`: começar/parar, `autoTick`, regras de parada). A tela é `src/ui/scenes/AutoRaidScene.ts` (aberta pela preparação da raid).
+- `src/core/settings.ts` — configurações do aparelho (fora do save). Tutorial em `src/data/tutorial.ts` e `src/ui/components/TutorialPanel.ts`; tela `src/ui/scenes/SettingsScene.ts`; som em `src/ui/audio.ts`.
 - `src/core/offline.ts` — tempo com o jogo fechado: `catchUp` passa o tempo (esconderijo e mercado) e devolve o resumo (`OfflineReport`); a tela é `src/ui/scenes/OfflineScene.ts`.
 - `src/data/newGame.ts` — `createNewPlayer()` e `loadOrCreatePlayer()`.
 - `src/core/rng.ts`, `src/core/events.ts`, `src/core/clock.ts` — `Rng` com seed, `EventBus` tipado e `Clock` injetável (use `ManualClock` nos testes).
@@ -70,6 +71,7 @@ O jogador gerencia seu **PMC** (o personagem principal), preso em uma cidade iso
 
 ### Armadilhas conhecidas nos testes
 
+- Os testes de jogo existentes simulam `@pixi/sound` como `{}`; acessar um export que falta nesse mock lança erro. Por isso `src/ui/audio.ts` lê `sound` dentro de `try`.
 - Não devolva valor em `beforeEach`/`beforeAll` (ex.: `beforeEach(() => mock.mockReset())`): o Vitest trata a função retornada como teardown e a executa depois do teste. Use chaves: `beforeEach(() => { mock.mockReset(); })`.
 - Variáveis usadas dentro de `vi.mock(...)` precisam vir de `vi.hoisted(...)`.
 - Não importe helpers de um arquivo `*.test.ts` em outro: os testes do arquivo importado rodam de novo. Coloque fixtures compartilhadas em arquivos sem `.test` (ex.: `tests/core/inventory/magFixtures.ts`).
@@ -364,3 +366,12 @@ Modelo de entrada para novas mecânicas:
 - **Navegação:** com a sequência rodando, o título leva às raids automáticas (depois do resumo). "Ver raid atual" abre a `RaidScene`, e fechá-la volta para as raids automáticas.
 - **Tela:** um botão por regra (clique troca o valor), "Começar"/"Parar" (começar já faz a primeira raid na hora), "Ver raid atual", a situação (rodando, próxima em, esperando a vida, esperando o jogador fechar a raid, parado e o motivo), os totais e as últimas 10 raids. Atualiza a cada `AUTO_REFRESH_MS = 500` ms.
 - Pendências: retomar sozinha depois de curar quando a regra é "parar", alternar mapas, regra de dinheiro mínimo.
+
+### Configurações, tutorial, animações e som
+
+- Arquivos: `src/core/settings.ts`, `src/ui/scenes/SettingsScene.ts` (botão "Configurações" na `TitleScene`), `src/data/tutorial.ts` (`TUTORIAL`), `src/ui/components/TutorialPanel.ts`, `src/ui/audio.ts`, `Button.feedback`/hover em `src/ui/components/Button.ts`, `SceneManager.fadeMs`.
+- **Configurações** (`Settings`, chave `escape-from-idle:settings`, separada do save porque é do aparelho; o save não mudou de versão): volume dos efeitos (0/25/50/75/100%, padrão 50%), atraso do tooltip (0/300/600 ms, padrão 300), velocidade inicial do log da raid (x1/x4/x16, padrão x1), animações (padrão ligadas) e o passo do tutorial. `loadSettings` devolve o padrão para JSON ilegível e para cada valor fora das opções. Cada mudança na tela é aplicada e guardada na hora (`applySettings` em `game.ts`). O botão de configurações no título interrompe a propagação do clique, para não começar o jogo.
+- **Tutorial:** 8 passos (`TUTORIAL`) num painel no canto de baixo à direita do inventário (`InventoryScene` aceita `tutorial` e chama `layout` no resize). "Próximo" avança (no último, "Concluir") e "Pular" termina; o passo vai para as configurações. Com o passo no fim, o painel não aparece. "Rever o tutorial" volta ao passo 0.
+- **Animações:** com elas ligadas, `SceneManager.fadeMs = FADE_MS (200)`, e a cena nova vai de alpha 0 a 1 linearmente no `update`. Os botões clareiam o fundo com o ponteiro em cima (`HOVER_TINT`, pelo `tint`, sem mexer no alpha usado para "desativado").
+- **Som:** `Button.feedback` toca `sfx-press` (do template) a cada clique, pelo `playSound`, com o volume das configurações. Volume 0, som não carregado, módulo ausente ou erro do navegador não tocam nada.
+- Pendências: arte própria dos itens (substituir os placeholders), músicas e mais efeitos sonoros, animações nas telas de raid e inventário.

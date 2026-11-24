@@ -14,6 +14,9 @@ export interface Scene {
 /** Troca a cena ativa no stage e repassa resize e update para ela */
 export class SceneManager {
   private active: Scene | null = null;
+  /** Duração do fade ao entrar numa cena (0 = sem animação) */
+  fadeMs = 0;
+  private fading = 0;
   private width: number;
   private height: number;
 
@@ -35,6 +38,8 @@ export class SceneManager {
     this.clear();
     this.active = scene;
     this.stage.addChild(scene.view);
+    this.fading = this.fadeMs;
+    if (this.fading > 0) scene.view.alpha = 0;
     scene.resize?.(this.width, this.height);
   }
 
@@ -45,7 +50,12 @@ export class SceneManager {
   }
 
   update(deltaMs: number): void {
-    this.active?.update?.(deltaMs);
+    const scene = this.active;
+    if (scene && this.fading > 0) {
+      this.fading = Math.max(0, this.fading - deltaMs);
+      scene.view.alpha = 1 - this.fading / this.fadeMs;
+    }
+    scene?.update?.(deltaMs);
   }
 
   /** Remove e destrói a cena atual, se houver */

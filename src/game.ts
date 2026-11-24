@@ -19,6 +19,8 @@ import {
   browserStorage,
   saveGame,
 } from "./core/save/storage.ts";
+import { SETTINGS_KEY, loadSettings, saveSettings } from "./core/settings.ts";
+import type { Settings } from "./core/settings.ts";
 import { FLEA } from "./data/flea.ts";
 import { HIDEOUT } from "./data/hideout.ts";
 import { ITEM_DEFS } from "./data/items.ts";
@@ -26,7 +28,11 @@ import { ENEMIES, MAPS, mapById } from "./data/maps.ts";
 import { loadOrCreatePlayer } from "./data/newGame.ts";
 import { QUESTS } from "./data/quests.ts";
 import { TRADERS } from "./data/traders.ts";
+import { TUTORIAL } from "./data/tutorial.ts";
 import { gameReady, initPlatform, setLoadingProgress } from "./platform.ts";
+import { playSound, setVolume } from "./ui/audio.ts";
+import { Button } from "./ui/components/Button.ts";
+import { TutorialPanel } from "./ui/components/TutorialPanel.ts";
 import { loadItemTextures } from "./ui/inventory/textures.ts";
 import { SceneManager } from "./ui/SceneManager.ts";
 import { AutoRaidScene, describeAutoRun } from "./ui/scenes/AutoRaidScene.ts";
@@ -40,9 +46,13 @@ import { OfflineScene } from "./ui/scenes/OfflineScene.ts";
 import { QuestsScene } from "./ui/scenes/QuestsScene.ts";
 import { RaidScene } from "./ui/scenes/RaidScene.ts";
 import { RaidSetupScene } from "./ui/scenes/RaidSetupScene.ts";
+import { SettingsScene } from "./ui/scenes/SettingsScene.ts";
 import { TitleScene } from "./ui/scenes/TitleScene.ts";
 import { TradersScene } from "./ui/scenes/TradersScene.ts";
 import { theme } from "./ui/theme.ts";
+
+/** Duração do fade entre telas (com as animações ligadas) */
+export const FADE_MS = 200;
 
 /** Intervalo do cálculo do esconderijo e do mercado com o jogo aberto */
 export const HIDEOUT_TICK_MS = 1000;
@@ -55,6 +65,8 @@ export async function startGame(
   const clock = options.clock ?? systemClock;
   const storage = browserStorage(SAVE_KEY, options.storage);
   const backup = browserStorage(`${SAVE_KEY}:backup`, options.storage);
+  const settingsStorage = browserStorage(SETTINGS_KEY, options.storage);
+  const settings = loadSettings(settingsStorage);
   await initPlatform();
 
   const app = new Application();
@@ -80,6 +92,15 @@ export async function startGame(
     app.screen.width,
     app.screen.height,
   );
+
+  /** Aplica e guarda as configurações */
+  const applySettings = (next: Settings) => {
+    saveSettings(settingsStorage, next);
+    setVolume(next.volume);
+    scenes.fadeMs = next.animations ? FADE_MS : 0;
+  };
+  applySettings(settings);
+  Button.feedback = () => playSound("sfx-press");
 
   app.renderer.on("resize", (width: number, height: number) =>
     scenes.resize(width, height),
@@ -139,7 +160,14 @@ export async function startGame(
   const showInventory = () =>
     scenes.change(
       new InventoryScene(player.inventory, {
-        tooltipDelayMs: 300,
+        tooltipDelayMs: settings.tooltipDelayMs,
+        tutorial:
+          settings.tutorialStep < TUTORIAL.length
+            ? new TutorialPanel(TUTORIAL, settings.tutorialStep, (step) => {
+                settings.tutorialStep = step;
+                applySettings(settings);
+              })
+            : undefined,
         player,
         onOpenCharacter: showCharacter,
         onOpenRaid: showRaidSetup,
@@ -248,6 +276,7 @@ export async function startGame(
       new RaidScene(player, {
         clock,
         map: mapById(active.summary.map) ?? MAPS[0],
+        speed: settings.raidSpeed,
         onDone: () => {
           save();
           after();
@@ -279,7 +308,15 @@ export async function startGame(
     else showInventory();
   };
 
-  scenes.change(new TitleScene(showHome));
+  const showTitle = () => scenes.change(new TitleScene(showHome, showSettings));
+  const showSettings = () =>
+    scenes.change(
+      new SettingsScene(settings, {
+        onChange: applySettings,
+        onBack: showTitle,
+      }),
+    );
+  showTitle();
 
   gameReady(app);
 

@@ -1,16 +1,24 @@
 import { Container, Rectangle, Text } from "pixi.js";
 
+import { Button } from "../components/Button.ts";
 import type { Scene } from "../SceneManager.ts";
 import { theme } from "../theme.ts";
 
-/** Tela inicial com o nome do jogo. Com `onStart`, um clique começa o jogo. */
+/**
+ * Tela inicial com o nome do jogo. Com `onStart`, um clique começa o jogo;
+ * com `onSettings`, um botão abre as configurações.
+ */
 export class TitleScene implements Scene {
   readonly view = new Container({ label: "TitleScene" });
   readonly title: Text;
   readonly subtitle: Text;
+  readonly settingsButton: Button | null = null;
   private elapsed = 0;
 
-  constructor(readonly onStart?: () => void) {
+  constructor(
+    readonly onStart?: () => void,
+    onSettings?: () => void,
+  ) {
     this.title = new Text({
       text: "ESCAPE FROM IDLE",
       anchor: 0.5,
@@ -37,6 +45,15 @@ export class TitleScene implements Scene {
       this.view.cursor = "pointer";
       this.view.on("pointertap", () => onStart());
     }
+    if (onSettings) {
+      this.settingsButton = new Button("Configurações", onSettings, 160, 32);
+      // O clique no botão não começa o jogo
+      this.settingsButton.on(
+        "pointertap",
+        (e?: { stopPropagation?: () => void }) => e?.stopPropagation?.(),
+      );
+      this.view.addChild(this.settingsButton);
+    }
   }
 
   resize(width: number, height: number): void {
@@ -47,6 +64,7 @@ export class TitleScene implements Scene {
     this.subtitle.scale.set(scale);
     this.title.position.set(width / 2, height / 2 - 30 * scale);
     this.subtitle.position.set(width / 2, height / 2 + 40 * scale);
+    this.settingsButton?.position.set(width / 2 - 80, height - 64);
   }
 
   /** Faz o subtítulo pulsar suavemente */

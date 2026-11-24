@@ -21,6 +21,7 @@ import { catalog } from "../../data/items.ts";
 import type { InventoryState } from "../../data/starter.ts";
 import { Button } from "../components/Button.ts";
 import { ContextMenu } from "../components/ContextMenu.ts";
+import type { TutorialPanel } from "../components/TutorialPanel.ts";
 import { itemActions } from "../inventory/actions.ts";
 import { ContainerWindow } from "../inventory/ContainerWindow.ts";
 import { DragController } from "../inventory/DragController.ts";
@@ -87,6 +88,8 @@ export class InventoryScene implements Scene {
   private readonly clock: Clock;
   /** Tempo com o mouse parado sobre o item antes de mostrar o tooltip */
   readonly tooltipDelayMs: number;
+  /** Painel do tutorial (se houver) */
+  readonly tutorial: TutorialPanel | null;
   private pendingTooltip: {
     item: Item;
     x: number;
@@ -118,10 +121,13 @@ export class InventoryScene implements Scene {
       /** Mostra o botão "Esconderijo" */
       onOpenHideout?: () => void;
       onOpenFlea?: () => void;
+      /** Painel do tutorial, por cima de tudo, no canto da tela */
+      tutorial?: TutorialPanel;
     } = {},
   ) {
     this.clock = options.clock ?? systemClock;
     this.tooltipDelayMs = options.tooltipDelayMs ?? 0;
+    this.tutorial = options.tutorial ?? null;
     this.player = options.player ?? null;
     this.factory =
       options.player?.factory ?? options.factory ?? new ItemFactory(catalog);
@@ -238,6 +244,7 @@ export class InventoryScene implements Scene {
     }
 
     this.view.addChild(this.content);
+    if (options.tutorial) this.view.addChild(options.tutorial);
     this.content.addChild(this.overlay);
     this.overlay.addChild(this.tooltip, this.contextMenu);
     // Clique fora do menu fecha o menu
@@ -310,6 +317,7 @@ export class InventoryScene implements Scene {
   }
 
   resize(width: number, height: number): void {
+    this.tutorial?.layout(width, height);
     this.lastSize = { width, height };
     this.layout();
   }

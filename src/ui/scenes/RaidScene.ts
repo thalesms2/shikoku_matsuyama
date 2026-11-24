@@ -172,11 +172,14 @@ export class RaidScene implements Scene {
       clock: Clock;
       map: MapDef;
       onDone: () => void;
+      /** Velocidade inicial do log (padrão x1) */
+      speed?: number;
     },
   ) {
     const raid = player.raid.active;
     if (!raid) throw new Error("Não há raid em andamento");
     this.raid = raid;
+    this.speed = options.speed ?? SPEEDS[0];
     this.minute = raidMinuteAt(options.clock.now() - raid.startedAt);
 
     this.header = new Text({

@@ -1,9 +1,10 @@
 import type { SlotName } from "../inventory/equipment.ts";
 import type { PmcState } from "../pmc/pmc.ts";
 import type { SkillsState } from "../pmc/skills.ts";
+import type { RaidProfile } from "../raid/types.ts";
 
 /** Versão atual do formato do save. Mudou o formato? Incremente e migre. */
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
 
 /** Item salvo; o conteúdo vai junto (grades, cartuchos, carregador) */
 export interface SavedItem {
@@ -49,4 +50,6 @@ export interface SaveData {
   pmc: PmcState;
   skills: SkillsState;
   loader: SavedLoadJob | null;
+  /** v2: karma, estatísticas, regra de loot, seed e a raid em andamento */
+  raid?: RaidProfile;
 }

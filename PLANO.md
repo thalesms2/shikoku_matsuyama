@@ -35,11 +35,11 @@ O coração do jogo; vem primeiro porque quase tudo depende dele.
 
 ### 2A — Base de dados local de itens (sincronizada da API tarkov.dev) ✅ (falta ligar os itens à API)
 
-**Estado:** pipeline completo e testado (`scripts/items/`, comando `npm run items`). Os 22 itens atuais foram migrados para o banco como overrides completos, ainda sem `sourceId`, porque a API estava fora do ar ("GraphQL server unavailable") quando a fase foi implementada. **Próximo passo, assim que a API voltar:** `items -- sync`, ligar cada item ao seu `sourceId` (`override <id> --source ...`, limpando com `--clear` os campos que devem vir da API), `items -- images` e `items -- export`. Itens novos entram com o mesmo fluxo.
+**Estado:** pipeline completo e testado (`scripts/items/`, comando `npm run items`). O `sync` usa os dados JSON do tarkov.dev (a API GraphQL respondia 422) e já sincronizou a referência completa (5.498 itens). Os itens do jogo ainda são overrides completos sem `sourceId`. **Próximo passo:** `items -- sync`, ligar cada item ao seu `sourceId` (`override <id> --source ...`, limpando com `--clear` os campos que devem vir da API), `items -- images` e `items -- export`. Itens novos entram com o mesmo fluxo.
 
 Decisões de implementação: SQLite nativo do Node (`node:sqlite`) no lugar de `better-sqlite3`, que dispensa compilação nativa; `tsx` para rodar os scripts; uma CLI única (`npm run items -- <comando>`) no lugar de vários scripts npm.
 
-O jogo **nunca consulta a API durante a execução**. A API ([tarkov.dev](https://tarkov.dev), GraphQL em `https://api.tarkov.dev/graphql`) só é usada em desenvolvimento, por um script, para puxar itens novos ou atualizar dados. Tudo fica salvo no repositório.
+O jogo **nunca consulta a API durante a execução**. A API ([tarkov.dev](https://tarkov.dev), dados JSON em `https://json.tarkov.dev`: lista em `/endpoints`; o `sync` usa `GET /regular/items` e as traduções `GET /regular/items_en`) só é usada em desenvolvimento, por um script, para puxar itens novos ou atualizar dados. Tudo fica salvo no repositório.
 
 - **Sincronização** `npm run items -- sync`: consulta a API, normaliza os dados e grava na base local. Roda só manualmente, nunca no build nem no CI.
   - Campos de referência: `width`/`height` em células, categoria/tipos, `basePrice`, limite de pilha, calibre, capacidade de carregador, dano/penetração da munição, classe/durabilidade de armadura, slots e grades de contêineres (`grids` de mochilas e coletes táticos).
@@ -87,7 +87,9 @@ O jogo **nunca consulta a API durante a execução**. A API ([tarkov.dev](https:
 - Kit inicial básico, montado a partir do catálogo gerado.
 - **Save/load:** serialização versionada no `localStorage` com migrações (inclui `ItemFactory.nextId`, munição dentro dos carregadores e o estado de carregamentos em andamento).
 
-## Fase 3 — Raid do PMC (simulação idle)
+## Fase 3 — Raid do PMC (simulação idle) ✅
+
+**Estado:** feito. Núcleo em `src/core/raid/` (mapas e inimigos em `src/data/maps.ts`), telas `RaidSetupScene` e `RaidScene`, perfil de raid no save v2 (com migração). A raid é resolvida inteira ao entrar (seed salva no perfil) e o log é revelado em tempo real. Ficaram para depois: desgaste da armadura, armas sem carregador (escopeta), itens "encontrados na raid" (Fase 6) e equipamento real dos inimigos.
 
 - **Mapas:** cada mapa com dificuldade, duração, tabela de loot, extrações (algumas com requisito: chave, pagamento, sem mochila) e tipos de ameaça.
 - **Estratégias:** furtivo / equilibrado / agressivo — afetam encontros, loot e risco.
@@ -159,4 +161,4 @@ O jogo **nunca consulta a API durante a execução**. A API ([tarkov.dev](https:
 5. ✅ Base de dados local de itens (2A) e tooltip com descrição (2B).
 6. ✅ Carregadores e munição (2C).
 7. ✅ PMC + skills + save (2D).
-8. Primeira raid simulada ponta a ponta.
+8. ✅ Primeira raid simulada ponta a ponta (Fase 3).

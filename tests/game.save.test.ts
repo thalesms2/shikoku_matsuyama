@@ -3,6 +3,7 @@ import type * as Pixi from "pixi.js";
 import { describe, expect, it, vi } from "vitest";
 
 import { ManualClock } from "../src/core/clock.ts";
+import { SAVE_VERSION } from "../src/core/save/format.ts";
 import { SAVE_KEY } from "../src/core/save/storage.ts";
 import { CharacterScene } from "../src/ui/scenes/CharacterScene.ts";
 import { InventoryScene } from "../src/ui/scenes/InventoryScene.ts";
@@ -58,7 +59,7 @@ describe("startGame: save", () => {
     const { storage } = await start();
     expect(storage.map.has(SAVE_KEY)).toBe(false);
     for (const tick of tickers) tick({ deltaMS: 5000 });
-    expect(JSON.parse(storage.map.get(SAVE_KEY)!).version).toBe(1);
+    expect(JSON.parse(storage.map.get(SAVE_KEY)!).version).toBe(SAVE_VERSION);
   });
 
   it("salva ao fechar a página", async () => {

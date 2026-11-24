@@ -17,7 +17,11 @@ export interface ReferenceItem {
   basePrice: number;
   maxStack: number | null;
   caliber: string | null;
-  /** Capacidade de carregadores */
+  /**
+   * Capacidade de carregadores. A fonte também manda `capacity` em
+   * contêineres (total de células), que é ignorado: quem tem grade não é
+   * carregador.
+   */
   capacity: number | null;
   damage: number | null;
   penetration: number | null;
@@ -43,6 +47,7 @@ function grids(value: unknown): ApiGrid[] {
 /** Converte um item da API para os dados de referência do jogo */
 export function toReference(item: ApiItem): ReferenceItem {
   const p: Record<string, unknown> = item.properties ?? {};
+  const itemGrids = grids(p.grids);
   return {
     sourceId: item.id,
     sourceName: item.name,
@@ -55,12 +60,12 @@ export function toReference(item: ApiItem): ReferenceItem {
     basePrice: item.basePrice,
     maxStack: num(p.stackMaxSize),
     caliber: str(p.caliber),
-    capacity: num(p.capacity),
+    capacity: itemGrids.length === 0 ? num(p.capacity) : null,
     damage: num(p.damage),
     penetration: num(p.penetrationPower),
     armorClass: num(p.class),
     durability: num(p.durability),
-    grids: grids(p.grids),
+    grids: itemGrids,
     imageUrl: str(item.gridImageLink),
   };
 }

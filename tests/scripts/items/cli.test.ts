@@ -14,11 +14,10 @@ import {
 import type { CliDeps } from "../../../scripts/items/cli.ts";
 import { getAsset, getOverride, openDb } from "../../../scripts/items/db.ts";
 import { API_ITEMS, jsonFetch } from "./fixtures.ts";
+import { tarkovFetch } from "./tarkovFixtures.ts";
 
 /** Projeto temporário com banco em arquivo e saída capturada */
-function project(
-  fetchFn: CliDeps["fetchFn"] = jsonFetch({ data: { items: API_ITEMS } }),
-) {
+function project(fetchFn: CliDeps["fetchFn"] = tarkovFetch()) {
   const root = mkdtempSync(join(tmpdir(), "items-cli-"));
   mkdirSync(join(root, "data"));
   const out: string[] = [];
@@ -73,7 +72,9 @@ describe("main", () => {
   it("sync informa o erro da API", async () => {
     const { cli, err } = project(jsonFetch({ errors: ["fora do ar"] }, 422));
     expect(await cli("sync")).toBe(1);
-    expect(err).toEqual(["Erro da API (422): fora do ar"]);
+    expect(err).toEqual([
+      "A API respondeu 422 em https://json.tarkov.dev/regular/items",
+    ]);
   });
 
   it("search lista os resultados e respeita --limit", async () => {
@@ -193,12 +194,12 @@ describe("main", () => {
   });
 
   it("images baixa os placeholders e lista as falhas", async () => {
-    const fetchFn = vi.fn(async (url: string) =>
-      url.endsWith("graphql")
-        ? new Response(JSON.stringify({ data: { items: API_ITEMS } }))
-        : url.includes("src-ammo")
+    const fetchFn = vi.fn(
+      tarkovFetch(API_ITEMS, (url) =>
+        url.includes("src-ammo")
           ? new Response("x", { status: 500 })
           : new Response("img"),
+      ),
     );
     const { cli, out, err, root, db } = project(fetchFn);
     await cli("sync");
@@ -218,11 +219,7 @@ describe("main", () => {
   });
 
   it("final, placeholders e o fluxo completo de troca de arte", async () => {
-    const { cli, out, err, root, db } = project(async (url) =>
-      String(url).endsWith("graphql")
-        ? new Response(JSON.stringify({ data: { items: API_ITEMS } }))
-        : new Response("img"),
-    );
+    const { cli, out, err, root, db } = project(tarkovFetch());
     await cli("sync");
     await cli("placeholders");
     expect(out).toEqual(["Nenhum item usa imagem placeholder"]);

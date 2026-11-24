@@ -9,6 +9,7 @@
     "maxStack": 20,
     "basePrice": 60,
     "description": "Cartuchos de chumbo grosso para escopeta. Espalham bastante e param qualquer um de perto.",
+    "image": "assets/items/ammo_12g.webp",
     "stats": {
       "caliber": "Caliber12g",
       "damage": 200,
@@ -25,6 +26,7 @@
     "maxStack": 60,
     "basePrice": 90,
     "description": "Munição de fuzil com ponta de chumbo encamisada. Barata e fácil de achar, mas sofre contra coletes mais pesados.",
+    "image": "assets/items/ammo_545.webp",
     "stats": {
       "caliber": "Caliber545x39",
       "damage": 45,
@@ -41,6 +43,7 @@
     "maxStack": 50,
     "basePrice": 45,
     "description": "Cartucho de pistola padrão. Encontrado em quase toda gaveta de delegacia abandonada.",
+    "image": "assets/items/ammo_9mm.webp",
     "stats": {
       "caliber": "Caliber9x19PARA",
       "damage": 54,
@@ -64,7 +67,8 @@
         ]
       }
     ],
-    "description": "Caixa metálica com divisórias para organizar munição. Só aceita cartuchos."
+    "description": "Caixa metálica com divisórias para organizar munição. Só aceita cartuchos.",
+    "image": "assets/items/ammo_case.webp"
   },
   {
     "id": "armor_civil",
@@ -75,7 +79,12 @@
     "height": 3,
     "basePrice": 12000,
     "equipSlot": "armor",
-    "description": "Colete de proteção vendido para seguranças particulares. Para tiros de pistola, mas pesa nos ombros."
+    "description": "Colete de proteção vendido para seguranças particulares. Para tiros de pistola, mas pesa nos ombros.",
+    "image": "assets/items/armor_civil.webp",
+    "stats": {
+      "armorClass": 2,
+      "durability": 40
+    }
   },
   {
     "id": "backpack_hiker",
@@ -95,7 +104,8 @@
         ]
       }
     ],
-    "description": "Mochila de trilha com armação interna. Espaçosa e confortável para longas caminhadas pela cidade."
+    "description": "Mochila de trilha com armação interna. Espaçosa e confortável para longas caminhadas pela cidade.",
+    "image": "assets/items/backpack_hiker.webp"
   },
   {
     "id": "backpack_sack",
@@ -115,7 +125,8 @@
         ]
       }
     ],
-    "description": "Saco de lona costurado à mão com alças improvisadas. Pouco espaço, mas melhor do que nada."
+    "description": "Saco de lona costurado à mão com alças improvisadas. Pouco espaço, mas melhor do que nada.",
+    "image": "assets/items/backpack_sack.webp"
   },
   {
     "id": "barter_bolts",
@@ -125,7 +136,8 @@
     "width": 1,
     "height": 1,
     "basePrice": 2500,
-    "description": "Punhado de parafusos e porcas variados. Mecânicos e artesãos sempre pagam por eles."
+    "description": "Punhado de parafusos e porcas variados. Mecânicos e artesãos sempre pagam por eles.",
+    "image": "assets/items/barter_bolts.webp"
   },
   {
     "id": "barter_goldchain",
@@ -135,7 +147,8 @@
     "width": 1,
     "height": 1,
     "basePrice": 20000,
-    "description": "Corrente de ouro maciço. Pequena, leve e valiosa: o loot preferido de quem sabe o que procura."
+    "description": "Corrente de ouro maciço. Pequena, leve e valiosa: o loot preferido de quem sabe o que procura.",
+    "image": "assets/items/barter_goldchain.webp"
   },
   {
     "id": "barter_gpu",
@@ -145,7 +158,8 @@
     "width": 2,
     "height": 1,
     "basePrice": 120000,
-    "description": "Placa de vídeo de alto desempenho. Muito procurada por quem ainda mantém servidores funcionando."
+    "description": "Placa de vídeo de alto desempenho. Muito procurada por quem ainda mantém servidores funcionando.",
+    "image": "assets/items/barter_gpu.webp"
   },
   {
     "id": "food_can",
@@ -156,6 +170,7 @@
     "height": 1,
     "basePrice": 1500,
     "description": "Lata de carne em conserva com validade duvidosa. Mata a fome por algumas horas.",
+    "image": "assets/items/food_can.webp",
     "stats": {
       "energy": 45,
       "hydration": -5
@@ -170,6 +185,7 @@
     "height": 2,
     "basePrice": 1800,
     "description": "Garrafa de água mineral lacrada. Na cidade isolada, vale mais do que parece.",
+    "image": "assets/items/food_water.webp",
     "stats": {
       "hydration": 60
     }
@@ -183,7 +199,12 @@
     "height": 2,
     "basePrice": 9000,
     "equipSlot": "helmet",
-    "description": "Capacete de aço com forro de lona. Não segura tiro de fuzil, mas desvia estilhaços e pancadas."
+    "description": "Capacete de aço com forro de lona. Não segura tiro de fuzil, mas desvia estilhaços e pancadas.",
+    "image": "assets/items/helmet_tk1.webp",
+    "stats": {
+      "armorClass": 2,
+      "durability": 30
+    }
   },
   {
     "id": "key_garage",
@@ -193,7 +214,8 @@
     "width": 1,
     "height": 1,
     "basePrice": 5000,
-    "description": "Chave de uma garagem trancada na zona industrial. Ninguém sabe ao certo o que ficou lá dentro."
+    "description": "Chave de uma garagem trancada na zona industrial. Ninguém sabe ao certo o que ficou lá dentro.",
+    "image": "assets/items/key_garage.webp"
   },
   {
     "id": "mag_pk9",
@@ -204,9 +226,10 @@
     "height": 1,
     "basePrice": 700,
     "description": "Carregador de aço para a PK-9. Leva doze cartuchos de 9mm.",
+    "image": "assets/items/mag_pk9.webp",
     "stats": {
-      "caliber": "Caliber9x19PARA",
-      "capacity": 12
+      "capacity": 12,
+      "caliber": "Caliber9x19PARA"
     }
   },
   {
@@ -218,9 +241,10 @@
     "height": 2,
     "basePrice": 1500,
     "description": "Carregador curvo de polímero para o VK-74. Arraste munição 5.45 sobre ele para carregar.",
+    "image": "assets/items/mag_vk74.webp",
     "stats": {
-      "caliber": "Caliber545x39",
-      "capacity": 30
+      "capacity": 30,
+      "caliber": "Caliber545x39"
     }
   },
   {
@@ -232,6 +256,7 @@
     "height": 1,
     "basePrice": 800,
     "description": "Rolo de gaze estéril. Estanca sangramentos leves.",
+    "image": "assets/items/med_bandage.webp",
     "stats": {
       "heal": 15
     }
@@ -245,6 +270,7 @@
     "height": 1,
     "basePrice": 4500,
     "description": "Kit de primeiros socorros com ataduras, antisséptico e analgésicos. Recupera boa parte da saúde.",
+    "image": "assets/items/med_kit.webp",
     "stats": {
       "heal": 120
     }
@@ -258,7 +284,8 @@
     "height": 1,
     "maxStack": 500000,
     "basePrice": 1,
-    "description": "Notas da antiga moeda local. Ainda aceitas por vendedores, contrabandistas e quem tiver algo para vender."
+    "description": "Notas da antiga moeda local. Ainda aceitas por vendedores, contrabandistas e quem tiver algo para vender.",
+    "image": "assets/items/money_rub.webp"
   },
   {
     "id": "pistol_pk9",
@@ -270,6 +297,7 @@
     "basePrice": 6500,
     "equipSlot": "pistol",
     "description": "Pistola compacta de uso policial. Leve, confiável e fácil de esconder no coldre.",
+    "image": "assets/items/pistol_pk9.webp",
     "stats": {
       "caliber": "Caliber9x19PARA"
     }
@@ -284,6 +312,7 @@
     "basePrice": 32000,
     "equipSlot": "longWeapon",
     "description": "Fuzil de assalto robusto, sobra dos arsenais do exército. Pesado e barulhento, mas raramente trava, mesmo coberto de lama.",
+    "image": "assets/items/rifle_vk74.webp",
     "stats": {
       "caliber": "Caliber545x39"
     }
@@ -335,7 +364,8 @@
         ]
       }
     ],
-    "description": "Colete tático com bolsos de carga para carregadores, granadas e pequenos itens ao alcance da mão."
+    "description": "Colete tático com bolsos de carga para carregadores, granadas e pequenos itens ao alcance da mão.",
+    "image": "assets/items/rig_cargo.webp"
   },
   {
     "id": "secure_pouch",
@@ -357,7 +387,8 @@
         ]
       }
     ],
-    "description": "Bolsa pequena e resistente presa ao corpo. O que estiver aqui dentro volta com você, aconteça o que acontecer."
+    "description": "Bolsa pequena e resistente presa ao corpo. O que estiver aqui dentro volta com você, aconteça o que acontecer.",
+    "image": "assets/items/secure_pouch.webp"
   },
   {
     "id": "shotgun_m12",
@@ -369,6 +400,7 @@
     "basePrice": 14000,
     "equipSlot": "longWeapon",
     "description": "Escopeta de bomba de cano curto. Devastadora em corredores e escadas, quase inútil a mais de trinta metros.",
+    "image": "assets/items/shotgun_m12.webp",
     "stats": {
       "caliber": "Caliber12g"
     }

@@ -52,12 +52,13 @@ O jogador gerencia seu **PMC** (o personagem principal), preso em uma cidade iso
 - `src/ui/` — telas e componentes PixiJS; apenas leem estado e disparam ações do core.
 - `src/game.ts` — `startGame()`: inicia o PixiJS, carrega assets e mostra a primeira cena. `src/main.ts` só chama `startGame`.
 - `src/ui/SceneManager.ts` — troca de cenas; toda tela implementa a interface `Scene` (`view`, `resize?`, `update?`, `destroy?`).
-- `src/core/state.ts` — `PlayerState` (inventário, PMC, skills, `ItemFactory` e `MagazineLoader`): tudo que vai para o save. `storageFor()` decide onde guardar o que sai de um item.
+- `src/core/state.ts` — `PlayerState` (inventário, PMC, skills, `ItemFactory`, `MagazineLoader` e o perfil de raid `raid`): tudo que vai para o save. `storageFor()` decide onde guardar o que sai de um item.
 - `src/core/pmc/` — PMC, skills e consumíveis. `src/core/save/` — formato, serialização, migrações e armazenamento do save.
+- `src/core/raid/` — raid do PMC: tipos (`types.ts`), estratégias e karma (`strategy.ts`), fórmulas de combate (`combat.ts`), loot (`loot.ts`), simulação (`simulate.ts`, classe `RaidSimulation`) e perfil/reprodução (`profile.ts`). Mapas e inimigos ficam em `src/data/maps.ts`.
 - `src/data/newGame.ts` — `createNewPlayer()` e `loadOrCreatePlayer()`.
 - `src/core/rng.ts`, `src/core/events.ts`, `src/core/clock.ts` — `Rng` com seed, `EventBus` tipado e `Clock` injetável (use `ManualClock` nos testes).
 - `server/` — servidor Colyseus (sala `game`).
-- `scripts/items/` — pipeline de dados de itens, que só roda em desenvolvimento (`npm run items -- <comando>`, via `tsx`): API do tarkov.dev → banco SQLite `data/items.db` (`node:sqlite`, commitado) → `src/data/generated/items.json` (commitado, importado por `src/data/items.ts`). As imagens ficam em `public/assets/items/<id>.webp`, fora do git.
+- `scripts/items/` — pipeline de dados de itens, que só roda em desenvolvimento (`npm run items -- <comando>`, via `tsx`): dados JSON do tarkov.dev (`https://json.tarkov.dev/regular/items` + traduções `/regular/items_en`; índice em `/endpoints`) → banco SQLite `data/items.db` (`node:sqlite`, commitado) → `src/data/generated/items.json` (commitado, importado por `src/data/items.ts`). As imagens ficam em `public/assets/items/<id>.webp`, fora do git.
 - `tests/` — espelha a estrutura de `src/` e `server/`. Testes que usam PixiJS rodam com `// @vitest-environment jsdom` no topo; a `Application` deve ser mockada (o jsdom não tem WebGL).
 
 ### Armadilhas conhecidas nos testes
@@ -65,6 +66,7 @@ O jogador gerencia seu **PMC** (o personagem principal), preso em uma cidade iso
 - Não devolva valor em `beforeEach`/`beforeAll` (ex.: `beforeEach(() => mock.mockReset())`): o Vitest trata a função retornada como teardown e a executa depois do teste. Use chaves: `beforeEach(() => { mock.mockReset(); })`.
 - Variáveis usadas dentro de `vi.mock(...)` precisam vir de `vi.hoisted(...)`.
 - Não importe helpers de um arquivo `*.test.ts` em outro: os testes do arquivo importado rodam de novo. Coloque fixtures compartilhadas em arquivos sem `.test` (ex.: `tests/core/inventory/magFixtures.ts`).
+- Para testar a simulação da raid passo a passo, use `ScriptRng` (`tests/core/raid/raidFixtures.ts`): filas de respostas para `chance`, `int`, `pick` e `weighted`, consumidas na ordem em que a simulação chama o RNG.
 - `view.emit(...)` do Pixi não propaga o evento para os pais; para testar handlers no container pai (ex.: fechar o menu de contexto), emita o evento no pai com o `target` desejado.
 
 Veja o plano completo em [`PLANO.md`](./PLANO.md).
@@ -84,7 +86,10 @@ Veja o plano completo em [`PLANO.md`](./PLANO.md).
 - **Nunca edite `src/data/generated/items.json` à mão.** Altere o banco com `npm run items -- override <id> ...` (ou `import <arquivo.json>`) e rode `npm run items -- export`.
 - Fluxo para trazer um item da API: `items -- sync` → `items -- search <termo>` (acha o `sourceId`) → `items -- override <id-do-jogo> --source <sourceId> --name "..." --short "..."` → `items -- images` → `items -- export`.
 - Campos definidos no override têm prioridade sobre a API; `--clear width,height` volta a usar a referência.
-- Os testes dos scripts usam respostas da API gravadas (`tests/scripts/items/fixtures.ts`) e bancos em memória ou temporários; nenhum teste acessa a rede.
+- No `/items`, `name`/`shortName`/`description` são chaves de tradução (`"<id> Name"`), resolvidas com `/items_en`; a categoria é o primeiro id de `categories`, buscado em `itemCategories`. `fetchApiItems` normaliza tudo para `ApiItem`, que o resto do pipeline usa.
+- `capacity` da fonte só vale para itens sem grade (carregadores); em contêineres ela é o total de células e é ignorada (`toReference`). Mudou a conversão? Rode `items -- sync` de novo, porque o banco guarda a referência já convertida.
+- Os 24 itens do jogo estão ligados a um `sourceId` só para a imagem placeholder: todos os outros campos vêm do override (nenhum `--clear`), então ligar um item não muda o balanceamento.
+- Os testes dos scripts usam respostas da API gravadas (`tests/scripts/items/fixtures.ts`, convertidas para o formato JSON por `tarkovFixtures.ts`) e bancos em memória ou temporários; nenhum teste acessa a rede.
 
 ## Comandos
 
@@ -151,7 +156,7 @@ Modelo de entrada para novas mecânicas:
 - **Vida por parte do corpo** (máx.): cabeça 35, tórax 85, estômago 70, braços 60, pernas 65 (total 440). Cabeça ou tórax em 0 = morte.
 - **Dano** (`damage`): tira da parte atingida, sem passar de 0 (o excesso se perde). Dano em parte já destruída (não vital) se espalha: `dano × 0,7` dividido igualmente entre as partes vivas. Morto não recebe dano.
 - **Cura** (`heal`): distribui os pontos pelas partes mais feridas primeiro (menor `vida/máx.`; em empate, vitais primeiro); não cura partes destruídas (`restorePart` volta uma parte destruída para 1 PV, para a cirurgia futura).
-- **Energia e hidratação:** 0 a 100, mudadas por `changeEnergy`/`changeHydration`. Ainda não caem com o tempo (o gasto virá nas raids).
+- **Energia e hidratação:** 0 a 100, mudadas por `changeEnergy`/`changeHydration`. Só caem durante a raid (veja Raid do PMC).
 - **Nível:** XP acumulado para o nível `n` = `1000 × n(n−1)/2` (nível 2 = 1000, nível 3 = 3000...), máximo 60.
 
 ### Skills
@@ -159,8 +164,8 @@ Modelo de entrada para novas mecânicas:
 - Arquivos: `src/core/pmc/skills.ts`.
 - Skills: Resistência, Força, Saúde, Vitalidade, Metabolismo, Percepção, Furtividade, Mira, Manuseio de carregador.
 - XP acumulado para o nível `n` = `10 × n(n+1)/2` (nível 1 = 10, nível 2 = 30...), máximo 51. Bônus = `1% × nível`, limitado a 50%.
-- Efeitos já ativos: **Saúde** (+bônus na cura de remédios), **Metabolismo** (+bônus em energia/hidratação de comida e bebida), **Manuseio de carregador** (tempo por cartucho = `500 ms × (1 − bônus)`). As demais serão usadas na raid.
-- XP já ganho: +5 em Saúde por remédio usado; +5 em Metabolismo por comida/bebida; +0,5 em Manuseio de carregador por cartucho carregado/descarregado (só quando a cena tem o `PlayerState`).
+- Efeitos: **Saúde** (+bônus na cura de remédios), **Metabolismo** (+bônus em energia/hidratação de comida e bebida; gasto de hidratação na raid × (1 − bônus)), **Manuseio de carregador** (tempo por cartucho = `500 ms × (1 − bônus)`), **Mira**, **Percepção**, **Furtividade**, **Vitalidade** e **Resistência** na raid (fórmulas em Raid do PMC). **Força** só ganha XP por enquanto.
+- XP: +5 em Saúde por remédio usado; +5 em Metabolismo por comida/bebida; +0,5 em Manuseio de carregador por cartucho carregado/descarregado (só quando a cena tem o `PlayerState`, e na raid ao completar carregadores). XP de raid em Raid do PMC.
 
 ### Consumíveis
 
@@ -171,9 +176,39 @@ Modelo de entrada para novas mecânicas:
 ### Save
 
 - Arquivos: `src/core/save/` (`format.ts`, `serialize.ts`, `migrations.ts`, `storage.ts`); integração em `src/game.ts` e `src/data/newGame.ts`.
-- **Formato** (`SAVE_VERSION = 1`): `nextId` da fábrica, estoque (itens com posição/rotação), slots e bolsos, conteúdo aninhado (grades, cartuchos do carregador do fundo ao topo, carregador encaixado na arma), PMC, skills e o carregamento em andamento (por uid, com `startedAt`/`done`, então continua de onde parou).
+- **Formato** (`SAVE_VERSION = 2`): `nextId` da fábrica, estoque (itens com posição/rotação), slots e bolsos, conteúdo aninhado (grades, cartuchos do carregador do fundo ao topo, carregador encaixado na arma), PMC, skills, o carregamento em andamento (por uid, com `startedAt`/`done`, então continua de onde parou) e, desde a v2, o perfil de raid (`raid`: karma, estatísticas, regra de loot, seed e a raid em andamento com log e resumo).
+- **Migração 1 → 2:** adiciona `raid = createRaidProfile(savedAt)`. Ao carregar, campos do perfil que faltam voltam ao padrão e `lootRule` inválida vira `valuePerCell`.
 - **Carregar save antigo/inconsistente:** item que saiu do catálogo é descartado com aviso; item que não cabe mais na posição vai para o primeiro espaço da mesma grade; se não couber nela (ou a grade não existir mais, ou o slot não aceitar mais o item, ou o carregador ficar incompatível), vai para o estoque; sem espaço no estoque, é perdido com aviso. Campos de PMC/skills que faltam recebem o valor padrão (skills novas começam em 0).
 - **Migrações:** `migrate()` aplica `MIGRATIONS[v]` de versão em versão até `SAVE_VERSION`; save sem versão, de versão mais nova ou com migração faltando lança `SaveError`.
 - **Armazenamento:** chave `escape-from-idle:save` no `localStorage`; erros do navegador são ignorados. Autosave a cada 5 s de jogo e no `beforeunload`. Save ilegível é copiado para `escape-from-idle:save:backup` e o jogo começa do zero (com aviso no console).
 
 - **Imagens dos itens:** `loadItemTextures` carrega a `image` de cada `ItemDef` no início do jogo (`src/ui/inventory/textures.ts`). Se a textura existir, a `ItemView` desenha o sprite do tamanho das células (girado 90° quando o item está rotacionado); se o arquivo faltar, o item continua sendo um retângulo colorido pela categoria.
+
+### Raid do PMC
+
+- Arquivos: `src/core/raid/` (`types.ts`, `strategy.ts`, `combat.ts`, `loot.ts`, `simulate.ts`, `profile.ts`), dados em `src/data/maps.ts`; telas `src/ui/scenes/RaidSetupScene.ts` (preparação, botão "Raid" no inventário) e `src/ui/scenes/RaidScene.ts` (log e resumo).
+- **Resolução:** `startRaid` resolve a raid inteira na hora com `new Rng(raid.seed)`, aplica o resultado ao `PlayerState`, sorteia a próxima seed (`floor(rng.next() × 2³²)`), atualiza karma/estatísticas e guarda `raid.active = { startedAt, events, summary }`. O jogo salva logo em seguida (recarregar não refaz o sorteio). A `RaidScene` só revela o log: minuto mostrado = `(agora − startedAt) / 2000 ms` (velocidades x1/x4/x16 e "Pular"); fechar o resumo chama `finishRaid` (`active = null`). Com uma raid ativa no save, o título leva direto para a `RaidScene`.
+- **Mapas** (`MapDef`): dificuldade 1–5, duração em minutos, pesos de ameaça `{scav, pmc}`, tabela de loot (`item`, `weight`, `min`/`max`, limitada à pilha máxima) e extrações (`risk` = chance de tocaia; requisitos `key`, `payment` ou `noBackpack`; ao menos uma livre). Periferia Norte (1, 30 min), Cimenteira (2, 25 min), Porto Velho (3, 40 min).
+- **Inimigos** (`EnemyDef`): Scav (110 PV, precisão 0,28, dano 42, pen. 15, classe 0/0/1/2, 2 disparos) e PMC (160 PV, 0,42, 48, pen. 30, classe 2/3/4, 3 disparos).
+- **Estratégias** (`STRATEGIES`): multiplicadores de encontro/loot, chance de evitar briga, iniciativa, chance de revistar o corpo, ritmo e faixa da extração. Furtivo 0,6/0,75, evita 50%, +15% iniciativa, revista 40%, ritmo 1,25, extração em 50–72% do tempo. Equilibrado 1/1, 20%, 0, 60%, 1, 45–72%. Agressivo 1,6/1,4, 0%, +5%, 85%, 0,85, 45–75%.
+- **Passos:** cada passo dura `int(2, 5) × ritmo × (1 + 0,25 × pernas destruídas)` minutos. A cada minuto, a energia cai `0,15 × (1 − Resistência)` e a hidratação `0,2 × (1 − Metabolismo)`. Com energia ou hidratação em 0, o estômago perde 0,6/min. Depois: morto → `killed`; passou da duração → `mia`; passou do momento da extração → tenta extrair; senão sorteia um evento com pesos loot `4 × estratégia × (1 + Percepção)`, Scav/PMC `ameaça × encontro`, perigo 0,4 e tranquilo 2,5.
+- **Combate:**
+  - Evitar = `avoid + Furtividade/2` (karma +0,1, +4 XP de Furtividade).
+  - Atira primeiro = `min(0,9; 0,5 + iniciativa + Percepção/2)`.
+  - Até 6 trocas de tiro (0,5 min cada); depois disso o inimigo recua.
+  - Disparos por troca: 1 com calibre 12, 3 com arma longa, 2 com pistola, cada um tirando um cartucho do topo do carregador.
+  - Acerto do PMC = `0,5 × (1 + Mira) − 0,15 × braços destruídos`, limitado a 5–95%. Acerto do inimigo = `precisão + 0,03 × (dificuldade − 1)`.
+  - Dano = `dano × armorFactor(pen, classe)`, com `armorFactor` = 1 se `pen ≥ classe × 10`, senão `max(0,2; pen / (classe × 10))`. O inimigo acerta as partes por peso (cabeça 10, tórax 30, estômago 15, braços 10, pernas 12,5); capacete protege a cabeça, colete o tórax e o estômago. Dano recebido × `(1 − Vitalidade/2)`.
+  - Arma vazia: troca pelo carregador carregado do equipamento (o vazio vai para o lugar dele, se couber), gastando o turno. Sem munição: foge com 40% de chance.
+  - Ao vencer: abate, karma, revista com a chance da estratégia (1 item da tabela). Depois de cada briga: cuidados e completar carregadores com a munição solta do equipamento.
+- **Cuidados automáticos:** enquanto houver parte curável e (vida total < 60% ou cabeça/tórax < 60%), usa o remédio com mais cura do equipamento. Energia ou hidratação < 35: come ou bebe o item com mais do stat. Perigos tiram 8–25 de uma parte (pernas, braços ou tronco).
+- **Loot** (`stashLoot`): `autoPlace` nas grades do equipamento e por último no contêiner seguro. Se não couber e a regra for `valuePerCell`, larga o loot desta raid de menor valor por célula (menor que o do item novo), do mais barato para o mais caro, até caber; o que foi tirado sem necessidade volta para o lugar; se nem assim couber, nada muda. O equipamento trazido nunca é largado. `keepFirst` não troca nada.
+- **Extração:** a saída usável de menor risco; paga a passagem se for `payment`; tocaia com chance `risco × encontro`; depois mais 2 min (se passar da duração, MIA).
+- **Resultado:**
+  - Extraiu: XP do PMC = 300 + 5/min + 120 por Scav + 400 por PMC + valor do loot / 1000, e partes destruídas voltam para 1 PV (cirurgia de campo provisória, até existir a enfermaria).
+  - Morreu/MIA: perde todos os slots menos `secure` e tudo dos bolsos; o loot salvo é o que estiver no contêiner seguro; vida, energia e hidratação voltam ao máximo; nenhum XP do PMC.
+  - O XP de skills fica sempre: Resistência 0,5/min, Percepção 2 por loot, Furtividade 4 por briga evitada, Mira 1 por acerto, Vitalidade 0,05 por dano recebido, Força 0,2 por célula de loot guardada (+ Saúde/Metabolismo/Manuseio de carregador pelo uso).
+- **Karma** (`KARMA`): abater Scav −0,25, abater PMC +0,1, evitar briga +0,1, extrair +0,05, limitado a −10..10. É guardado para a raid Scav (Fase 4).
+- **Avisos antes da raid** (`raidWarnings`, não impedem a entrada): sem arma com munição, sem colete, sem capacete, cabeça ou tórax abaixo da metade.
+- **Balanceamento:** `tests/core/raid/balance.test.ts` roda 150 raids por cenário com seeds fixas e confere as faixas (ex.: kit bom na Periferia equilibrado extrai 85–99%; agressivo no Porto morre bem mais que furtivo, mas traz mais loot; MIA < 5%).
+- Pendências: durabilidade da armadura (desgaste), armas sem carregador (escopeta), loot "encontrado na raid" para quests, inimigos com equipamento de verdade.

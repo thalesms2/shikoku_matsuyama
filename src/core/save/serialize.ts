@@ -10,6 +10,9 @@ import { createPmc } from "../pmc/pmc.ts";
 import type { PmcState } from "../pmc/pmc.ts";
 import { createSkills } from "../pmc/skills.ts";
 import type { SkillsState } from "../pmc/skills.ts";
+import { createRaidProfile } from "../raid/profile.ts";
+import { LOOT_RULES } from "../raid/types.ts";
+import type { RaidProfile } from "../raid/types.ts";
 import { createPlayerState, storageFor } from "../state.ts";
 import type { PlayerState } from "../state.ts";
 import { SAVE_VERSION } from "./format.ts";
@@ -73,6 +76,7 @@ export function serializeGame(state: PlayerState, now: number): SaveData {
     pmc: structuredClone(state.pmc),
     skills: { ...state.skills },
     loader: saveJob(state),
+    raid: structuredClone(state.raid),
   };
 }
 
@@ -147,6 +151,24 @@ function loadSkills(saved: Partial<SkillsState> | undefined): SkillsState {
   return { ...createSkills(), ...saved };
 }
 
+function loadRaid(saved: RaidProfile | undefined, seed: number): RaidProfile {
+  const base = createRaidProfile(seed);
+  if (!saved) return base;
+  return {
+    ...base,
+    ...saved,
+    stats: {
+      ...base.stats,
+      ...saved.stats,
+      kills: { ...base.stats.kills, ...saved.stats?.kills },
+    },
+    lootRule: LOOT_RULES.includes(saved.lootRule)
+      ? saved.lootRule
+      : base.lootRule,
+    active: saved.active ?? null,
+  };
+}
+
 function loadJob(
   saved: SavedLoadJob | null,
   state: PlayerState,
@@ -214,6 +236,7 @@ export function deserializeGame(
       pmc: loadPmc(data.pmc),
       skills: loadSkills(data.skills),
       factory,
+      raid: loadRaid(data.raid, clock.now()),
     },
     clock,
   );

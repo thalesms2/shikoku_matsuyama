@@ -5,6 +5,8 @@ import type { Item, ItemFactory } from "./inventory/item.ts";
 import { MagazineLoader } from "./inventory/loading.ts";
 import type { PmcState } from "./pmc/pmc.ts";
 import type { SkillsState } from "./pmc/skills.ts";
+import { createRaidProfile } from "./raid/profile.ts";
+import type { RaidProfile } from "./raid/types.ts";
 
 export interface InventoryState {
   stash: Grid;
@@ -20,13 +22,23 @@ export interface PlayerState {
   factory: ItemFactory;
   /** Carregamento/descarregamento de carregador em andamento */
   loader: MagazineLoader;
+  /** Karma, estatísticas, regra de loot, seed e a raid em andamento */
+  raid: RaidProfile;
 }
 
+/**
+ * Monta o estado do jogador. Sem `raid`, começa um perfil novo com a seed
+ * tirada do relógio.
+ */
 export function createPlayerState(
-  parts: Omit<PlayerState, "loader">,
+  parts: Omit<PlayerState, "loader" | "raid"> & { raid?: RaidProfile },
   clock: Clock,
 ): PlayerState {
-  return { ...parts, loader: new MagazineLoader(clock) };
+  return {
+    ...parts,
+    loader: new MagazineLoader(clock),
+    raid: parts.raid ?? createRaidProfile(clock.now()),
+  };
 }
 
 /**

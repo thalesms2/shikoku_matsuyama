@@ -1,3 +1,4 @@
+import { createRaidProfile } from "../raid/profile.ts";
 import { SAVE_VERSION } from "./format.ts";
 import type { SaveData } from "./format.ts";
 
@@ -10,7 +11,13 @@ export type Migration = (
  * Migrações por versão de origem. Ao mudar o formato do save: incremente
  * `SAVE_VERSION` e adicione aqui a função que converte a versão anterior.
  */
-export const MIGRATIONS: Record<number, Migration> = {};
+export const MIGRATIONS: Record<number, Migration> = {
+  // v1 → v2: perfil de raid (karma, estatísticas, seed); seed vem do savedAt
+  1: (data) => ({
+    ...data,
+    raid: createRaidProfile(Number(data.savedAt) || 0),
+  }),
+};
 
 export class SaveError extends Error {}
 

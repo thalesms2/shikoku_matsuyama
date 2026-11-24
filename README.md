@@ -55,7 +55,7 @@ Todo item ocupa um retângulo de células (por exemplo, 1x1 para uma atadura, 5x
 - **Contêineres:** mochilas, coletes táticos e caixas têm espaço interno. Solte um item sobre o contêiner para guardá-lo dentro, ou dê **duplo clique** para abrir e organizar o conteúdo. Alguns só aceitam certos itens (a caixa de munição só aceita munição) e mochilas não entram em outras mochilas.
 - **Equipamento:** arraste itens para os slots: arma primária e secundária, coldre, capacete, colete balístico, colete tático, mochila e contêiner seguro. Cada slot só aceita o tipo certo de item.
 - **Bolsos:** 4 espaços 1x1 que vão com você para a raid.
-- **Contêiner seguro:** o que estiver nele não será perdido quando o PMC morrer (vale a partir das raids, na Fase 3).
+- **Contêiner seguro:** o que estiver nele não é perdido quando o PMC morre na raid.
 - **Organizar:** o botão organiza o estoque automaticamente, com os itens maiores primeiro. Se a nova organização não couber, nada muda.
 - **Informações:** pare o mouse sobre um item para ver a imagem, o nome, o tamanho, a quantidade, o valor (incluindo o que está dentro dele), os dados técnicos (calibre, dano, penetração, proteção, capacidade) e a descrição. O quadro muda de lado perto das bordas da tela.
 - **Menu do item:** clique com o botão direito em um item para ver as ações dele: abrir contêiner, descarregar carregador, remover o carregador da arma ou separar uma pilha pela metade.
@@ -66,11 +66,12 @@ Todo item ocupa um retângulo de células (por exemplo, 1x1 para uma atadura, 5x
 - Botão **Personagem** no inventário: mostra nível e XP, a vida de cada parte do corpo (cabeça, tórax, estômago, braços e pernas), energia, hidratação e skills.
 - Se a cabeça ou o tórax chegarem a zero, o PMC morre. Dano em um braço ou perna já destruídos se espalha pelo resto do corpo.
 - **Usar itens:** botão direito em um remédio, comida ou bebida → "Usar". Remédios curam primeiro as partes mais feridas; comida e água recuperam energia e hidratação. O quadro de informações mostra o efeito de cada um.
-- **Skills:** cada skill sobe com o uso e dá 1% de bônus por nível (até 50%). Saúde melhora os remédios, Metabolismo melhora comida e bebida, e Manuseio de carregador carrega mais rápido. As outras (Resistência, Força, Vitalidade, Percepção, Furtividade e Mira) vão contar nas raids.
+- **Skills:** cada skill sobe com o uso e dá 1% de bônus por nível (até 50%). Saúde melhora os remédios, Metabolismo melhora comida e bebida, e Manuseio de carregador carrega mais rápido. As outras contam nas raids (veja abaixo).
 
 ### Save
 
-- O jogo salva sozinho a cada 5 segundos e ao fechar a página, e continua de onde parou na próxima vez, inclusive carregamentos de carregador em andamento.
+- O jogo salva sozinho a cada 5 segundos e ao fechar a página, e continua de onde parou na próxima vez, inclusive carregamentos de carregador em andamento e a raid que estava acontecendo.
+- O resultado da raid é sorteado e salvo no momento em que você entra nela: fechar ou recarregar o jogo não muda o que vai acontecer.
 - Se um save antigo tiver itens que não existem mais, eles são descartados; o que não couber mais no lugar vai para o estoque.
 
 ### Carregadores e munição
@@ -79,3 +80,40 @@ Todo item ocupa um retângulo de células (por exemplo, 1x1 para uma atadura, 5x
 - **Ordem dos cartuchos:** se você misturar tipos de munição, eles ficam na ordem em que foram carregados, e o último colocado é o primeiro a ser disparado. O quadro de informações do carregador mostra a sequência, de cima para baixo.
 - **Descarregar:** botão direito → "Descarregar". Os cartuchos voltam como pilhas para perto do carregador; se faltar espaço, o resto fica nele.
 - **Arma:** solte o carregador sobre a arma (no estoque ou equipada) para encaixá-lo. Carregadores e armas mostram no canto quantos cartuchos têm (ex.: 12/30). Para tirar: botão direito na arma → "Remover carregador".
+
+### Raid
+
+Botão **Raid** no inventário. Escolha o mapa, a estratégia e a regra de loot e clique em **Entrar na raid**. O PMC vai com o que estiver equipado: armas, colete, capacete, colete tático, mochila, bolsos e contêiner seguro.
+
+- **Mapas:**
+  - **Periferia Norte** (fácil, 30 min): muitos Scavs, poucos PMCs.
+  - **Cimenteira** (médio, 25 min): brigas curtas, quase sempre contra PMCs.
+  - **Porto Velho** (difícil, 40 min): o loot mais valioso e os atiradores mais perigosos.
+- **Estratégias:**
+  - **Furtivo:** evita metade das brigas, atira primeiro com mais frequência, anda devagar e acha menos loot.
+  - **Equilibrado:** o meio-termo.
+  - **Agressivo:** encontra muito mais inimigos e revista quase todos os corpos. Traz mais loot, mas morre bem mais.
+- **Durante a raid:** o log mostra o que acontece em tempo real (2 segundos por minuto de raid). Use **x4** ou **x16** para acelerar ou **Pular** para ver o fim. Fechar o jogo não pausa a raid.
+- **Combate:** cada briga é uma troca de tiros.
+  - A chance de acertar depende da skill Mira e cai se um braço estiver destruído.
+  - O dano depende da munição: se a penetração for menor que a proteção do colete ou do capacete do alvo (classe × 10), o dano cai. Isso vale para os dois lados.
+  - Seu colete protege tórax e estômago, e o capacete protege a cabeça.
+  - Quando o carregador esvazia, o PMC troca por outro carregado que esteja no equipamento. Depois da briga, ele completa os carregadores com a munição solta que estiver carregando.
+  - Sem munição nenhuma, ele tenta fugir.
+- **Cuidados automáticos:** o PMC usa sozinho os remédios do equipamento quando a vida cai (começando pelo melhor), e come ou bebe quando a energia ou a hidratação ficam baixas. Energia e hidratação caem durante a raid; se zerarem, o PMC começa a perder vida.
+- **Loot:** o que o PMC encontra só é guardado se couber nos bolsos, no colete tático, na mochila ou, por último, no contêiner seguro. Duas regras:
+  - **Priorizar valor por célula:** larga o loot mais barato desta raid para levar um mais valioso. Nunca larga o equipamento que você levou.
+  - **Guardar o primeiro:** fica com o que achou primeiro.
+- **Extração:** perto do fim, o PMC vai para a saída mais segura que puder usar. Algumas saídas pedem uma chave, pagamento em dinheiro ou que você esteja sem mochila. Pode haver alguém de tocaia na saída.
+- **Resultado:**
+  - **Extraiu:** fica com tudo e ganha XP do PMC (pela sobrevivência, pelo tempo, pelos abates e pelo valor do loot). Partes do corpo destruídas voltam com 1 de vida.
+  - **Morreu ou ficou sem tempo (MIA):** perde tudo que estava vestido e nos bolsos, menos o contêiner seguro e o que estiver dentro dele. O PMC volta com a vida cheia.
+  - Nos dois casos, o XP das skills ganho na raid fica.
+- **Skills na raid:**
+  - **Mira:** acerta mais.
+  - **Percepção:** acha mais loot, às vezes um item extra, e atira primeiro com mais frequência.
+  - **Furtividade:** evita mais brigas.
+  - **Vitalidade:** recebe menos dano.
+  - **Resistência e Metabolismo:** gastam menos energia e hidratação.
+  - **Força:** sobe com o loot carregado.
+- **Karma:** abater Scavs diminui o karma; evitar brigas, abater PMCs inimigos e extrair aumentam. Ele vai influenciar a raid Scav. A tela de preparação mostra o karma e as suas estatísticas.

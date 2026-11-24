@@ -12,12 +12,15 @@ import {
   saveGame,
 } from "./core/save/storage.ts";
 import { ITEM_DEFS } from "./data/items.ts";
+import { ENEMIES, MAPS, mapById } from "./data/maps.ts";
 import { loadOrCreatePlayer } from "./data/newGame.ts";
 import { gameReady, initPlatform, setLoadingProgress } from "./platform.ts";
 import { loadItemTextures } from "./ui/inventory/textures.ts";
 import { SceneManager } from "./ui/SceneManager.ts";
 import { CharacterScene } from "./ui/scenes/CharacterScene.ts";
 import { InventoryScene } from "./ui/scenes/InventoryScene.ts";
+import { RaidScene } from "./ui/scenes/RaidScene.ts";
+import { RaidSetupScene } from "./ui/scenes/RaidSetupScene.ts";
 import { TitleScene } from "./ui/scenes/TitleScene.ts";
 import { theme } from "./ui/theme.ts";
 
@@ -80,12 +83,42 @@ export async function startGame(
         tooltipDelayMs: 300,
         player,
         onOpenCharacter: showCharacter,
+        onOpenRaid: showRaidSetup,
       }),
     );
   const showCharacter = () =>
     scenes.change(new CharacterScene(player, showInventory));
+  const showRaidSetup = () =>
+    scenes.change(
+      new RaidSetupScene(player, {
+        maps: MAPS,
+        enemies: ENEMIES,
+        clock,
+        onStart: () => {
+          // Salva já com o resultado: recarregar não refaz a raid
+          save();
+          showRaid();
+        },
+        onBack: showInventory,
+      }),
+    );
+  const showRaid = () => {
+    const active = player.raid.active!;
+    scenes.change(
+      new RaidScene(player, {
+        clock,
+        map: mapById(active.summary.map) ?? MAPS[0],
+        onDone: () => {
+          save();
+          showInventory();
+        },
+      }),
+    );
+  };
+  /** Com uma raid em andamento (jogo fechado no meio), volta para ela */
+  const showHome = () => (player.raid.active ? showRaid() : showInventory());
 
-  scenes.change(new TitleScene(showInventory));
+  scenes.change(new TitleScene(showHome));
 
   gameReady(app);
 

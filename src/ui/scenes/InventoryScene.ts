@@ -67,6 +67,7 @@ export class InventoryScene implements Scene {
   readonly factory: ItemFactory;
   readonly player: PlayerState | null;
   characterButton: Button | null = null;
+  raidButton: Button | null = null;
   readonly stashView: GridView;
   readonly slotViews = new Map<SlotName, SlotView>();
   readonly pocketViews: GridView[];
@@ -104,6 +105,8 @@ export class InventoryScene implements Scene {
       player?: PlayerState;
       /** Mostra o botão "Personagem" */
       onOpenCharacter?: () => void;
+      /** Mostra o botão "Raid" */
+      onOpenRaid?: () => void;
     } = {},
   ) {
     this.clock = options.clock ?? systemClock;
@@ -172,6 +175,15 @@ export class InventoryScene implements Scene {
         2,
       );
       this.content.addChild(this.characterButton);
+    }
+    if (options.onOpenRaid) {
+      this.raidButton = new Button("Raid", options.onOpenRaid);
+      const left = this.characterButton ?? this.sortButton;
+      this.raidButton.position.set(
+        left.x - this.raidButton.buttonWidth - GAP,
+        2,
+      );
+      this.content.addChild(this.raidButton);
     }
 
     this.view.addChild(this.content);

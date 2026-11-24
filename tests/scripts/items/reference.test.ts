@@ -54,6 +54,21 @@ describe("toReference", () => {
     });
   });
 
+  it("capacidade de contêiner (com grade) é ignorada", () => {
+    const ref = toReference(
+      apiItem({
+        id: "bag",
+        properties: {
+          propertiesType: "ItemPropertiesBackpack",
+          capacity: 20,
+          grids: [{ width: 4, height: 5 }],
+        },
+      }),
+    );
+    expect(ref.capacity).toBeNull();
+    expect(ref.grids).toEqual([{ width: 4, height: 5 }]);
+  });
+
   it("grades inválidas são descartadas", () => {
     expect(toReference(byId("src-bag")).grids).toEqual([
       { width: 4, height: 4 },

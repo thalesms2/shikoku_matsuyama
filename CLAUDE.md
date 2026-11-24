@@ -59,6 +59,7 @@ O jogador gerencia seu **PMC** (o personagem principal), preso em uma cidade iso
 - `src/core/quests/` — quests: tipos (`types.ts`) e regras (`quests.ts`: requisitos, status, aceitar, entregar, concluir, progresso depois da raid). As quests ficam em `src/data/quests.ts`; as telas são `src/ui/scenes/QuestsScene.ts` e `src/ui/scenes/EndingScene.ts`.
 - `src/core/hideout/` — esconderijo: tipos (`types.ts`) e regras (`hideout.ts`: obras, efeitos, cura/comida por minuto, produção, renda, `hideoutTick`). Módulos e receitas ficam em `src/data/hideout.ts`; a tela é `src/ui/scenes/HideoutScene.ts`.
 - `src/core/flea/` — mercado: tipos (`types.ts`) e regras (`flea.ts`: preço com tendência e pressão, compra, anúncio, taxa, sorteio das vendas, `fleaTick`). A configuração fica em `src/data/flea.ts`; a tela é `src/ui/scenes/FleaScene.ts`.
+- `src/core/offline.ts` — tempo com o jogo fechado: `catchUp` passa o tempo (esconderijo e mercado) e devolve o resumo (`OfflineReport`); a tela é `src/ui/scenes/OfflineScene.ts`.
 - `src/data/newGame.ts` — `createNewPlayer()` e `loadOrCreatePlayer()`.
 - `src/core/rng.ts`, `src/core/events.ts`, `src/core/clock.ts` — `Rng` com seed, `EventBus` tipado e `Clock` injetável (use `ManualClock` nos testes).
 - `server/` — servidor Colyseus (sala `game`).
@@ -324,3 +325,11 @@ Modelo de entrada para novas mecânicas:
 - **Balanceamento** (`tests/data/flea.test.ts`): tendência sempre em ±20%; comprar e anunciar na hora pelo preço de mercado sempre dá prejuízo (markup + taxa > alta da pressão); vender no mercado no pior caso (−20%, menos a taxa) paga mais que o melhor vendedor; pelo preço de mercado vende em 14–28 min em média, e 50% acima demora pelo menos 2,5× mais.
 - **Tela:** abas Comprar (pilha, preço, seta ▲/▼/=), Vender (itens do topo do estoque; preço pedido de 50% a 200% em passos de 5%, com valor, preço, taxa e tempo médio) e Anúncios (resultados com "Retirar", anúncios com o tempo restante e "Cancelar"). Bloqueado pelo nível, tudo fica apagado e o topo diz o nível que falta. Atualiza a cada `FLEA_REFRESH_MS = 500` ms.
 - Pendências: anúncios de outros jogadores com quantidade limitada, mais vagas por nível, preço sugerido por histórico, vender arrastando do inventário.
+
+### Resumo do tempo fora
+
+- Arquivos: `src/core/offline.ts` (`catchUp`, `hasNews`, `OFFLINE_MIN_MS`), tela `src/ui/scenes/OfflineScene.ts` (`offlineLines`), integração em `src/game.ts`.
+- **Desde quando:** `hideout.lastTick`, que vai para o save e anda a cada tick do jogo; por isso não precisa de campo novo (o save continua na v7).
+- **`catchUp(player, {hideout, flea, traders}, now)`:** anota o estado antes, roda `hideoutTick` e `fleaTick` e devolve: tempo fora; obra concluída (`endsAt ≤ now`); receitas com `endsAt` em `(desde, agora]`; renda a mais da central (`incomeAvailable(agora) − incomeAvailable(desde)`, mínimo 0, então renda que já estava no limite não conta); vida, energia e hidratação recuperadas; vendas (quantidade e rublos) e anúncios vencidos do mercado; raid Scav liberada (`readyAt` em `(desde, agora]`); vendedores já visitados cujo `restockAt` caiu em `(desde, agora]`.
+- **Quando aparece** (`hasNews`): tempo fora ≥ `OFFLINE_MIN_MS` (1 min) e pelo menos uma novidade. O jogo calcula ao carregar; o resumo aparece uma vez, depois do título e antes do inventário ou da raid em andamento.
+- **Tela:** "Enquanto você estava fora (duração)" com uma linha por novidade e o botão "Continuar".

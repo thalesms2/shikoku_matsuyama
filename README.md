@@ -166,6 +166,10 @@ Botão **Mercado** no inventário. É o mercado entre jogadores da cidade (simul
 - **Anúncios:** até 3 ao mesmo tempo. Na aba **Anúncios**, retire o dinheiro das vendas e os itens que voltaram (precisa haver espaço no estoque) ou cancele um anúncio (a taxa não volta).
 - **Encontrado na raid:** permutas e chaves só podem ser anunciadas se forem encontradas na raid. Contêineres, carregadores e armas precisam estar vazios.
 
+### Enquanto você estava fora
+
+O tempo continua passando com o jogo fechado: obras e produções do esconderijo terminam, a central junta renda, o PMC se recupera, os anúncios do mercado vendem ou vencem, a raid Scav libera e os vendedores repõem o estoque. Ao voltar (depois de pelo menos 1 minuto), uma tela mostra um resumo do que aconteceu antes de seguir para o jogo.
+
 ### Raid Scav
 
 Na tela de preparação, escolha o mapa e a estratégia e clique em **Entrar como Scav**. Você entra com um Scav descartável e seu PMC não arrisca nada.

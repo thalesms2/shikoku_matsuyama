@@ -7,6 +7,8 @@ import { systemClock } from "./core/clock.ts";
 import type { Clock } from "./core/clock.ts";
 import { fleaTick } from "./core/flea/flea.ts";
 import { hideoutTick } from "./core/hideout/hideout.ts";
+import { catchUp, hasNews } from "./core/offline.ts";
+import type { OfflineData } from "./core/offline.ts";
 import { progressAfterRaid } from "./core/quests/quests.ts";
 import type { QuestContext } from "./core/quests/types.ts";
 import {
@@ -30,6 +32,7 @@ import { EndingScene } from "./ui/scenes/EndingScene.ts";
 import { FleaScene } from "./ui/scenes/FleaScene.ts";
 import { HideoutScene } from "./ui/scenes/HideoutScene.ts";
 import { InventoryScene } from "./ui/scenes/InventoryScene.ts";
+import { OfflineScene } from "./ui/scenes/OfflineScene.ts";
 import { QuestsScene } from "./ui/scenes/QuestsScene.ts";
 import { RaidScene } from "./ui/scenes/RaidScene.ts";
 import { RaidSetupScene } from "./ui/scenes/RaidSetupScene.ts";
@@ -89,12 +92,18 @@ export async function startGame(
   for (const warning of warnings) console.warn(`Save: ${warning}`);
 
   // Tempo com o jogo fechado: esconderijo (obras, cura, comida) e vendas
-  // dos anúncios do mercado
+  // dos anúncios do mercado; o resumo aparece depois do título
+  const offlineData: OfflineData = {
+    hideout: HIDEOUT,
+    flea: FLEA,
+    traders: TRADERS,
+  };
+  const offline = catchUp(player, offlineData, clock.now());
+  let pendingReport = hasNews(offline) ? offline : null;
   const tick = () => {
     hideoutTick(player, HIDEOUT, clock.now());
     fleaTick(player, FLEA, clock.now());
   };
-  tick();
   let hideoutElapsed = 0;
   app.ticker.add((ticker) => {
     hideoutElapsed += ticker.deltaMS;
@@ -207,8 +216,22 @@ export async function startGame(
       }),
     );
   };
-  /** Com uma raid em andamento (jogo fechado no meio), volta para ela */
-  const showHome = () => (player.raid.active ? showRaid() : showInventory());
+  /**
+   * Primeiro o resumo do tempo fora (uma vez); depois, com uma raid em
+   * andamento (jogo fechado no meio), volta para ela.
+   */
+  const showHome = () => {
+    if (pendingReport) {
+      const report = pendingReport;
+      pendingReport = null;
+      scenes.change(
+        new OfflineScene(report, offlineData, player.factory.catalog, showHome),
+      );
+      return;
+    }
+    if (player.raid.active) showRaid();
+    else showInventory();
+  };
 
   scenes.change(new TitleScene(showHome));
 

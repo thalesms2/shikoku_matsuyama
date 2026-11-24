@@ -35,6 +35,8 @@ export const MIGRATIONS: Record<number, Migration> = {
     ...data,
     flea: createFleaState(Number(data.savedAt) || 0),
   }),
+  // v7 → v8: nenhum loadout salvo
+  7: (data) => ({ ...data, loadouts: [] }),
 };
 
 export class SaveError extends Error {}

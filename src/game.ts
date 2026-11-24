@@ -32,6 +32,7 @@ import { EndingScene } from "./ui/scenes/EndingScene.ts";
 import { FleaScene } from "./ui/scenes/FleaScene.ts";
 import { HideoutScene } from "./ui/scenes/HideoutScene.ts";
 import { InventoryScene } from "./ui/scenes/InventoryScene.ts";
+import { LoadoutScene } from "./ui/scenes/LoadoutScene.ts";
 import { OfflineScene } from "./ui/scenes/OfflineScene.ts";
 import { QuestsScene } from "./ui/scenes/QuestsScene.ts";
 import { RaidScene } from "./ui/scenes/RaidScene.ts";
@@ -201,6 +202,18 @@ export async function startGame(
           showRaid();
         },
         onBack: showInventory,
+        onOpenLoadouts: showLoadouts,
+      }),
+    );
+  const showLoadouts = () =>
+    scenes.change(
+      new LoadoutScene(player, {
+        shop: { traders: TRADERS, flea: FLEA },
+        clock,
+        onBack: () => {
+          save();
+          showRaidSetup();
+        },
       }),
     );
   const showRaid = () => {

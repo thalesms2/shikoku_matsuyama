@@ -143,7 +143,7 @@ O jogo **nunca consulta a API durante a execução**. A API ([tarkov.dev](https:
 
 ## Fase 9 — Progressão idle e polimento
 
-Dividida em sub-fases (uma por commit): 9A resumo do tempo fora ✅, 9B loadouts salvos e reequipar com um clique, 9C raids automáticas em sequência, 9D configurações, tutorial e animações. Arte e sons próprios ficam para quando houver os arquivos.
+Dividida em sub-fases (uma por commit): 9A resumo do tempo fora ✅, 9B loadouts salvos e reequipar com um clique ✅, 9C raids automáticas em sequência, 9D configurações, tutorial e animações. Arte e sons próprios ficam para quando houver os arquivos.
 
 - Progresso offline (produção, cooldowns, vendas no flea).
 - Raids automáticas em sequência com regras do jogador (ex.: "parar se vida < X", "usar loadout salvo").
@@ -178,3 +178,4 @@ Dividida em sub-fases (uma por commit): 9A resumo do tempo fora ✅, 9B loadouts
 12. ✅ Esconderijo (Fase 7).
 13. ✅ Flea market (Fase 8).
 14. ✅ Resumo do tempo fora (Fase 9A).
+15. ✅ Loadouts (Fase 9B).

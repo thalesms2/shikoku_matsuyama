@@ -110,6 +110,7 @@ export class RaidSetupScene implements Scene {
   readonly content = new Container({ label: "content" });
   readonly title: Text;
   readonly backButton: Button;
+  loadoutsButton: Button | null = null;
   readonly mapButtons = new Map<string, Button>();
   readonly strategyButtons = new Map<StrategyId, Button>();
   readonly mapInfo: Text;
@@ -137,6 +138,8 @@ export class RaidSetupScene implements Scene {
       /** Chamado depois que a raid foi resolvida (com `player.raid.active`) */
       onStart: () => void;
       onBack: () => void;
+      /** Abre os loadouts (botão ao lado de Voltar) */
+      onOpenLoadouts?: () => void;
     },
   ) {
     this.map = options.maps[0];
@@ -147,6 +150,14 @@ export class RaidSetupScene implements Scene {
     this.backButton = new Button("Voltar ao inventário", options.onBack, 180);
     this.backButton.position.set(WIDTH - 180, 2);
     this.content.addChild(this.title, this.backButton);
+    if (options.onOpenLoadouts) {
+      this.loadoutsButton = new Button("Loadouts", options.onOpenLoadouts);
+      this.loadoutsButton.position.set(
+        this.backButton.x - this.loadoutsButton.buttonWidth - 12,
+        2,
+      );
+      this.content.addChild(this.loadoutsButton);
+    }
 
     let y = 50;
     this.content.addChild(this.heading("Mapa", 0, y));

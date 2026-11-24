@@ -7,6 +7,7 @@ import type { Equipment } from "./inventory/equipment.ts";
 import type { Grid } from "./inventory/grid.ts";
 import type { Item, ItemFactory } from "./inventory/item.ts";
 import { MagazineLoader } from "./inventory/loading.ts";
+import type { Loadout } from "./loadout/types.ts";
 import type { PmcState } from "./pmc/pmc.ts";
 import type { SkillsState } from "./pmc/skills.ts";
 import type { QuestsState } from "./quests/types.ts";
@@ -40,6 +41,8 @@ export interface PlayerState {
   hideout: HideoutState;
   /** Anúncios, resultados, pressão de preços e estatísticas do mercado */
   flea: FleaState;
+  /** Modelos de equipamento salvos */
+  loadouts: Loadout[];
 }
 
 /**
@@ -51,7 +54,14 @@ export interface PlayerState {
 export function createPlayerState(
   parts: Omit<
     PlayerState,
-    "loader" | "raid" | "scav" | "traders" | "quests" | "hideout" | "flea"
+    | "loader"
+    | "raid"
+    | "scav"
+    | "traders"
+    | "quests"
+    | "hideout"
+    | "flea"
+    | "loadouts"
   > & {
     raid?: RaidProfile;
     scav?: ScavProfile;
@@ -59,6 +69,7 @@ export function createPlayerState(
     quests?: QuestsState;
     hideout?: HideoutState;
     flea?: FleaState;
+    loadouts?: Loadout[];
   },
   clock: Clock,
 ): PlayerState {
@@ -71,6 +82,7 @@ export function createPlayerState(
     quests: parts.quests ?? {},
     hideout: parts.hideout ?? createHideoutState(clock.now()),
     flea: parts.flea ?? createFleaState(clock.now()),
+    loadouts: parts.loadouts ?? [],
   };
 }
 

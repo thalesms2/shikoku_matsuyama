@@ -4,12 +4,14 @@ import type { FleaListing, FleaResult, FleaState } from "../flea/types.ts";
 import { createHideoutState } from "../hideout/hideout.ts";
 import type { HideoutState } from "../hideout/types.ts";
 import { Equipment, SLOT_NAMES } from "../inventory/equipment.ts";
+import type { SlotName } from "../inventory/equipment.ts";
 import { Grid } from "../inventory/grid.ts";
 import { ItemFactory } from "../inventory/item.ts";
 import type { Catalog, GridLocation, Item } from "../inventory/item.ts";
 import type { LoadJob } from "../inventory/loading.ts";
 import { attachMagazine } from "../inventory/magazine.ts";
 import { autoPlace } from "../inventory/operations.ts";
+import type { Loadout, LoadoutItem } from "../loadout/types.ts";
 import { createPmc } from "../pmc/pmc.ts";
 import type { PmcState } from "../pmc/pmc.ts";
 import { createSkills } from "../pmc/skills.ts";
@@ -104,6 +106,7 @@ export function serializeGame(state: PlayerState, now: number): SaveData {
     quests: structuredClone(state.quests),
     hideout: structuredClone(state.hideout),
     flea: saveFlea(state.flea),
+    loadouts: structuredClone(state.loadouts),
   };
 }
 
@@ -312,6 +315,41 @@ function loadFlea(
   };
 }
 
+/** Só os slots válidos com texto */
+function loadSlotMap(raw: unknown): Partial<Record<SlotName, string>> {
+  const map: Partial<Record<SlotName, string>> = {};
+  for (const slot of SLOT_NAMES) {
+    const value = (raw as Record<string, unknown> | undefined)?.[slot];
+    if (typeof value === "string") map[slot] = value;
+  }
+  return map;
+}
+
+/**
+ * Loadouts salvos: sem nome válido são descartados; slots desconhecidos e
+ * itens carregados inválidos somem (itens que saíram do jogo ficam e
+ * aparecem como faltando).
+ */
+function loadLoadouts(saved: Loadout[] | undefined): Loadout[] {
+  if (!Array.isArray(saved)) return [];
+  return saved.flatMap((raw) => {
+    if (typeof raw?.name !== "string") return [];
+    const carried: LoadoutItem[] = (
+      Array.isArray(raw.carried) ? raw.carried : []
+    ).filter(
+      (c) => typeof c?.item === "string" && isInt(c.count) && c.count > 0,
+    );
+    return [
+      {
+        name: raw.name,
+        slots: loadSlotMap(raw.slots),
+        magazines: loadSlotMap(raw.magazines),
+        carried: carried.map((c) => ({ item: c.item, count: c.count })),
+      },
+    ];
+  });
+}
+
 /**
  * Quests salvas: status inválido descarta a quest; progresso inválido vira
  * 0. Quests que saíram do jogo ficam guardadas sem efeito.
@@ -435,6 +473,7 @@ export function deserializeGame(
       quests: loadQuests(data.quests),
       hideout: loadHideout(data.hideout, clock.now()),
       flea: loadFlea(data.flea, loader, clock.now()),
+      loadouts: loadLoadouts(data.loadouts),
     },
     clock,
   );

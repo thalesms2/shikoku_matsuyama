@@ -166,6 +166,15 @@ Botão **Mercado** no inventário. É o mercado entre jogadores da cidade (simul
 - **Anúncios:** até 3 ao mesmo tempo. Na aba **Anúncios**, retire o dinheiro das vendas e os itens que voltaram (precisa haver espaço no estoque) ou cancele um anúncio (a taxa não volta).
 - **Encontrado na raid:** permutas e chaves só podem ser anunciadas se forem encontradas na raid. Contêineres, carregadores e armas precisam estar vazios.
 
+### Loadouts
+
+Na tela de preparação da raid, o botão **Loadouts** guarda até 5 modelos de equipamento.
+
+- **Salvar o atual:** guarda o que o PMC está usando: arma e carregador, coletes, capacete, mochila e tudo que está nos bolsos, no colete tático e na mochila.
+- **Ver o que falta:** cada item aparece com "tem" ou "falta", com o custo estimado para comprar o que falta.
+- **Equipar:** monta o equipamento com o que está no estoque. O que estava no lugar volta para o estoque, e itens a mais nos bolsos e na mochila ficam onde estão. Os carregadores mais cheios vão primeiro, mas a munição não é carregada sozinha.
+- **Comprar e equipar:** compra o que falta pelo menor preço (vendedores ou mercado) e monta tudo com um clique.
+
 ### Enquanto você estava fora
 
 O tempo continua passando com o jogo fechado: obras e produções do esconderijo terminam, a central junta renda, o PMC se recupera, os anúncios do mercado vendem ou vencem, a raid Scav libera e os vendedores repõem o estoque. Ao voltar (depois de pelo menos 1 minuto), uma tela mostra um resumo do que aconteceu antes de seguir para o jogo.

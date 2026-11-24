@@ -11,7 +11,23 @@ export function isWeapon(item: Item): boolean {
   return item.def.category === "weapon";
 }
 
-/** Capacidade do carregador, em cartuchos */
+/** Arma com tubo interno (escopeta): carregada direto, sem carregador */
+export function hasInternalMagazine(item: Item): boolean {
+  return isWeapon(item) && capacity(item) > 0;
+}
+
+/** Item que guarda cartuchos: carregador ou arma com tubo interno */
+export function isFeed(item: Item): boolean {
+  return isMagazine(item) || hasInternalMagazine(item);
+}
+
+/** De onde a arma puxa os cartuchos: o tubo ou o carregador encaixado */
+export function feedOf(weapon: Item): Item | null {
+  if (hasInternalMagazine(weapon)) return weapon;
+  return weapon.magazine ?? null;
+}
+
+/** Capacidade do carregador (ou do tubo), em cartuchos */
 export function capacity(item: Item): number {
   return item.def.stats?.capacity ?? 0;
 }
@@ -35,7 +51,7 @@ export function sameCaliber(a: ItemDef, b: ItemDef): boolean {
 /** Se a munição pode ser carregada no carregador agora */
 export function canLoad(magazine: Item, ammo: Item): boolean {
   return (
-    isMagazine(magazine) &&
+    isFeed(magazine) &&
     ammo.def.category === "ammo" &&
     ammo.count > 0 &&
     sameCaliber(magazine.def, ammo.def) &&
@@ -100,7 +116,7 @@ export function canAttachMagazine(weapon: Item, magazine: Item): boolean {
   return (
     isWeapon(weapon) &&
     isMagazine(magazine) &&
-    !weapon.magazine &&
+    weapon.magazine === null &&
     sameCaliber(weapon.def, magazine.def)
   );
 }
@@ -135,7 +151,50 @@ export function removeMagazine(
   return null;
 }
 
-/** Munição disponível na arma (no carregador encaixado) */
+/** Munição disponível na arma: a câmara e o carregador (ou o tubo) */
 export function weaponRounds(weapon: Item): number {
-  return weapon.magazine ? loadedRounds(weapon.magazine) : 0;
+  const feed = feedOf(weapon);
+  return (weapon.chamber ? 1 : 0) + (feed ? loadedRounds(feed) : 0);
+}
+
+/**
+ * Leva o cartucho do topo do carregador (ou do tubo) para a câmara vazia.
+ * Devolve se a câmara foi carregada agora.
+ */
+export function chamberRound(weapon: Item): boolean {
+  if (!isWeapon(weapon) || weapon.chamber) return false;
+  const feed = feedOf(weapon);
+  const round = feed ? popRound(feed) : null;
+  if (!round) return false;
+  weapon.chamber = round;
+  return true;
+}
+
+/**
+ * Dispara: sai o cartucho da câmara (carregando antes, se estiver vazia) e o
+ * próximo sobe do carregador. `null` se a arma estiver sem munição.
+ */
+export function fireRound(weapon: Item): ItemDef | null {
+  chamberRound(weapon);
+  const round = weapon.chamber;
+  if (!round) return null;
+  delete weapon.chamber;
+  chamberRound(weapon);
+  return round;
+}
+
+/**
+ * Tira o cartucho da câmara e guarda nas grades. Se não couber, ele continua
+ * na câmara e devolve `false`.
+ */
+export function unloadChamber(
+  weapon: Item,
+  factory: ItemFactory,
+  grids: readonly Grid[],
+): boolean {
+  const round = weapon.chamber;
+  if (!round) return false;
+  if (!autoPlace(factory.create(round.id), grids)) return false;
+  delete weapon.chamber;
+  return true;
 }

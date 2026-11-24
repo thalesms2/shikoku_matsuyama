@@ -8,11 +8,14 @@ import type { Grid } from "../inventory/grid.ts";
 import { totalValue } from "../inventory/item.ts";
 import type { Item } from "../inventory/item.ts";
 import {
+  chamberRound,
+  feedOf,
+  fireRound,
   freeRounds,
+  hasInternalMagazine,
   isMagazine,
   loadRounds,
   loadedRounds,
-  popRound,
   sameCaliber,
   weaponRounds,
 } from "../inventory/magazine.ts";
@@ -276,6 +279,8 @@ export class RaidSimulation {
     const { map } = this.setup;
     this.player.loader.cancel();
     this.log("start", `Entrou em ${map.name} (${this.strategy.name})`);
+    // Entra com um cartucho na câmara de cada arma
+    for (const weapon of this.weapons()) chamberRound(weapon);
     const [from, to] = this.strategy.extractAt;
     const extractAt = map.duration * (from + this.rng.next() * (to - from));
     let outcome: RaidOutcome | null = null;
@@ -531,13 +536,14 @@ export class RaidSimulation {
 
   // ------------------------------------------------------------ armas
 
-  /** Primeira arma equipada com munição no carregador */
+  /** Armas equipadas, na ordem dos slots */
+  weapons(): Item[] {
+    return WEAPON_SLOTS.flatMap((s) => this.equipment.get(s) ?? []);
+  }
+
+  /** Primeira arma equipada com munição (câmara, carregador ou tubo) */
   readyWeapon(): Item | null {
-    for (const slot of WEAPON_SLOTS) {
-      const weapon = this.equipment.get(slot);
-      if (weapon && weaponRounds(weapon) > 0) return weapon;
-    }
-    return null;
+    return this.weapons().find((w) => weaponRounds(w) > 0) ?? null;
   }
 
   /**
@@ -545,9 +551,8 @@ export class RaidSimulation {
    * munição do equipamento. O vazio vai para o lugar do novo.
    */
   swapMagazine(): boolean {
-    for (const slot of WEAPON_SLOTS) {
-      const weapon = this.equipment.get(slot);
-      if (!weapon) continue;
+    for (const weapon of this.weapons()) {
+      if (hasInternalMagazine(weapon)) continue;
       const spare = this.carriedItems().find(
         (i) =>
           isMagazine(i) &&
@@ -576,30 +581,55 @@ export class RaidSimulation {
   }
 
   /**
-   * Fora de combate: completa os carregadores (das armas e do equipamento)
-   * com munição solta do equipamento. Dá XP de Manuseio de carregador.
+   * Em combate, sem munição: enche o tubo de uma arma equipada com os
+   * cartuchos soltos do equipamento, gastando o turno.
+   */
+  reloadTube(): boolean {
+    for (const weapon of this.weapons()) {
+      if (!hasInternalMagazine(weapon)) continue;
+      const loaded = this.fill([weapon]);
+      if (loaded === 0) continue;
+      chamberRound(weapon);
+      this.log(
+        "reload",
+        `Recarregou ${loaded} cartuchos em ${weapon.def.shortName}`,
+      );
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Fora de combate: completa os carregadores (das armas e do equipamento) e
+   * os tubos com munição solta do equipamento. Dá XP de Manuseio de
+   * carregador. (A câmara é carregada no disparo, puxando do carregador.)
    */
   topUpMagazines(): void {
-    const mags = [
-      ...WEAPON_SLOTS.flatMap((s) => this.equipment.get(s)?.magazine ?? []),
+    const loaded = this.fill([
+      ...this.weapons().flatMap((w) => feedOf(w) ?? []),
       ...this.carriedItems().filter(isMagazine),
-    ];
-    let loaded = 0;
-    for (const mag of mags) {
-      for (const ammo of this.carriedItems()) {
-        if (freeRounds(mag) === 0) break;
-        if (ammo.def.category !== "ammo") continue;
-        loaded += loadRounds(mag, ammo);
-      }
-    }
+    ]);
     if (loaded > 0) {
-      addSkillXp(
-        this.player.skills,
-        "magDrills",
-        loaded * MAG_DRILLS_XP_PER_ROUND,
-      );
       this.log("reload", `Recarregou ${loaded} cartuchos`);
     }
+  }
+
+  /** Carrega a munição solta do equipamento em `feeds`; dá XP de manuseio */
+  fill(feeds: readonly Item[]): number {
+    let loaded = 0;
+    for (const feed of feeds) {
+      for (const ammo of this.carriedItems()) {
+        if (freeRounds(feed) === 0) break;
+        if (ammo.def.category !== "ammo") continue;
+        loaded += loadRounds(feed, ammo);
+      }
+    }
+    addSkillXp(
+      this.player.skills,
+      "magDrills",
+      loaded * MAG_DRILLS_XP_PER_ROUND,
+    );
+    return loaded;
   }
 
   // ---------------------------------------------------------------- combate
@@ -664,7 +694,7 @@ export class RaidSimulation {
   playerTurn(enemy: EnemyDef, armorClass: number): number | "fled" {
     const weapon = this.readyWeapon();
     if (!weapon) {
-      if (this.swapMagazine()) return 0;
+      if (this.swapMagazine() || this.reloadTube()) return 0;
       if (this.rng.chance(FLEE_CHANCE)) {
         this.log("flee", `Sem munição, fugiu de ${enemy.name}`);
         this.afterFight();
@@ -679,7 +709,7 @@ export class RaidSimulation {
     let dealt = 0;
     for (let i = 0; i < shots; i++) {
       // A rajada nunca passa da munição carregada
-      const ammo = popRound(weapon.magazine!)!;
+      const ammo = fireRound(weapon)!;
       if (!this.rng.chance(chance)) continue;
       hits++;
       dealt +=

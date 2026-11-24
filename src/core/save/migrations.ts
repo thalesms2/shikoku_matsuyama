@@ -44,6 +44,8 @@ export const MIGRATIONS: Record<number, Migration> = {
   9: (data) => data,
   // v10 → v11: progresso da cirurgia da enfermaria (sem o campo = 0)
   10: (data) => data,
+  // v11 → v12: cartucho na câmara das armas (sem o campo = vazia); nada muda
+  11: (data) => data,
 };
 
 export class SaveError extends Error {}

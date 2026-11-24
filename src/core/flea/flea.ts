@@ -229,7 +229,8 @@ export function listingValue(
   if (
     item.grids.some((g) => g.items().length > 0) ||
     (item.rounds?.length ?? 0) > 0 ||
-    item.magazine
+    item.magazine ||
+    item.chamber
   ) {
     return fail("Esvazie antes de anunciar");
   }

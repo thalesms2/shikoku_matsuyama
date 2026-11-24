@@ -80,6 +80,8 @@ Todo item ocupa um retângulo de células (por exemplo, 1x1 para uma atadura, 5x
 - **Ordem dos cartuchos:** se você misturar tipos de munição, eles ficam na ordem em que foram carregados, e o último colocado é o primeiro a ser disparado. O quadro de informações do carregador mostra a sequência, de cima para baixo.
 - **Descarregar:** botão direito → "Descarregar". Os cartuchos voltam como pilhas para perto do carregador; se faltar espaço, o resto fica nele.
 - **Arma:** solte o carregador sobre a arma (no estoque ou equipada) para encaixá-lo. Carregadores e armas mostram no canto quantos cartuchos têm (ex.: 12/30). Para tirar: botão direito na arma → "Remover carregador".
+- **Câmara:** toda arma tem um cartucho na câmara além do carregador, mostrado como "+1" (ex.: 11+1/12). O PMC carrega a câmara ao entrar na raid, e a cada disparo o próximo cartucho sobe do carregador. No inventário: botão direito na arma → "Carregar a câmara" ou "Descarregar a câmara".
+- **Escopeta:** a Escopeta M-12 não usa carregador. Ela tem um tubo de 6 cartuchos: solte a munição calibre 12 direto sobre a escopeta (no estoque ou equipada) e ela carrega um cartucho por vez, como um carregador. Na raid, quando o tubo esvazia, o PMC usa um turno para enchê-lo com os cartuchos soltos que estiver carregando.
 
 ### Raid
 
@@ -98,7 +100,7 @@ Botão **Raid** no inventário. Escolha o mapa, a estratégia e a regra de loot 
   - A chance de acertar depende da skill Mira e cai se um braço estiver destruído.
   - O dano depende da munição: se a penetração for menor que a proteção do colete ou do capacete do alvo (classe × 10), o dano cai. Isso vale para os dois lados.
   - Seu colete protege tórax e estômago, e o capacete protege a cabeça.
-  - Quando o carregador esvazia, o PMC troca por outro carregado que esteja no equipamento. Depois da briga, ele completa os carregadores com a munição solta que estiver carregando.
+  - Quando o carregador esvazia, o PMC troca por outro carregado que esteja no equipamento (a escopeta é recarregada com cartuchos soltos). Depois da briga, ele completa os carregadores e o tubo da escopeta com a munição solta que estiver carregando.
   - Sem munição nenhuma, ele tenta fugir.
 - **Cuidados automáticos:** o PMC usa sozinho os remédios do equipamento quando a vida cai (começando pelo melhor), e come ou bebe quando a energia ou a hidratação ficam baixas. Energia e hidratação caem durante a raid; se zerarem, o PMC começa a perder vida.
 - **Loot:** o que o PMC encontra só é guardado se couber nos bolsos, no colete tático, na mochila ou, por último, no contêiner seguro. Duas regras:
@@ -177,7 +179,7 @@ Botão **Mercado** no inventário. É o mercado entre jogadores da cidade (simul
 - **Vender (anunciar):** escolha um item do estoque e o preço pedido, de 50% a 200% do valor de mercado (botões − e +). Você paga uma **taxa** ao anunciar: 4% do valor quando o preço é o de mercado, e ela cresce rápido se você pedir mais. O item sai do estoque enquanto está anunciado.
 - **Quando vende:** os compradores aparecem com o tempo, inclusive com o jogo fechado. Pelo preço de mercado, a venda leva uns 20 minutos em média. Mais barato vende mais rápido, mais caro demora mais, e com o dobro do valor ninguém compra. O anúncio dura 12 horas; depois disso o item volta.
 - **Anúncios:** até 3 ao mesmo tempo. Na aba **Anúncios**, retire o dinheiro das vendas e os itens que voltaram (precisa haver espaço no estoque) ou cancele um anúncio (a taxa não volta).
-- **Encontrado na raid:** permutas e chaves só podem ser anunciadas se forem encontradas na raid. Contêineres, carregadores e armas precisam estar vazios.
+- **Encontrado na raid:** permutas e chaves só podem ser anunciadas se forem encontradas na raid. Contêineres, carregadores e armas precisam estar vazios (inclusive a câmara e o tubo da escopeta).
 
 ### Loadouts
 

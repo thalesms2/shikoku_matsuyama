@@ -2,9 +2,13 @@ import type { Grid } from "../../core/inventory/grid.ts";
 import type { Item, ItemFactory } from "../../core/inventory/item.ts";
 import type { MagazineLoader } from "../../core/inventory/loading.ts";
 import {
-  isMagazine,
+  chamberRound,
+  feedOf,
+  isFeed,
+  isWeapon,
   loadedRounds,
   removeMagazine,
+  unloadChamber,
 } from "../../core/inventory/magazine.ts";
 import { splitStack } from "../../core/inventory/operations.ts";
 import { isConsumable } from "../../core/pmc/consumables.ts";
@@ -41,7 +45,7 @@ export function itemActions(item: Item, ctx: ActionContext): MenuOption[] {
     options.push({ label: "Abrir", run: () => ctx.openWindow(item) });
   }
 
-  if (isMagazine(item)) {
+  if (isFeed(item)) {
     if (ctx.loader.isBusy(item)) {
       act("Cancelar carregamento", () => ctx.loader.cancel());
     } else if (loadedRounds(item) > 0) {
@@ -60,6 +64,17 @@ export function itemActions(item: Item, ctx: ActionContext): MenuOption[] {
     act("Remover carregador", () => {
       removeMagazine(item, ctx.storageFor(item));
     });
+  }
+
+  if (item.chamber) {
+    act("Descarregar a câmara", () => {
+      unloadChamber(item, ctx.factory, ctx.storageFor(item));
+    });
+  } else if (isWeapon(item)) {
+    const feed = feedOf(item);
+    if (feed && loadedRounds(feed) > 0 && !ctx.loader.isBusy(feed)) {
+      act("Carregar a câmara", () => chamberRound(item));
+    }
   }
 
   if (item.count > 1) {

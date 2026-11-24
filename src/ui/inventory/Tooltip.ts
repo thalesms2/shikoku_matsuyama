@@ -4,6 +4,7 @@ import type { Item, RoundStack } from "../../core/inventory/item.ts";
 import { totalValue } from "../../core/inventory/item.ts";
 import {
   capacity,
+  hasInternalMagazine,
   isMagazine,
   loadedRounds,
 } from "../../core/inventory/magazine.ts";
@@ -60,16 +61,26 @@ export function formatCaliber(caliber: string): string {
   return CALIBERS[caliber] ?? caliber.replace(/^Caliber/, "");
 }
 
-/** Munição carregada (carregadores) ou carregador encaixado (armas) */
+/** Cartuchos do carregador ou do tubo, do topo para baixo */
+function roundLines(feed: Item, label: string): string[] {
+  const lines = [`${label}: ${loadedRounds(feed)}/${capacity(feed)}`];
+  // Carregadores e tubos sempre têm `rounds`
+  const rounds = feed.rounds as RoundStack[];
+  for (const round of [...rounds].reverse()) {
+    lines.push(`  ${round.def.name} x${round.count}`);
+  }
+  return lines;
+}
+
+/**
+ * Munição carregada (carregadores e tubos), carregador encaixado (armas) e o
+ * cartucho na câmara
+ */
 export function ammoSheet(item: Item): string[] {
-  if (isMagazine(item)) {
-    const lines = [`Munição: ${loadedRounds(item)}/${capacity(item)}`];
-    // Carregadores sempre têm `rounds`
-    const rounds = item.rounds as RoundStack[];
-    for (const round of [...rounds].reverse()) {
-      lines.push(`  ${round.def.name} x${round.count}`);
-    }
-    return lines;
+  if (isMagazine(item)) return roundLines(item, "Munição");
+  const chamber = item.chamber ? [`Câmara: ${item.chamber.name}`] : [];
+  if (hasInternalMagazine(item)) {
+    return [...roundLines(item, "Tubo"), ...chamber];
   }
   if (item.magazine === undefined) return [];
   const mag = item.magazine;
@@ -77,6 +88,7 @@ export function ammoSheet(item: Item): string[] {
     mag
       ? `Carregador: ${mag.def.name} (${loadedRounds(mag)}/${capacity(mag)})`
       : "Sem carregador",
+    ...chamber,
   ];
 }
 

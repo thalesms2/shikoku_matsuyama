@@ -440,7 +440,8 @@
     "description": "Escopeta de bomba de cano curto. Devastadora em corredores e escadas, quase inútil a mais de trinta metros.",
     "image": "assets/items/shotgun_m12.webp",
     "stats": {
-      "caliber": "Caliber12g"
+      "caliber": "Caliber12g",
+      "capacity": 6
     }
   }
 ]

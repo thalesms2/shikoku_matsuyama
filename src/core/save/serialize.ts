@@ -12,7 +12,11 @@ import { Grid } from "../inventory/grid.ts";
 import { ItemFactory } from "../inventory/item.ts";
 import type { Catalog, GridLocation, Item } from "../inventory/item.ts";
 import type { LoadJob } from "../inventory/loading.ts";
-import { attachMagazine } from "../inventory/magazine.ts";
+import {
+  attachMagazine,
+  isWeapon,
+  sameCaliber,
+} from "../inventory/magazine.ts";
 import { autoPlace } from "../inventory/operations.ts";
 import type { Loadout, LoadoutItem } from "../loadout/types.ts";
 import { createPmc } from "../pmc/pmc.ts";
@@ -48,6 +52,7 @@ function saveItem(item: Item): SavedItem {
   if (item.magazine) saved.magazine = saveItem(item.magazine);
   if (item.fir) saved.fir = true;
   if (item.durability !== undefined) saved.dur = item.durability;
+  if (item.chamber) saved.chamber = item.chamber.id;
   return saved;
 }
 
@@ -157,6 +162,7 @@ class Loader {
       }
       item.rounds.push({ def: this.factory.catalog.get(id), count });
     }
+    this.chamber(item, saved.chamber);
     if (saved.magazine) {
       const mag = this.item(saved.magazine);
       if (mag && !attachMagazine(item, mag)) {
@@ -165,6 +171,21 @@ class Loader {
       }
     }
     return item;
+  }
+
+  /** Cartucho da câmara: só munição do catálogo, do calibre da arma */
+  private chamber(item: Item, id: unknown): void {
+    if (typeof id !== "string" || !isWeapon(item)) return;
+    if (!this.factory.catalog.has(id)) {
+      this.warnings.push(`Munição removida do jogo: ${id}`);
+      return;
+    }
+    const round = this.factory.catalog.get(id);
+    if (round.category === "ammo" && sameCaliber(item.def, round)) {
+      item.chamber = round;
+    } else {
+      this.warnings.push(`Cartucho incompatível na câmara de ${item.uid}`);
+    }
   }
 
   /** Coloca o item salvo na grade, na posição salva ou no primeiro espaço */

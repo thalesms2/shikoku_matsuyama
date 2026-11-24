@@ -10,7 +10,7 @@ import type { RaidProfile, ScavProfile } from "../raid/types.ts";
 import type { TradersState } from "../trade/types.ts";
 
 /** Versão atual do formato do save. Mudou o formato? Incremente e migre. */
-export const SAVE_VERSION = 11;
+export const SAVE_VERSION = 12;
 
 /** Item salvo; o conteúdo vai junto (grades, cartuchos, carregador) */
 export interface SavedItem {
@@ -19,7 +19,7 @@ export interface SavedItem {
   count: number;
   /** Conteúdo de cada grade interna */
   grids?: SavedPlacedItem[][];
-  /** Cartuchos do carregador: [id da munição, quantidade], do fundo ao topo */
+  /** Cartuchos do carregador ou do tubo: [id da munição, quantidade], do fundo ao topo */
   rounds?: [string, number][];
   /** Carregador encaixado na arma */
   magazine?: SavedItem;
@@ -27,6 +27,8 @@ export interface SavedItem {
   fir?: true;
   /** v10: durabilidade atual (só quando não está inteira) */
   dur?: number;
+  /** v12: cartucho na câmara da arma (id da munição) */
+  chamber?: string;
 }
 
 /** Item salvo dentro de uma grade, com a posição */

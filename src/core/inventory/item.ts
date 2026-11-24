@@ -133,12 +133,15 @@ export interface Item {
   /** `null` quando o item não está em lugar nenhum (solto) */
   location: ItemLocation | null;
   /**
-   * Carregadores: cartuchos na ordem em que foram carregados. O último da
+   * Carregadores e armas com tubo interno (escopetas, com `stats.capacity`):
+   * cartuchos na ordem em que foram carregados. O último da
    * lista é o topo, o próximo a ser disparado.
    */
   readonly rounds?: RoundStack[];
-  /** Armas: carregador encaixado */
+  /** Armas com carregador: carregador encaixado (armas com tubo não têm) */
   magazine?: Item | null;
+  /** Armas: cartucho na câmara (sem o campo = câmara vazia) */
+  chamber?: ItemDef;
   /** Encontrado na raid (saiu com o loot de uma raid em que extraiu) */
   fir?: boolean;
   /** Durabilidade atual (armaduras); sem o campo = inteira */
@@ -231,14 +234,17 @@ export class ItemFactory {
     }
     if (fresh) this.counter++;
     const grids: Grid[] = [];
+    const weapon = def.category === "weapon";
+    // Arma com capacidade própria = tubo interno, sem carregador
+    const tube = weapon && (def.stats?.capacity ?? 0) > 0;
     const item: Item = {
       uid,
       def,
       count,
       grids,
       location: null,
-      ...(def.category === "magazine" && { rounds: [] }),
-      ...(def.category === "weapon" && { magazine: null }),
+      ...((def.category === "magazine" || tube) && { rounds: [] }),
+      ...(weapon && !tube && { magazine: null }),
     };
     for (const spec of def.grids ?? []) {
       grids.push(new Grid(spec.width, spec.height, spec, item));
@@ -258,5 +264,6 @@ export function totalValue(item: Item): number {
     value += round.def.basePrice * round.count;
   }
   if (item.magazine) value += totalValue(item.magazine);
+  if (item.chamber) value += item.chamber.basePrice;
   return value;
 }

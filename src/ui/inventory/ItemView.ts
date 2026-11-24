@@ -3,7 +3,9 @@ import { Container, Graphics, Sprite, Text } from "pixi.js";
 import type { Item } from "../../core/inventory/item.ts";
 import {
   capacity,
+  feedOf,
   isMagazine,
+  isWeapon,
   loadedRounds,
 } from "../../core/inventory/magazine.ts";
 import { footprint, maxStack } from "../../core/inventory/size.ts";
@@ -103,11 +105,17 @@ export class ItemView extends Container {
   }
 }
 
-/** Texto do canto inferior: pilha, munição do carregador ou da arma */
+/**
+ * Texto do canto inferior: pilha, munição do carregador ou da arma (o
+ * cartucho da câmara aparece como "+1")
+ */
 export function countText(item: Item): string {
   if (isMagazine(item)) return `${loadedRounds(item)}/${capacity(item)}`;
-  if (item.magazine) {
-    return `${loadedRounds(item.magazine)}/${capacity(item.magazine)}`;
+  if (isWeapon(item)) {
+    const feed = feedOf(item);
+    const chamber = item.chamber ? "+1" : "";
+    if (feed) return `${loadedRounds(feed)}${chamber}/${capacity(feed)}`;
+    if (item.chamber) return "1";
   }
   return maxStack(item.def) > 1 ? formatCount(item.count) : "";
 }

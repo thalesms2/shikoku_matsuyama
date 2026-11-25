@@ -4,7 +4,7 @@ import type { Clock } from "../clock.ts";
 import { createFleaState } from "../flea/flea.ts";
 import type { FleaListing, FleaResult, FleaState } from "../flea/types.ts";
 import { createHideoutState } from "../hideout/hideout.ts";
-import type { HideoutState } from "../hideout/types.ts";
+import type { Construction, HideoutState } from "../hideout/types.ts";
 import { maxDurability } from "../inventory/durability.ts";
 import { Equipment, SLOT_NAMES } from "../inventory/equipment.ts";
 import type { SlotName } from "../inventory/equipment.ts";
@@ -248,14 +248,14 @@ function loadHideout(
   for (const [id, level] of Object.entries(saved.modules ?? {})) {
     if (Number.isInteger(level) && level > 0) modules[id] = level;
   }
-  const c = saved.construction;
-  const construction =
+  const job = (c: Construction | null | undefined): Construction | null =>
     c &&
     typeof c.module === "string" &&
     Number.isInteger(c.level) &&
     Number.isFinite(c.endsAt)
       ? { module: c.module, level: c.level, endsAt: c.endsAt }
       : null;
+  const construction = job(saved.construction);
   const productions: HideoutState["productions"] = {};
   for (const [id, p] of Object.entries(saved.productions ?? {})) {
     if (p && typeof p.recipe === "string" && Number.isFinite(p.endsAt)) {
@@ -272,6 +272,13 @@ function loadHideout(
   // progresso da cirurgia: só um número positivo
   const surgery = saved.surgeryProgress;
   if (Number.isFinite(surgery) && surgery! > 0) state.surgeryProgress = surgery;
+  // v18: outras obras ao mesmo tempo e combustível do gerador
+  const extra = Array.isArray(saved.extraConstructions)
+    ? saved.extraConstructions.flatMap((c) => job(c) ?? [])
+    : [];
+  if (extra.length > 0) state.extraConstructions = extra;
+  const fuel = saved.fuel;
+  if (Number.isFinite(fuel) && fuel! > 0) state.fuel = fuel;
   return state;
 }
 

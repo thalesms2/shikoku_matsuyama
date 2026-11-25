@@ -194,6 +194,14 @@ export interface CoreBalance {
     /** Multiplicador da renda passiva (por hora e limite) */
     income: number;
   };
+  fuel: {
+    /** Combustível queimado por hora com o gerador construído */
+    perHour: number;
+    /** Combustível que cada galão põe no gerador */
+    perCan: number;
+    /** Máximo de combustível no gerador */
+    max: number;
+  };
 }
 
 /** Valores padrão (os mesmos de antes da centralização) */
@@ -305,6 +313,7 @@ export const CORE_DEFAULTS: CoreBalance = {
     reputationPerUnit: 0.005,
   },
   hideout: { buildTime: 1, productionTime: 1, income: 1 },
+  fuel: { perHour: 1, perCan: 10, max: 30 },
 };
 
 let current: CoreBalance = structuredClone(CORE_DEFAULTS);

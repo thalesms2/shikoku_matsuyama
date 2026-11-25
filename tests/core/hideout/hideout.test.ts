@@ -79,7 +79,7 @@ describe("obras", () => {
     ]);
   });
 
-  it("começa: paga, marca o fim e bloqueia outra obra", () => {
+  it("começa: paga e marca o fim", () => {
     const { player, put } = trader();
     expect(upgradeBlockers(player, D, TRADERS, mod("power"), 0)).toEqual([
       "Faltam: Rublos-velhos (0/1000)",
@@ -99,9 +99,6 @@ describe("obras", () => {
       level: 1,
       endsAt: 100 + 10 * MIN,
     });
-    expect(upgradeBlockers(player, D, TRADERS, mod("radio"), 0)).toEqual([
-      "Outra obra em andamento",
-    ]);
     expect(startUpgrade(player, D, TRADERS, "nada", 0)).toEqual({
       ok: false,
       reason: "Módulo não existe",

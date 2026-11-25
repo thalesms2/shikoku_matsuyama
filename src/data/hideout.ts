@@ -269,4 +269,5 @@ export const RECIPES: readonly RecipeDef[] = [
 export const HIDEOUT: HideoutData = {
   modules: HIDEOUT_MODULES,
   recipes: RECIPES,
+  fuel: { module: "generator", item: "barter_fuel" },
 };

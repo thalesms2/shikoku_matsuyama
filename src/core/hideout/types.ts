@@ -61,12 +61,22 @@ export interface RecipeDef {
   readonly durationMs: number;
 }
 
+export interface Construction {
+  module: string;
+  level: number;
+  endsAt: number;
+}
+
 /** Tudo do esconderijo que vai para o save */
 export interface HideoutState {
   /** Nível de cada módulo (ausente = 0) */
   modules: Record<string, number>;
-  /** Obra em andamento (uma por vez) */
-  construction: { module: string; level: number; endsAt: number } | null;
+  /** Obra em andamento (a primeira; as outras ficam em `extraConstructions`) */
+  construction: Construction | null;
+  /** Outras obras ao mesmo tempo (no máximo uma por módulo) */
+  extraConstructions?: Construction[];
+  /** Combustível no gerador (sem o campo = vazio) */
+  fuel?: number;
   /** Produção de cada módulo (uma por módulo) */
   productions: Record<string, { recipe: string; endsAt: number }>;
   /** Desde quando a renda passiva acumula */
@@ -81,4 +91,6 @@ export interface HideoutState {
 export interface HideoutData {
   readonly modules: readonly ModuleDef[];
   readonly recipes: readonly RecipeDef[];
+  /** Módulo que queima combustível e o item que o abastece (sem = sem combustível) */
+  readonly fuel?: { readonly module: string; readonly item: string };
 }

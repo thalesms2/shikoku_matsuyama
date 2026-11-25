@@ -1,11 +1,16 @@
 import { Container, Text } from "pixi.js";
 
+import { coreBalance } from "../../core/balance.ts";
 import type { Clock } from "../../core/clock.ts";
 import {
+  addFuel,
   collectIncome,
+  constructionOf,
   collectProduction,
   currentLevel,
   effect,
+  fuelBlocker,
+  hasPower,
   incomeAvailable,
   moduleLevel,
   nextModuleLevel,
@@ -42,6 +47,7 @@ const RIGHT = 230;
 const ROWS_TOP = 300;
 const ROW_HEIGHT = 34;
 const CONTENT_HEIGHT = 560;
+const HOUR_MS = 60 * 60 * 1000;
 /** Intervalo de atualização dos textos (contagens) */
 export const REFRESH_MS = 500;
 
@@ -267,6 +273,11 @@ export class HideoutScene implements Scene {
     );
   }
 
+  refuel(): TradeResult {
+    const result = addFuel(this.player, this.data);
+    return this.show(result, "Gerador abastecido");
+  }
+
   private show(result: TradeResult, okText: string): TradeResult {
     this.messageText.text = result.ok ? okText : result.reason;
     this.messageText.style.fill = result.ok ? OK_COLOR : ERROR_COLOR;
@@ -299,6 +310,9 @@ export class HideoutScene implements Scene {
       def.description,
       "",
       `Agora: ${current ? describeEffects(current.effects, this.catalog) : "não construído"}`,
+      ...(hasPower(state, this.data)
+        ? []
+        : ["Gerador sem combustível: produções e renda paradas"]),
     ].join("\n");
 
     this.refreshUpgrade(def);
@@ -308,8 +322,8 @@ export class HideoutScene implements Scene {
   private refreshUpgrade(def: ModuleDef): void {
     const state = this.player.hideout;
     const next = nextModuleLevel(state, def);
-    const job = state.construction;
-    const building = job?.module === def.id;
+    const job = constructionOf(state, def.id);
+    const building = job !== null;
     const lines: string[] = [];
     if (building) {
       lines.push(
@@ -340,7 +354,11 @@ export class HideoutScene implements Scene {
   private refreshRows(def: ModuleDef): void {
     for (const child of this.rows.removeChildren()) child.destroy();
     this.rowButtons = [];
-    const rows = [...this.incomeRows(def), ...this.recipeRows(def)];
+    const rows = [
+      ...this.fuelRows(def),
+      ...this.incomeRows(def),
+      ...this.recipeRows(def),
+    ];
     rows.forEach((row, i) => {
       const y = i * ROW_HEIGHT;
       const label = new Text({
@@ -354,6 +372,29 @@ export class HideoutScene implements Scene {
       this.rows.addChild(label, button);
       this.rowButtons.push(button);
     });
+  }
+
+  private fuelRows(def: ModuleDef): Row[] {
+    const state = this.player.hideout;
+    if (this.data.fuel?.module !== def.id || moduleLevel(state, def.id) === 0) {
+      return [];
+    }
+    const { perHour, max } = coreBalance().fuel;
+    const have = state.fuel ?? 0;
+    const lasts =
+      perHour > 0
+        ? ` · dura ${formatDuration((have / perHour) * HOUR_MS)}`
+        : "";
+    return [
+      {
+        label: `Combustível: ${Math.ceil(have)}/${max}${lasts}`,
+        action: "Abastecer",
+        enabled: fuelBlocker(this.player, this.data) === null,
+        run: () => {
+          this.refuel();
+        },
+      },
+    ];
   }
 
   private incomeRows(def: ModuleDef): Row[] {

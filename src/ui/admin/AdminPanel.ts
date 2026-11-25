@@ -21,6 +21,7 @@ export const CORE_SECTION_NAMES: Record<keyof CoreBalance, string> = {
   bleed: "Sangramento e cuidados",
   repeatable: "Quests repetíveis",
   hideout: "Esconderijo",
+  fuel: "Combustível do gerador",
 };
 
 /** Nomes dos dados técnicos dos itens na janela */

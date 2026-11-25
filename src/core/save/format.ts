@@ -60,7 +60,7 @@ export interface SaveData {
   traders?: TradersState;
   /** v5: quests aceitas e concluídas (e `fir` nos itens) */
   quests?: QuestsState;
-  /** v6: esconderijo (módulos, obra, produções, renda, último cálculo) */
+  /** v6: esconderijo (módulos, obra, produções, renda, último cálculo); v18: outras obras e combustível */
   hideout?: HideoutState;
   /** v7: mercado (anúncios com o item, resultados, pressão, estatísticas) */
   flea?: SavedFlea;

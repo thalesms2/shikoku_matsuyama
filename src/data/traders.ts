@@ -205,6 +205,7 @@ export const TRADERS: readonly TraderDef[] = [
       },
       { id: "tape", item: "barter_tape", level: 1, stock: 4 },
       { id: "nails", item: "barter_nails", level: 1, stock: 4 },
+      { id: "fuel", item: "barter_fuel", level: 1, stock: 3 },
     ],
   },
 ];

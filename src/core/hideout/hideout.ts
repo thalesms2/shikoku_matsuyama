@@ -19,6 +19,7 @@ import {
 } from "../trade/trade.ts";
 import type { TradeResult, TraderDef } from "../trade/types.ts";
 import type {
+  Construction,
   HideoutData,
   HideoutState,
   ItemAmount,
@@ -75,6 +76,20 @@ export function effect(
 
 const fail = (reason: string): TradeResult => ({ ok: false, reason });
 
+/** Todas as obras em andamento */
+export function constructions(state: HideoutState): Construction[] {
+  const first = state.construction ? [state.construction] : [];
+  return [...first, ...(state.extraConstructions ?? [])];
+}
+
+/** Obra em andamento do módulo (`null` se não há) */
+export function constructionOf(
+  state: HideoutState,
+  moduleId: string,
+): Construction | null {
+  return constructions(state).find((c) => c.module === moduleId) ?? null;
+}
+
 /** O que falta no estoque para pagar os itens, em texto */
 function missingItems(player: PlayerState, cost: readonly ItemAmount[]) {
   const { catalog } = player.factory;
@@ -101,7 +116,7 @@ export function upgradeBlockers(
   const next = nextModuleLevel(state, def);
   if (!next) return ["Nível máximo"];
   const blockers: string[] = [];
-  if (state.construction) blockers.push("Outra obra em andamento");
+  if (constructionOf(state, def.id)) blockers.push("Obra em andamento");
   for (const req of next.requires.modules ?? []) {
     if (moduleLevel(state, req.module) < req.level) {
       const name = data.modules.find((m) => m.id === req.module)!.name;
@@ -144,27 +159,31 @@ export function startUpgrade(
   if (blockers.length > 0) return fail(blockers[0]);
   const next = nextModuleLevel(player.hideout, def)!;
   for (const c of next.cost) take(player, c.item, c.count);
-  player.hideout.construction = {
+  const job = {
     module: def.id,
     level: next.level,
     endsAt: now + buildDuration(next),
   };
+  const state = player.hideout;
+  if (!state.construction) state.construction = job;
+  else (state.extraConstructions ??= []).push(job);
   return { ok: true, amount: next.level };
 }
 
-/** Conclui a obra se já terminou; o estoque cresce na hora */
+/** Conclui a obra; o estoque cresce na hora */
 function finishConstruction(
   player: PlayerState,
   data: HideoutData,
-  now: number,
+  job: Construction,
 ): void {
   const state = player.hideout;
-  const job = state.construction;
-  if (!job || now < job.endsAt) return;
   const rowsBefore = effect(state, data, "stashRows");
   const incomeBefore = effect(state, data, "incomePerHour");
   state.modules[job.module] = job.level;
-  state.construction = null;
+  if (state.construction === job) state.construction = null;
+  const extra = (state.extraConstructions ?? []).filter((c) => c !== job);
+  if (extra.length > 0) state.extraConstructions = extra;
+  else delete state.extraConstructions;
   player.inventory.stash.addRows(
     Math.max(0, effect(state, data, "stashRows") - rowsBefore),
   );
@@ -183,21 +202,26 @@ export function hideoutTick(
   now: number,
 ): number {
   const state = player.hideout;
-  const job = state.construction;
-  // A cura até o fim da obra usa o nível antigo; depois, o novo
-  if (job && job.endsAt <= now && job.endsAt > state.lastTick) {
-    regen(player, data, job.endsAt);
+  const due = constructions(state)
+    .filter((job) => job.endsAt <= now)
+    .sort((a, b) => a.endsAt - b.endsAt);
+  // Até o fim de cada obra valem os níveis antigos; depois, o novo
+  for (const job of due) {
+    if (job.endsAt > state.lastTick) regen(player, data, job.endsAt);
+    finishConstruction(player, data, job);
   }
-  finishConstruction(player, data, now);
   return regen(player, data, now);
 }
 
 function regen(player: PlayerState, data: HideoutData, until: number): number {
   const state = player.hideout;
-  const minutes = Math.max(0, until - state.lastTick) / MINUTE;
-  state.lastTick = Math.max(state.lastTick, until);
+  const from = state.lastTick;
+  const minutes = Math.max(0, until - from) / MINUTE;
+  state.lastTick = Math.max(from, until);
   const { pmc } = player;
-  if (minutes === 0 || isDead(pmc)) return minutes;
+  if (minutes === 0) return minutes;
+  burnFuel(state, data, from, until);
+  if (isDead(pmc)) return minutes;
   const interval = effect(state, data, "surgeryMinutes");
   if (interval > 0) operate(player, minutes, interval);
   const healing = effect(state, data, "healPerMinute") * minutes;
@@ -226,6 +250,64 @@ function operate(player: PlayerState, minutes: number, interval: number) {
   }
   if (destroyed()) hideout.surgeryProgress = progress;
   else delete hideout.surgeryProgress;
+}
+
+/** O gerador queima combustível; quando acaba, produções e renda param */
+function burnFuel(
+  state: HideoutState,
+  data: HideoutData,
+  from: number,
+  until: number,
+): void {
+  if (!data.fuel || moduleLevel(state, data.fuel.module) === 0) return;
+  const { perHour } = coreBalance().fuel;
+  const have = state.fuel ?? 0;
+  const need = (perHour * (until - from)) / HOUR;
+  if (have >= need) {
+    if (have - need > 0) state.fuel = have - need;
+    else delete state.fuel;
+    return;
+  }
+  delete state.fuel;
+  const cutoff = from + (have / perHour) * HOUR;
+  // Sem energia de `cutoff` até `until`: as contagens ficam paradas
+  for (const job of Object.values(state.productions)) {
+    if (job.endsAt > cutoff) job.endsAt += until - cutoff;
+  }
+  state.incomeSince += Math.max(0, until - Math.max(cutoff, state.incomeSince));
+}
+
+/** Há energia: sem gerador construído (ou sem combustível no jogo) ou com combustível */
+export function hasPower(state: HideoutState, data: HideoutData): boolean {
+  if (!data.fuel || moduleLevel(state, data.fuel.module) === 0) return true;
+  return (state.fuel ?? 0) > 0;
+}
+
+/** Motivo que impede abastecer o gerador (`null` = pode) */
+export function fuelBlocker(
+  player: PlayerState,
+  data: HideoutData,
+): string | null {
+  const fuel = data.fuel;
+  if (!fuel) return "Sem gerador";
+  if (moduleLevel(player.hideout, fuel.module) === 0) {
+    const name = data.modules.find((m) => m.id === fuel.module)!.name;
+    return `${name} nível 1`;
+  }
+  const { perCan, max } = coreBalance().fuel;
+  if ((player.hideout.fuel ?? 0) + perCan > max) return "Tanque cheio";
+  const missing = missingItems(player, [{ item: fuel.item, count: 1 }]);
+  return missing.length > 0 ? `Faltam: ${missing[0]}` : null;
+}
+
+/** Põe um galão do estoque no gerador */
+export function addFuel(player: PlayerState, data: HideoutData): TradeResult {
+  const blocker = fuelBlocker(player, data);
+  if (blocker) return fail(blocker);
+  const { perCan } = coreBalance().fuel;
+  take(player, data.fuel!.item, 1);
+  player.hideout.fuel = (player.hideout.fuel ?? 0) + perCan;
+  return { ok: true, amount: perCan };
 }
 
 /** Duração de uma receita com o desconto do gerador */

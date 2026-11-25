@@ -1,4 +1,5 @@
 import { createAutoState } from "../auto/auto.ts";
+import { coreBalance } from "../balance.ts";
 import { createFleaState } from "../flea/flea.ts";
 import { createHideoutState } from "../hideout/hideout.ts";
 import { createRepeatableState } from "../quests/repeatable.ts";
@@ -58,8 +59,16 @@ export const MIGRATIONS: Record<number, Migration> = {
   15: (data) => data,
   // v16 → v17: conhecimento dos mapas (sem = nada conhecido)
   16: (data) => ({ ...data, mapKnowledge: {} }),
-  // v17 → v18: (esconderijo, outro agente)
-  17: (data) => data,
+  // v17 → v18: várias obras ao mesmo tempo (a antiga continua em
+  // `construction`) e combustível do gerador: gerador já construído começa
+  // com o tanque cheio, para as produções e a renda não pararem de repente
+  17: (data) => {
+    const hideout = data.hideout as
+      | { modules?: Record<string, unknown> }
+      | undefined;
+    if (!(Number(hideout?.modules?.generator) >= 1)) return data;
+    return { ...data, hideout: { ...hideout, fuel: coreBalance().fuel.max } };
+  },
   // v18 → v19: quests repetíveis sem ofertas (geradas no primeiro acesso),
   // com a seed do savedAt
   18: (data) => ({

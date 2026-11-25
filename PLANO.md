@@ -63,7 +63,9 @@ O motor atual (passos sorteados) é substituído. A raid passa a ser um mapa em 
     | 5           | 3–10        | 80%    |
 
   - Contêineres de loot em células fixas, de 17 tipos: cofre (safe), barril enterrado (buried barrel cache), caixa registradora (cash register), corpo (dead body), gaveta (drawer), esconderijo no chão (ground cache), caixa de granadas (grenade box), jaqueta (jacket), bolsa médica (medbag), caixa de suprimentos (supply crate), gabinete de PC (pc block), mala (suitcase), bolsa esportiva (sports bag), caixa de ferramentas (toolbox), caixa de armas (weapon box), caixa de munição (ammo box) e caixote (crate). Os nomes no jogo serão próprios, em português.
-  - Cada tipo tem a sua tabela de loot (ex.: gabinete de PC nunca tem munição) e a sua chance de item raro.
+  - Cada tipo tem a sua tabela de loot (ex.: gabinete de PC nunca tem munição), a sua chance de item raro e um **nível de raridade** (usado pelas estratégias para escolher o que pegar, já que o personagem não sabe o valor dos itens).
+  - **Tipo de terreno** de cada célula (rua, mato, metal/obra, escombros...), que define o custo de movimento e o barulho.
+  - **Pontos de interesse:** locais fixos do mapa com mais de um contêiner (ex.: enfermaria, hospital, base militar). Precisam ser descobertos; os óbvios já são conhecidos desde o começo.
 - **12B — Movimento e estratégia:** o personagem anda só para células vizinhas (de 0,0 para 0,1 e depois 1,1; nunca na diagonal).
   - **Turnos e ações:** em cada célula, o personagem escolhe uma ação pela estratégia e pelo objetivo (andar, revistar um contêiner, se cuidar, operar...). Cada ação gasta turnos:
     - andar gasta 1 turno ou mais, conforme a parte do mapa (cada célula tem um custo de movimento: rua livre, escombros, mato...);
@@ -83,24 +85,32 @@ O motor atual (passos sorteados) é substituído. A raid passa a ser um mapa em 
       - Com medo e desesperado, sempre tenta fugir, seja bom nisso ou não. Tem desvantagem na rolagem de fuga e nas rolagens de acerto dos tiros, mas as skills compensam: Resistência, Percepção e o conhecimento do mapa altos reduzem a desvantagem e podem até virar bônus.
     - **Seguro:**
       - Caminho mais curto até a extração, desviando dos pontos de spawn que conhece.
-      - Nunca fica mais de 4 turnos numa célula.
+      - Nunca fica mais de 4 turnos numa célula: um contêiner que levaria mais é pulado (conhecer o contêiner deixa a revista mais rápida, então com o tempo ele revista mais).
       - Anda em silêncio, com bônus para não ser encontrado, mas acha menos loot (desvantagem na chance de achar) e a raid demora um pouco mais.
-      - Briga e fuga padrão: mata os inimigos que aparecem no caminho quando está em vantagem; sem vantagem, tenta fugir.
-      - Não consegue avançar muitas quests de uma vez.
-    - **Neutro:** tudo no padrão.
+      - Só briga em vantagem: viu o inimigo primeiro, tem mais de 60% de vida, não está sangrando e tem remédio e munição sobrando. Fora disso, tenta fugir.
+      - Com menos de 50% de vida ou sangrando, larga os pontos de interesse e vai para a extração.
+      - Prioriza os itens dos contêineres que dão itens mais raros (ele não sabe o valor dos itens; veja "Ideias para depois").
+      - Só 1 quest avança por raid.
+    - **Neutro:**
+      - Visita os pontos de interesse que conhece até um desvio de 30% a mais de caminho.
+      - Briga quando vê o inimigo primeiro ou quando é atacado; foge abaixo de 40% de vida.
+      - Extrai com 90% das células de carga ocupadas ou depois de passar pelos pontos de interesse do caminho.
     - **Agressivo:**
-      - Vai atrás dos loots mais raros.
+      - Vai primeiro aos contêineres com mais chance de item raro que ele conhece.
+      - Como o Seguro, prioriza os itens dos contêineres mais raros, e troca um item que já pegou por outro que veio de um contêiner mais raro.
       - Gasta menos turnos para achar loot e para andar.
       - Os inimigos o ouvem de 1 célula mais longe.
       - Toma a iniciativa nas brigas: bônus de percepção para começar com vantagem.
+      - Extrai com o inventário cheio ou abaixo de 35% de vida.
     - **Psicopata:**
-      - Só extrai com o inventário completamente cheio ou depois de passar por todos os pontos de interesse e contêineres conhecidos.
-      - Caça inimigos e briga o máximo possível, atrás do XP de abate.
-      - Só começa a tentar fugir quando os remédios ou a munição estão perto do fim. Nunca foge quando um inimigo entra na percepção dele: cai atirando.
-      - Anda pelo mapa extremamente rápido, mas faz mais barulho em células de mato ou de metal (obras, ferro-velho).
+      - Troca itens como o Agressivo, só que mais rápido, e prioriza os itens que o mantêm na raid (remédios, munição da arma dele, comida e água) para continuar procurando contêineres mais raros.
+      - Caça inimigos e briga o máximo possível, atrás do XP de abate (abates com o Psicopata dão +25% de XP). Para ele, inimigos contam como loot: o corpo deixa o equipamento, e a mochila e os bolsos têm chances de drop.
+      - Só extrai quando os remédios ou a munição estão perto do fim (menos de 1 remédio de cura e munição para menos de 2 turnos de tiro) ou com a vida baixa. Só então começa também a tentar fugir. Nunca foge quando um inimigo entra na percepção dele: cai atirando.
+      - Anda pelo mapa extremamente rápido, mas faz mais barulho em células de mato ou de metal (tipo de terreno da célula, 12A).
       - Bônus de iniciativa ainda maior que o do Agressivo.
       - Os inimigos o ouvem de 2 células mais longe.
       - **Vantagem contra vários inimigos:** com mais de 1 inimigo na briga, depois do turno de cada inimigo (menos o último antes da vez dele) ele rola um d20 e, passando, ganha um turno extra. Ex.: com 3 inimigos, em vez de "ele, inimigo 1, inimigo 2, inimigo 3", fica "ele, inimigo 1, d20 (passou: ele), inimigo 2, d20 (passou: ele), inimigo 3". Na vez normal dele não precisa rolar: ataca direto.
+  - **Para todas:** cada estratégia tem um limite de vida para recuar e um limite de inventário para extrair; todos esses números ficam ajustáveis na janela de admin.
   - As opções escolhidas (estratégia, regra de loot) ficam guardadas **por mapa**.
 - **12C — Conhecimento do mapa:** uma habilidade por mapa, que sobe com a exploração.
   - XP por raid = células percorridas + um fixo se sobreviveu + um fixo na primeira vez que acha cada contêiner do mapa.
@@ -145,6 +155,8 @@ O motor atual (passos sorteados) é substituído. A raid passa a ser um mapa em 
   - o loot: a tabela de cada tipo de contêiner (itens, pesos, quantidades, chance de raro) e, opcionalmente, uma tabela própria para uma célula;
   - a chance de achar o loot;
   - os pontos de spawn (Scav e PMC);
+  - os pontos de interesse (quais células, nome e se são óbvios);
+  - o tipo de terreno de cada célula;
   - as extrações (lugar e requisito), mantendo a regra de pelo menos uma extração livre na ponta direita.
   - Os mapas ficam no banco do servidor, como o balanceamento (11J): salvar avisa os clientes, que atualizam na hora. Há um botão para restaurar o mapa padrão e outro para exportá-lo para os dados do jogo.
   - O editor valida antes de salvar: spawn alcançável até alguma extração, sem células fora da matriz, itens que existem no catálogo.
@@ -205,6 +217,7 @@ O motor atual (passos sorteados) é substituído. A raid passa a ser um mapa em 
 
 ## Ideias para depois
 
+- **Conhecimento do valor dos itens:** uma habilidade mental que deixa o personagem saber quanto os itens valem; até lá, as estratégias escolhem pelo nível de raridade do contêiner de onde o item veio.
 - Mercado avançado (vagas por nível, anúncios de outros jogadores, preço sugerido).
 - Automação das raids automáticas (retomar depois de curar, alternar mapas, dinheiro mínimo) e quests no resumo do tempo fora.
 - Durabilidade das armas, kit cirúrgico com vários usos, novos mapas e vendedores.

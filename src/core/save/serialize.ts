@@ -24,7 +24,12 @@ import { createPmc } from "../pmc/pmc.ts";
 import type { PmcState } from "../pmc/pmc.ts";
 import { createSkills } from "../pmc/skills.ts";
 import type { SkillsState } from "../pmc/skills.ts";
-import type { QuestState, QuestsState } from "../quests/types.ts";
+import type {
+  QuestState,
+  QuestsState,
+  RepeatableOffer,
+  RepeatableState,
+} from "../quests/types.ts";
 import { createRaidProfile, createScavProfile } from "../raid/profile.ts";
 import { LOOT_RULES, STRATEGY_IDS } from "../raid/types.ts";
 import type {
@@ -107,6 +112,7 @@ export function serializeGame(state: PlayerState, now: number): SaveData {
     loadouts: structuredClone(state.loadouts),
     auto: structuredClone(state.auto),
     mapKnowledge: structuredClone(state.mapKnowledge),
+    repeatable: structuredClone(state.repeatable),
   };
 }
 
@@ -494,6 +500,56 @@ function loadMapKnowledge(saved: unknown): MapKnowledgeState {
   return result;
 }
 
+/**
+ * Quests repetíveis salvas: seed inválida vira o momento do carregamento,
+ * `next` inválido vira 1 (e fica acima dos números das ofertas), ofertas
+ * inválidas ou com item que saiu do catálogo somem (outra é gerada no
+ * primeiro acesso).
+ */
+function loadRepeatable(
+  saved: unknown,
+  catalog: Catalog,
+  now: number,
+): RepeatableState {
+  const s = (typeof saved === "object" && saved !== null ? saved : {}) as {
+    seed?: unknown;
+    next?: unknown;
+    offers?: unknown;
+  };
+  const amount = (n: unknown) =>
+    typeof n === "number" && Number.isFinite(n) && n >= 0;
+  const count = (n: unknown) => Number.isInteger(n) && (n as number) > 0;
+  const offers = (Array.isArray(s.offers) ? s.offers : []).filter(
+    (o): o is RepeatableOffer => {
+      if (typeof o !== "object" || o === null) return false;
+      const { id, trader, objective: g, money, xp, reputation } = o;
+      const objectiveOk =
+        typeof g === "object" &&
+        g !== null &&
+        count(g.count) &&
+        ((g.kind === "kill" && g.target === "scav") ||
+          (g.kind === "find" &&
+            typeof g.item === "string" &&
+            catalog.has(g.item)));
+      return (
+        typeof id === "string" &&
+        typeof trader === "string" &&
+        objectiveOk &&
+        [money, xp, reputation].every(amount)
+      );
+    },
+  );
+  const used = offers.map((o) => Number(o.id.replace("repeat-", "")) || 0);
+  return {
+    seed: (amount(s.seed) ? (s.seed as number) : now) >>> 0,
+    next: Math.max(
+      count(s.next) ? (s.next as number) : 1,
+      ...used.map((n) => n + 1),
+    ),
+    offers,
+  };
+}
+
 /** Estratégias por mapa: só textos de estratégias conhecidas */
 function loadMapStrategies(saved: unknown): Pick<RaidProfile, "mapStrategies"> {
   if (typeof saved !== "object" || saved === null) return {};
@@ -587,6 +643,7 @@ export function deserializeGame(
       loadouts: loadLoadouts(data.loadouts),
       auto: loadAuto(data.auto, clock.now()),
       mapKnowledge: loadMapKnowledge(data.mapKnowledge),
+      repeatable: loadRepeatable(data.repeatable, catalog, clock.now()),
     },
     clock,
   );

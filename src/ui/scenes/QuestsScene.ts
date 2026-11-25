@@ -248,6 +248,13 @@ export class QuestsScene implements Scene {
         "Quest concluída",
       );
       if (result.ok && def.final) this.options.onEnding?.();
+      if (result.ok && def.repeatable) {
+        // A concluída some: seleciona a nova do mesmo vendedor
+        this.selected = this.ordered().find(
+          (q) => q.repeatable && q.trader === def.trader,
+        )!;
+        this.refresh();
+      }
       return result;
     }
     return null;
@@ -286,7 +293,7 @@ export class QuestsScene implements Scene {
     const status = this.status(def);
     const trader = this.ctx.traders.find((t) => t.id === def.trader)!;
     this.titleText.text = def.name;
-    this.descriptionText.text = `${trader.name}${def.main ? " · Cadeia principal" : ""} · ${STATUS_LABELS[status]}\n${def.description}`;
+    this.descriptionText.text = `${trader.name}${def.main ? " · Cadeia principal" : ""}${def.repeatable ? " · Repetível" : ""} · ${STATUS_LABELS[status]}\n${def.description}`;
 
     for (const child of this.objectives.removeChildren()) child.destroy();
     this.deliverButtons = new Map();

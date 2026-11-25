@@ -61,6 +61,8 @@ export interface QuestDef {
   readonly main?: boolean;
   /** Concluir esta quest termina o jogo */
   readonly final?: boolean;
+  /** Quest repetível gerada (ao concluir, outra é gerada) */
+  readonly repeatable?: boolean;
   readonly requires: QuestRequirements;
   readonly objectives: readonly QuestObjective[];
   readonly rewards: QuestRewards;
@@ -88,4 +90,24 @@ export interface QuestContext {
   readonly quests: readonly QuestDef[];
   readonly traders: readonly TraderDef[];
   readonly maps: readonly MapDef[];
+}
+
+/** Quest repetível oferecida por um vendedor (vai para o save) */
+export interface RepeatableOffer {
+  id: string;
+  trader: string;
+  objective:
+    | { kind: "kill"; target: "scav"; count: number }
+    | { kind: "find"; item: string; count: number };
+  /** Recompensas: rublos, XP do PMC e reputação com o vendedor */
+  money: number;
+  xp: number;
+  reputation: number;
+}
+
+/** Quests repetíveis: seed do sorteio, próximo número e as ofertas */
+export interface RepeatableState {
+  seed: number;
+  next: number;
+  offers: RepeatableOffer[];
 }

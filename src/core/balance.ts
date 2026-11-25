@@ -114,6 +114,28 @@ export interface CoreBalance {
     /** Pontos do mapa lembrados a cada nível */
     revealPerLevel: number;
   };
+  repeatable: {
+    /** Peso de cada tipo de objetivo no sorteio (0 = nunca) */
+    killWeight: number;
+    findWeight: number;
+    /** Scavs a abater (de/até) */
+    killMin: number;
+    killMax: number;
+    /** Unidades do item a achar (de/até) */
+    findMin: number;
+    findMax: number;
+    /** Peso de cada categoria no sorteio do item (0 = nunca) */
+    barterWeight: number;
+    foodWeight: number;
+    medicalWeight: number;
+    /** Rublos por Scav abatido */
+    moneyPerKill: number;
+    /** Rublos por item achado = preço base × isto */
+    findValueFactor: number;
+    /** XP do PMC e reputação por unidade do objetivo */
+    xpPerUnit: number;
+    reputationPerUnit: number;
+  };
   hideout: {
     /** Multiplicador da duração das obras */
     buildTime: number;
@@ -186,6 +208,21 @@ export const CORE_DEFAULTS: CoreBalance = {
     containerXp: 5,
     xpPerLevel: 60,
     revealPerLevel: 2,
+  },
+  repeatable: {
+    killWeight: 1,
+    findWeight: 1,
+    killMin: 3,
+    killMax: 8,
+    findMin: 1,
+    findMax: 3,
+    barterWeight: 1,
+    foodWeight: 1,
+    medicalWeight: 1,
+    moneyPerKill: 5000,
+    findValueFactor: 1.5,
+    xpPerUnit: 150,
+    reputationPerUnit: 0.005,
   },
   hideout: { buildTime: 1, productionTime: 1, income: 1 },
 };

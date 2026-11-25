@@ -17,6 +17,7 @@ export const CORE_SECTION_NAMES: Record<keyof CoreBalance, string> = {
   matrix: "Raid em matriz",
   knowledge: "Conhecimento do mapa",
   encounter: "Inimigos e percepção",
+  repeatable: "Quests repetíveis",
   hideout: "Esconderijo",
 };
 

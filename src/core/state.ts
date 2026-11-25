@@ -12,7 +12,8 @@ import type { Loadout } from "./loadout/types.ts";
 import type { MapKnowledgeState } from "./matrix/knowledge.ts";
 import type { PmcState } from "./pmc/pmc.ts";
 import type { SkillsState } from "./pmc/skills.ts";
-import type { QuestsState } from "./quests/types.ts";
+import { createRepeatableState } from "./quests/repeatable.ts";
+import type { QuestsState, RepeatableState } from "./quests/types.ts";
 import { createRaidProfile, createScavProfile } from "./raid/profile.ts";
 import type { RaidProfile, ScavProfile } from "./raid/types.ts";
 import type { TradersState } from "./trade/types.ts";
@@ -37,6 +38,8 @@ export interface PlayerState {
   traders: TradersState;
   /** Quests aceitas e concluídas, com o progresso */
   quests: QuestsState;
+  /** Quests repetíveis oferecidas pelos vendedores e a seed do sorteio */
+  repeatable: RepeatableState;
   /** Módulos, obra, produções, renda e o último cálculo do esconderijo */
   hideout: HideoutState;
   /** Anúncios, resultados, pressão de preços e estatísticas do mercado */
@@ -62,6 +65,7 @@ export function createPlayerState(
     | "scav"
     | "traders"
     | "quests"
+    | "repeatable"
     | "hideout"
     | "flea"
     | "loadouts"
@@ -72,6 +76,7 @@ export function createPlayerState(
     scav?: ScavProfile;
     traders?: TradersState;
     quests?: QuestsState;
+    repeatable?: RepeatableState;
     hideout?: HideoutState;
     flea?: FleaState;
     loadouts?: Loadout[];
@@ -86,6 +91,7 @@ export function createPlayerState(
     scav: parts.scav ?? createScavProfile(),
     traders: parts.traders ?? {},
     quests: parts.quests ?? {},
+    repeatable: parts.repeatable ?? createRepeatableState(clock.now()),
     hideout: parts.hideout ?? createHideoutState(clock.now()),
     flea: parts.flea ?? createFleaState(clock.now()),
     loadouts: parts.loadouts ?? [],

@@ -171,6 +171,7 @@ Botão **Quests** no inventário. Os vendedores dão quests com recompensas em d
 - **Encontrado na raid:** o loot com que o PMC extrai fica marcado ("Encontrado na raid ✓" no tooltip). Algumas entregas só aceitam itens marcados. Morrer não marca nada, nem o que estava no contêiner seguro. Itens marcados e não marcados não se misturam na mesma pilha.
 - **No resumo da raid:** o fim de cada raid do PMC lista as quests que avançaram (ex.: `Quest "Limpeza": Abater 5 Scav(s): 1 → 3/5`) e avisa quando uma ficou pronta para concluir.
 - **Concluir:** com os objetivos cumpridos, conclua a quest para receber as recompensas (precisa haver espaço no estoque).
+- **Quests repetíveis:** cada vendedor sempre tem um trabalho avulso marcado como "Repetível": abater alguns Scavs (pode ser em várias raids) ou sair de uma raid com itens sorteados (sucata, comida ou remédios que aparecem nos mapas). A recompensa é modesta — dinheiro, um pouco de XP e de reputação, maior quanto maior o pedido — e, ao concluir, outro trabalho aparece na hora. O sorteio fica guardado no save: recarregar não troca o trabalho.
 - **A fuga:** a cadeia principal começa com o Coronel Brás e termina com o barco do contrabandista no Porto Velho. Concluir a última quest é o final do jogo, mas você pode continuar jogando depois.
 
 ### Esconderijo

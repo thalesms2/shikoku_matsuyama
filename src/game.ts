@@ -16,6 +16,7 @@ import type { Item } from "./core/inventory/item.ts";
 import { catchUp, hasNews } from "./core/offline.ts";
 import type { OfflineData } from "./core/offline.ts";
 import { recordRaidQuests } from "./core/quests/quests.ts";
+import { withRepeatables } from "./core/quests/repeatable.ts";
 import type { QuestContext } from "./core/quests/types.ts";
 import {
   AutoSaver,
@@ -136,11 +137,12 @@ export async function startGame(
 
   // Tempo com o jogo fechado: esconderijo (obras, cura, comida) e vendas
   // dos anúncios do mercado; o resumo aparece depois do título
-  const questContext: QuestContext = {
+  // Com as quests repetíveis do jogador (geradas no primeiro acesso)
+  const questContext: QuestContext = withRepeatables(player, {
     quests: QUESTS,
     traders: TRADERS,
     maps: MAPS,
-  };
+  });
   const autoContext: AutoContext = {
     maps: MAPS,
     enemies: ENEMIES,

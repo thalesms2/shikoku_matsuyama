@@ -102,6 +102,42 @@ export interface CoreBalance {
     /** Turnos a mais por célula enquanto foge */
     fleeExtraTurns: number;
   };
+  combat: {
+    /** No d20, até este número é erro automático */
+    failThreshold: number;
+    /** Defesa = baseDefense + classe da armadura da parte atingida */
+    baseDefense: number;
+    /** Headshot do personagem: base + Mira × aimHeadshot + skill da arma × weaponHeadshot */
+    headshotBase: number;
+    aimHeadshot: number;
+    weaponHeadshot: number;
+    /** Headshot do inimigo que chega sem ser notado: base + por dificuldade */
+    enemyHeadshot: number;
+    enemyHeadshotPerDifficulty: number;
+    /** Chance do capacete segurar o headshot, por classe (× durabilidade) */
+    helmetSavePerClass: number;
+    /** Desvantagem do Rato no acerto (pontos de d20, antes das skills) */
+    ratAimPenalty: number;
+    /** Bônus de acerto do inimigo por dificuldade e do PMC inimigo */
+    enemyAttackPerDifficulty: number;
+    pmcAttackBonus: number;
+    /** Vida dos inimigos na raid em matriz */
+    scavHealth: number;
+    pmcHealth: number;
+    /** Turnos para recarregar (× (1 − 2 × Manuseio de carregador)) */
+    reloadTurns: number;
+    /** Cartuchos por ataque de armas automáticas (fuzil, submetralhadora, metralhadora) */
+    burstRounds: number;
+    /** Trocas até o inimigo desistir */
+    maxRounds: number;
+    /** Turno extra do Psicopata contra vários inimigos: d20 ≥ isto */
+    psychoExtraTurn: number;
+    /** XP de Coletes leves/pesados por ponto de dano tomado vestindo e por tiro segurado */
+    vestXpPerDamage: number;
+    vestXpPerBlock: number;
+    /** XP de Mira e da skill da arma por acerto */
+    aimXpPerHit: number;
+  };
   knowledge: {
     /** XP por célula percorrida */
     cellXp: number;
@@ -179,6 +215,28 @@ export const CORE_DEFAULTS: CoreBalance = {
     fleeFactor: 2,
     ratFleePenalty: 4,
     fleeExtraTurns: 1,
+  },
+  combat: {
+    failThreshold: 5,
+    baseDefense: 10,
+    headshotBase: 0.15,
+    aimHeadshot: 0.3,
+    weaponHeadshot: 0.3,
+    enemyHeadshot: 0.2,
+    enemyHeadshotPerDifficulty: 0.05,
+    helmetSavePerClass: 0.15,
+    ratAimPenalty: 4,
+    enemyAttackPerDifficulty: 1,
+    pmcAttackBonus: 2,
+    scavHealth: 60,
+    pmcHealth: 90,
+    reloadTurns: 2,
+    burstRounds: 3,
+    maxRounds: 50,
+    psychoExtraTurn: 11,
+    vestXpPerDamage: 0.1,
+    vestXpPerBlock: 1,
+    aimXpPerHit: 1,
   },
   knowledge: {
     cellXp: 1,

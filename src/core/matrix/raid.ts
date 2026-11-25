@@ -467,14 +467,28 @@ export class MatrixRaid {
       return;
     }
     const item = rollContainer(def, rng, player.factory);
+    addSkillXp(player.skills, "perception", b.perceptionXpPerLoot);
+    this.store(item, def.rarity, def.name);
+    const full = fullThreshold(strategy);
+    const carry = player.inventory.equipment.carryGrids();
+    if (full !== null && fillRatio(carry) >= full) this.leaving = true;
+    if (this.leaving)
+      this.log("extract", "Inventário cheio: indo para a extração");
+  }
+
+  /**
+   * Guarda um item achado (contêiner ou corpo) pelas regras da estratégia
+   * (`stashFound`) e registra no log. Devolve se coube.
+   */
+  store(item: Item, rarity: number, where: string): boolean {
+    const { player, strategy } = this;
     const name = item.def.name;
     const count = item.count;
-    addSkillXp(player.skills, "perception", b.perceptionXpPerLoot);
     const grids = [
       ...player.inventory.equipment.carryGrids(),
       ...(player.inventory.equipment.get("secure")?.grids ?? []),
     ];
-    const result = stashFound(item, def.rarity, grids, this.origin, strategy);
+    const result = stashFound(item, rarity, grids, this.origin, strategy);
     for (const old of result.dropped) {
       this.log("lootSwap", `Largou ${old.def.name} para levar algo melhor`);
     }
@@ -482,17 +496,13 @@ export class MatrixRaid {
       this.found.push(item);
       this.log(
         "loot",
-        `Achou ${count > 1 ? `${name} x${count}` : name} em ${def.name}`,
+        `Achou ${count > 1 ? `${name} x${count}` : name} em ${where}`,
       );
-    } else {
-      this.log("lootLeft", `Sem espaço: deixou ${name}`);
-      if (leavesWhenFull(strategy)) this.leaving = true;
+      return true;
     }
-    const full = fullThreshold(strategy);
-    const carry = player.inventory.equipment.carryGrids();
-    if (full !== null && fillRatio(carry) >= full) this.leaving = true;
-    if (this.leaving)
-      this.log("extract", "Inventário cheio: indo para a extração");
+    this.log("lootLeft", `Sem espaço: deixou ${name}`);
+    if (leavesWhenFull(strategy)) this.leaving = true;
+    return false;
   }
 
   // --------------------------------------------------------------- caminhada

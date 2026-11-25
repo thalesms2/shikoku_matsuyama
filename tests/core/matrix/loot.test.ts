@@ -284,6 +284,6 @@ describe("runMatrixRaid: Neutro larga a rota quando enche", () => {
     const texts = result.events.map((e) => e.text);
     expect(texts).toContain("Inventário cheio: indo para a extração");
     expect(texts).not.toContain("Chegou em Longe");
-    expect(result.extract.id).toBe("exit");
+    expect(result.extract!.id).toBe("exit");
   });
 });

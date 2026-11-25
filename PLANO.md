@@ -117,7 +117,7 @@ O motor atual (passos sorteados) é substituído. A raid passa a ser um mapa em 
   - No começo o personagem não sabe onde é a extração: anda até a ponta direita e precisa procurar.
   - Conforme a habilidade sobe, ele "lembra" de pontos (extrações, contêineres, spawns), e o caminho passa a usar o que ele conhece.
 - ✅ **12D — Loot nos contêineres:** numa célula com contêiner, há uma chance de achar o loot (Percepção ajuda). Achando, sorteia o item pela tabela daquele tipo de contêiner, com a chance de raro do tipo. O item precisa caber no equipamento (regras de loot atuais).
-- **12E — Inimigos andando e percepção:**
+- ✅ **12E — Inimigos andando e percepção:** (óculos, balaclava e os slots novos ficaram para uma parte separada, 12E2)
   - **Movimento:** a cada turno, cada inimigo rola um d6 para andar uma célula numa direção aleatória (nunca na diagonal). Quanto maior a dificuldade, maior a chance de andar.
   - **Perto (2 células ou menos):** os dois rolam d20 de percepção, com os modificadores:
     - bônus de Percepção e Furtividade, de itens como óculos e balaclava, e da dificuldade para o inimigo;

@@ -16,6 +16,7 @@ export const CORE_SECTION_NAMES: Record<keyof CoreBalance, string> = {
   scav: "Raid Scav",
   matrix: "Raid em matriz",
   knowledge: "Conhecimento do mapa",
+  encounter: "Inimigos e percepção",
   hideout: "Esconderijo",
 };
 

@@ -154,7 +154,7 @@ describe("runMatrixRaid (movimento)", () => {
       containers: CONTAINERS,
       knowledge: { ...fullKnowledge(map), extracts: new Set<string>() },
     });
-    expect(search.extract.id).toBe("b");
+    expect(search.extract!.id).toBe("b");
   });
 });
 

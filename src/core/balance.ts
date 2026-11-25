@@ -74,6 +74,34 @@ export interface CoreBalance {
     /** XP de Percepção por item achado */
     perceptionXpPerLoot: number;
   };
+  encounter: {
+    /** Aparece inimigo com d10 ≥ spawnBase − ⌈spawnPerDifficulty × dificuldade⌉ */
+    spawnBase: number;
+    spawnPerDifficulty: number;
+    /** Peso de cada spawn de PMC frente a um de Scav no sorteio do lugar */
+    pmcSpawnWeight: number;
+    /** O inimigo anda com d6 ≥ moveBase − dificuldade */
+    moveBase: number;
+    /** Distância (células) em que os dois disputam a percepção */
+    hearingRange: number;
+    /** Células a mais de alcance para ouvir o Agressivo e o Psicopata */
+    aggressiveNoise: number;
+    psychoNoise: number;
+    /** Mais 1 célula para o Psicopata em mato e metal */
+    psychoTerrainNoise: number;
+    /** Pontos de d20 por 100% de bônus das skills (Percepção, Furtividade) */
+    skillToD20: number;
+    /** Bônus de furtividade do Seguro (pontos de d20) */
+    safeStealth: number;
+    /** Pontos de d20 do inimigo por nível de dificuldade */
+    enemyPerDifficulty: number;
+    /** Fuga: o d20 do personagem precisa ser ≥ fleeFactor × o do inimigo */
+    fleeFactor: number;
+    /** Desvantagem do Rato na fuga (pontos de d20, antes das skills) */
+    ratFleePenalty: number;
+    /** Turnos a mais por célula enquanto foge */
+    fleeExtraTurns: number;
+  };
   knowledge: {
     /** XP por célula percorrida */
     cellXp: number;
@@ -135,6 +163,22 @@ export const CORE_DEFAULTS: CoreBalance = {
     ratFullAt: 0.8,
     neutralFullAt: 0.9,
     perceptionXpPerLoot: 2,
+  },
+  encounter: {
+    spawnBase: 11,
+    spawnPerDifficulty: 1.5,
+    pmcSpawnWeight: 0.3,
+    moveBase: 7,
+    hearingRange: 2,
+    aggressiveNoise: 1,
+    psychoNoise: 2,
+    psychoTerrainNoise: 1,
+    skillToD20: 10,
+    safeStealth: 3,
+    enemyPerDifficulty: 1,
+    fleeFactor: 2,
+    ratFleePenalty: 4,
+    fleeExtraTurns: 1,
   },
   knowledge: {
     cellXp: 1,

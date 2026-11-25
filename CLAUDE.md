@@ -78,7 +78,7 @@ O jogador gerencia seu **PMC** (o personagem principal), preso em uma cidade iso
 - Para testar a simulação da raid passo a passo, use `ScriptRng` (`tests/core/raid/raidFixtures.ts`): filas de respostas para `chance`, `int`, `pick` e `weighted`, consumidas na ordem em que a simulação chama o RNG.
 - `view.emit(...)` do Pixi não propaga o evento para os pais; para testar handlers no container pai (ex.: fechar o menu de contexto), emita o evento no pai com o `target` desejado.
 
-Veja o plano atual em [`PLANO.md`](./PLANO.md). O histórico das Fases 0 a 10, o pipeline de itens e a estratégia de testes estão em [`docs/`](./docs/) (`historico.md`, `pipeline-de-itens.md`, `testes.md`).
+Os combinados de trabalho (commits, agentes em paralelo, edições de testes já aprovadas) estão em [`docs/fluxo-de-trabalho.md`](./docs/fluxo-de-trabalho.md). Veja o plano atual em [`PLANO.md`](./PLANO.md). O histórico das Fases 0 a 10, o pipeline de itens e a estratégia de testes estão em [`docs/`](./docs/) (`historico.md`, `pipeline-de-itens.md`, `testes.md`).
 
 ## Regras obrigatórias para o agente
 
@@ -102,6 +102,7 @@ Veja o plano atual em [`PLANO.md`](./PLANO.md). O histórico das Fases 0 a 10, o
 
 ## Comandos
 
+- `docker compose up` — o mesmo ambiente em qualquer computador (`Dockerfile` + `compose.yaml`): instala as dependências, baixa as imagens placeholder que faltam e sobe o jogo em http://localhost:8080. Testes e scripts no contêiner: `docker compose run --rm dev npm run test:coverage`, `docker compose run --rm dev npm run items -- <comando>`.
 - `npm run dev` — servidor de desenvolvimento (cliente + servidor Colyseus)
 - `npm run build` — lint + tipos + build de produção
 - `npm test` — roda os testes
@@ -448,7 +449,7 @@ Modelo de entrada para novas mecânicas:
 - **Documento** (`BalanceDocument`): `core`, `items` (ajustes por id: `basePrice` e os números de `BALANCE_STAT_KEYS`: dano, penetração, classe, durabilidade, capacidade, cura, energia, hidratação, cirurgia) e `flea` (os números do `FLEA`, `FLEA_BALANCE_KEYS`). `applyBalance` troca o core, aplica os ajustes no catálogo (as definições são as mesmas, então os itens já criados mudam na hora; sem ajuste, voltam ao original) e copia os números para o próprio `FLEA`.
 - **Leitura de fora** (`readBalance`, para o servidor): números finitos e ≥ 0; os tempos do mercado (`trendMs`, `pressureHalfLifeMs`, `checkMs`, `listingMs`) precisam ser > 0 e `maxRatio` > 1; ajustes de itens fora do catálogo somem. O que faltar ou for inválido fica com o padrão.
 - O motor de raid atual não entrou (sai na Fase 12); a raid nova vai ler os valores daqui desde o começo.
-- **No servidor** (Fase 11J): sala `balance` do Colyseus (`server/BalanceRoom.ts`), com os valores num SQLite (`server/balanceStore.ts`, `BalanceStore`: uma linha com o JSON e a versão; arquivo `BALANCE_DB` ou `data/server.db`, fora do git). Quem entra recebe `{version, doc}` ("balance"; `doc` nulo = padrões). "set" grava o documento depois de `readBalance` e "reset" volta aos padrões; os dois sobem a versão e avisam todos os conectados. Fora do desenvolvimento (`NODE_ENV=production`), o servidor recusa mudar ("error").
+- **No servidor** (Fase 11J): sala `balance` do Colyseus (`server/BalanceRoom.ts`), com os valores num SQLite (`server/balanceStore.ts`, `BalanceStore`: uma linha com o JSON e a versão; arquivo `BALANCE_DB` ou `data/server.db`, commitado para o balanceamento seguir para outros computadores). Quem entra recebe `{version, doc}` ("balance"; `doc` nulo = padrões). "set" grava o documento depois de `readBalance` e "reset" volta aos padrões; os dois sobem a versão e avisam todos os conectados. Fora do desenvolvimento (`NODE_ENV=production`), o servidor recusa mudar ("error").
 - **No cliente** (`src/balanceSync.ts`, `BalanceSync`): ao abrir, aplica a cópia local (`escape-from-idle:balance`); `main.ts` passa `joinBalance: joinBalanceRoom` para o `startGame`, que conecta sem esperar. Cada "balance" recebido passa por `readBalance`, é aplicado na hora (`applyBalance`), vira a cópia local e avisa os ouvintes (`onChange`). Sem servidor, fica com a cópia local ou os padrões. `save(doc)` e `reset()` pedem ao servidor (a janela de admin usa). Uma raid já resolvida não muda, porque o resultado foi sorteado no começo.
 - **Janela de admin** (Fase 11K; `src/ui/admin/AdminPanel.ts`): painel HTML por cima do canvas (o Pixi não tem campo de texto), criado pelo `startGame` só em desenvolvimento (`admin` ou `import.meta.env.DEV`). F10 abre e fecha. Mostra a conexão e a versão, os números do core por seção, os do mercado e, para o item escolhido na lista, o preço base e os dados técnicos que ele tem. Editar muda o rascunho (`draft`); vazio, negativo ou não número volta ao valor anterior. "Salvar" manda o rascunho ao servidor (`BalanceSync.save`) e "Restaurar padrões" pede o reset; sem servidor, avisa que não deu. Valores novos que chegam do servidor atualizam o rascunho e a janela. Não abre com uma raid em andamento (`player.raid.active`), e o tick do jogo fecha a janela quando uma raid começa (inclusive automática).
 

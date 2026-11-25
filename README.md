@@ -6,6 +6,22 @@ RPG idle 2D de extração feito com PixiJS. Gerencie seu PMC, equipe-o, mande-o 
 
 ## Como rodar
 
+### Com Docker (qualquer computador)
+
+Só precisa de Git e Docker. Tudo o que o desenvolvimento usa fica no repositório: o código, o banco de itens (`data/items.db`) e o balanceamento salvo pela janela de admin (`data/server.db`).
+
+```bash
+git clone git@github.com:thalesms2/shikoku_matsuyama.git
+cd shikoku_matsuyama
+docker compose up                               # abre em http://localhost:8080
+docker compose run --rm dev npm run test:coverage
+docker compose run --rm dev npm run items -- help
+```
+
+A pasta do repositório é montada no contêiner: o que você edita, e o que a janela de admin ou o pipeline de itens gravam, aparece no `git status` do computador. Depois de balancear, commite `data/server.db` (e `data/items.db`, `src/data/generated/items.json` se mexeu nos itens) para levar para o próximo computador. As imagens placeholder não vão para o git: o contêiner baixa as que faltam ao subir.
+
+### Sem Docker (Node 24 ou mais novo)
+
 ```bash
 npm install
 npm run dev            # servidor de desenvolvimento

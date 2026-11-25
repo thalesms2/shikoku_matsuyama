@@ -1,0 +1,24 @@
+# Desenvolvimento em qualquer computador: `docker compose up` e abra http://localhost:8080
+services:
+  dev:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      # o código, o banco de itens (data/items.db) e o do balanceamento
+      # (data/server.db) ficam na pasta do repositório
+      - .:/app
+      # dependências instaladas para o Linux do contêiner, separadas das do computador
+      - node_modules:/app/node_modules
+    environment:
+      # o Vite não tenta abrir um navegador dentro do contêiner
+      BROWSER: none
+    # instala o que mudou no package-lock, baixa as imagens placeholder que faltam
+    # (ficam fora do git) e sobe o jogo com o servidor
+    command: >
+      sh -c "npm install --no-audit --no-fund &&
+             (npm run items -- images || echo 'Sem imagens placeholder: os itens aparecem como retângulos') &&
+             npm run dev -- --host 0.0.0.0"
+
+volumes:
+  node_modules:

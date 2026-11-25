@@ -29,8 +29,10 @@ coverage
 # Imagens placeholder baixadas do tarkov.dev (não redistribuir)
 public/assets/items/
 
-# Banco do servidor (balanceamento salvo pela janela de admin)
-data/server.db
+# Arquivos temporários do SQLite (os bancos em data/ são commitados)
+data/*.db-journal
+data/*.db-wal
+data/*.db-shm
 
 # Worktrees dos agentes
 .claude/worktrees/

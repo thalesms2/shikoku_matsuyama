@@ -10,6 +10,7 @@ import {
   traderState,
 } from "../trade/trade.ts";
 import type { TradeResult } from "../trade/types.ts";
+import { replaceRepeatable } from "./repeatable.ts";
 import type {
   QuestContext,
   QuestDef,
@@ -156,6 +157,7 @@ export function completeQuest(
     traderState(player.traders, traderDef, now).reputation += amount;
   }
   player.quests[id].status = "completed";
+  if (def.repeatable) replaceRepeatable(player, ctx, id);
   return { ok: true, amount: 0 };
 }
 

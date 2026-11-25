@@ -179,7 +179,7 @@ O motor atual (passos sorteados) é substituído. A raid passa a ser um mapa em 
 
 ## Fase 14 — Progressão
 
-- **14A — Quests repetíveis:** quests geradas com objetivos aleatórios: abater um número de Scavs ou achar itens sorteados. Ao concluir, outra é gerada.
+- ✅ **14A — Quests repetíveis:** quests geradas com objetivos aleatórios: abater um número de Scavs ou achar itens sorteados. Ao concluir, outra é gerada.
 - **14B — Obras sem limite:** vários módulos em obra ao mesmo tempo, sem limite.
 - **14C — Combustível do gerador:** o gerador consome combustível; sem ele, produções e renda param.
 

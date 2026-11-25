@@ -1,6 +1,7 @@
 import { createAutoState } from "../auto/auto.ts";
 import { createFleaState } from "../flea/flea.ts";
 import { createHideoutState } from "../hideout/hideout.ts";
+import { createRepeatableState } from "../quests/repeatable.ts";
 import { createRaidProfile, createScavProfile } from "../raid/profile.ts";
 import { SAVE_VERSION } from "./format.ts";
 import type { SaveData } from "./format.ts";
@@ -57,6 +58,14 @@ export const MIGRATIONS: Record<number, Migration> = {
   15: (data) => data,
   // v16 → v17: conhecimento dos mapas (sem = nada conhecido)
   16: (data) => ({ ...data, mapKnowledge: {} }),
+  // v17 → v18: (esconderijo, outro agente)
+  17: (data) => data,
+  // v18 → v19: quests repetíveis sem ofertas (geradas no primeiro acesso),
+  // com a seed do savedAt
+  18: (data) => ({
+    ...data,
+    repeatable: createRepeatableState(Number(data.savedAt) || 0),
+  }),
 };
 
 export class SaveError extends Error {}

@@ -6,12 +6,12 @@ import type { Loadout } from "../loadout/types.ts";
 import type { MapKnowledgeState } from "../matrix/knowledge.ts";
 import type { PmcState } from "../pmc/pmc.ts";
 import type { SkillsState } from "../pmc/skills.ts";
-import type { QuestsState } from "../quests/types.ts";
+import type { QuestsState, RepeatableState } from "../quests/types.ts";
 import type { RaidProfile, ScavProfile } from "../raid/types.ts";
 import type { TradersState } from "../trade/types.ts";
 
 /** Versão atual do formato do save. Mudou o formato? Incremente e migre. */
-export const SAVE_VERSION = 17;
+export const SAVE_VERSION = 19;
 
 /** Item salvo; o conteúdo vai junto (grades, cartuchos, carregador) */
 export interface SavedItem {
@@ -70,6 +70,8 @@ export interface SaveData {
   auto?: AutoState;
   /** v17: conhecimento de cada mapa da raid em matriz */
   mapKnowledge?: MapKnowledgeState;
+  /** v19: quests repetíveis (seed, próximo número e ofertas) */
+  repeatable?: RepeatableState;
 }
 
 export type SavedFleaResult =

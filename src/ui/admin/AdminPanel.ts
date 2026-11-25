@@ -19,6 +19,7 @@ export const CORE_SECTION_NAMES: Record<keyof CoreBalance, string> = {
   encounter: "Inimigos e percepção",
   combat: "Combate d20",
   bleed: "Sangramento e cuidados",
+  repeatable: "Quests repetíveis",
   hideout: "Esconderijo",
 };
 

@@ -55,6 +55,8 @@ export const MIGRATIONS: Record<number, Migration> = {
   14: (data) => data,
   // v15 → v16: estratégia da raid em matriz por mapa (sem = a padrão)
   15: (data) => data,
+  // v16 → v17: conhecimento dos mapas (sem = nada conhecido)
+  16: (data) => ({ ...data, mapKnowledge: {} }),
 };
 
 export class SaveError extends Error {}

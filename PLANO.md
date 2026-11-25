@@ -112,7 +112,7 @@ O motor atual (passos sorteados) é substituído. A raid passa a ser um mapa em 
       - **Vantagem contra vários inimigos:** com mais de 1 inimigo na briga, depois do turno de cada inimigo (menos o último antes da vez dele) ele rola um d20 e, passando, ganha um turno extra. Ex.: com 3 inimigos, em vez de "ele, inimigo 1, inimigo 2, inimigo 3", fica "ele, inimigo 1, d20 (passou: ele), inimigo 2, d20 (passou: ele), inimigo 3". Na vez normal dele não precisa rolar: ataca direto.
   - **Para todas:** cada estratégia tem um limite de vida para recuar e um limite de inventário para extrair; todos esses números ficam ajustáveis na janela de admin.
   - As opções escolhidas (estratégia, regra de loot) ficam guardadas **por mapa**.
-- **12C — Conhecimento do mapa:** uma habilidade por mapa, que sobe com a exploração.
+- ✅ **12C — Conhecimento do mapa:** uma habilidade por mapa, que sobe com a exploração.
   - XP por raid = células percorridas + um fixo se sobreviveu + um fixo na primeira vez que acha cada contêiner do mapa.
   - No começo o personagem não sabe onde é a extração: anda até a ponta direita e precisa procurar.
   - Conforme a habilidade sobe, ele "lembra" de pontos (extrações, contêineres, spawns), e o caminho passa a usar o que ele conhece.

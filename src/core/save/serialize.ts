@@ -18,6 +18,7 @@ import {
 } from "../inventory/magazine.ts";
 import { autoPlace } from "../inventory/operations.ts";
 import type { Loadout, LoadoutItem } from "../loadout/types.ts";
+import type { MapKnowledgeState } from "../matrix/knowledge.ts";
 import { isMatrixStrategy } from "../matrix/strategy.ts";
 import { createPmc } from "../pmc/pmc.ts";
 import type { PmcState } from "../pmc/pmc.ts";
@@ -105,6 +106,7 @@ export function serializeGame(state: PlayerState, now: number): SaveData {
     flea: saveFlea(state.flea),
     loadouts: structuredClone(state.loadouts),
     auto: structuredClone(state.auto),
+    mapKnowledge: structuredClone(state.mapKnowledge),
   };
 }
 
@@ -469,6 +471,29 @@ function loadRaid(saved: RaidProfile | undefined, seed: number): RaidProfile {
   };
 }
 
+/**
+ * Conhecimento dos mapas: XP finito e ≥ 0 (senão 0) e só textos nos pontos
+ * achados; entradas que não são objetos somem.
+ */
+function loadMapKnowledge(saved: unknown): MapKnowledgeState {
+  if (typeof saved !== "object" || saved === null) return {};
+  const result: MapKnowledgeState = {};
+  for (const [id, raw] of Object.entries(saved)) {
+    if (typeof raw !== "object" || raw === null) continue;
+    const r = raw as { xp?: unknown; found?: unknown };
+    result[id] = {
+      xp:
+        typeof r.xp === "number" && Number.isFinite(r.xp) && r.xp >= 0
+          ? r.xp
+          : 0,
+      found: Array.isArray(r.found)
+        ? r.found.filter((p): p is string => typeof p === "string")
+        : [],
+    };
+  }
+  return result;
+}
+
 /** Estratégias por mapa: só textos de estratégias conhecidas */
 function loadMapStrategies(saved: unknown): Pick<RaidProfile, "mapStrategies"> {
   if (typeof saved !== "object" || saved === null) return {};
@@ -561,6 +586,7 @@ export function deserializeGame(
       flea: loadFlea(data.flea, loader, clock.now()),
       loadouts: loadLoadouts(data.loadouts),
       auto: loadAuto(data.auto, clock.now()),
+      mapKnowledge: loadMapKnowledge(data.mapKnowledge),
     },
     clock,
   );

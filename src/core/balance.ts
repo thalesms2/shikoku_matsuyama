@@ -61,6 +61,18 @@ export interface CoreBalance {
     /** Ritmo do log na tela (ms por turno, em x1) */
     msPerTurn: number;
   };
+  knowledge: {
+    /** XP por célula percorrida */
+    cellXp: number;
+    /** XP por sobreviver à raid */
+    surviveXp: number;
+    /** XP na primeira vez que acha cada contêiner */
+    containerXp: number;
+    /** XP por nível da habilidade do mapa */
+    xpPerLevel: number;
+    /** Pontos do mapa lembrados a cada nível */
+    revealPerLevel: number;
+  };
   hideout: {
     /** Multiplicador da duração das obras */
     buildTime: number;
@@ -103,6 +115,13 @@ export const CORE_DEFAULTS: CoreBalance = {
     hydrationPerTurn: 0.5,
     enduranceXpPerTurn: 0.25,
     msPerTurn: 1000,
+  },
+  knowledge: {
+    cellXp: 1,
+    surviveXp: 20,
+    containerXp: 5,
+    xpPerLevel: 60,
+    revealPerLevel: 2,
   },
   hideout: { buildTime: 1, productionTime: 1, income: 1 },
 };

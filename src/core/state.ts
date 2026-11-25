@@ -9,6 +9,7 @@ import type { Equipment } from "./inventory/equipment.ts";
 import type { Grid } from "./inventory/grid.ts";
 import type { Item, ItemFactory } from "./inventory/item.ts";
 import type { Loadout } from "./loadout/types.ts";
+import type { MapKnowledgeState } from "./matrix/knowledge.ts";
 import type { PmcState } from "./pmc/pmc.ts";
 import type { SkillsState } from "./pmc/skills.ts";
 import type { QuestsState } from "./quests/types.ts";
@@ -44,6 +45,8 @@ export interface PlayerState {
   loadouts: Loadout[];
   /** Regras e andamento das raids automáticas */
   auto: AutoState;
+  /** Raid em matriz: conhecimento de cada mapa (habilidade e pontos achados) */
+  mapKnowledge: MapKnowledgeState;
 }
 
 /**
@@ -63,6 +66,7 @@ export function createPlayerState(
     | "flea"
     | "loadouts"
     | "auto"
+    | "mapKnowledge"
   > & {
     raid?: RaidProfile;
     scav?: ScavProfile;
@@ -72,6 +76,7 @@ export function createPlayerState(
     flea?: FleaState;
     loadouts?: Loadout[];
     auto?: AutoState;
+    mapKnowledge?: MapKnowledgeState;
   },
   clock: Clock,
 ): PlayerState {
@@ -85,6 +90,7 @@ export function createPlayerState(
     flea: parts.flea ?? createFleaState(clock.now()),
     loadouts: parts.loadouts ?? [],
     auto: parts.auto ?? createAutoState(),
+    mapKnowledge: parts.mapKnowledge ?? {},
   };
 }
 

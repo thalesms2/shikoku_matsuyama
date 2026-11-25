@@ -3,6 +3,7 @@ import type { FleaState, FleaStats } from "../flea/types.ts";
 import type { HideoutState } from "../hideout/types.ts";
 import type { SlotName } from "../inventory/equipment.ts";
 import type { Loadout } from "../loadout/types.ts";
+import type { MapKnowledgeState } from "../matrix/knowledge.ts";
 import type { PmcState } from "../pmc/pmc.ts";
 import type { SkillsState } from "../pmc/skills.ts";
 import type { QuestsState } from "../quests/types.ts";
@@ -10,7 +11,7 @@ import type { RaidProfile, ScavProfile } from "../raid/types.ts";
 import type { TradersState } from "../trade/types.ts";
 
 /** Versão atual do formato do save. Mudou o formato? Incremente e migre. */
-export const SAVE_VERSION = 16;
+export const SAVE_VERSION = 17;
 
 /** Item salvo; o conteúdo vai junto (grades, cartuchos, carregador) */
 export interface SavedItem {
@@ -67,6 +68,8 @@ export interface SaveData {
   loadouts?: Loadout[];
   /** v9: regras e andamento das raids automáticas */
   auto?: AutoState;
+  /** v17: conhecimento de cada mapa da raid em matriz */
+  mapKnowledge?: MapKnowledgeState;
 }
 
 export type SavedFleaResult =

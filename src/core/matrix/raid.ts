@@ -1,4 +1,5 @@
 import { coreBalance } from "../balance.ts";
+import { gearBonuses } from "../inventory/gear.ts";
 import type { Item } from "../inventory/item.ts";
 import { weaponRounds } from "../inventory/magazine.ts";
 import { detach } from "../inventory/operations.ts";
@@ -327,21 +328,23 @@ export class MatrixRaid {
     );
   }
 
-  /** Bônus do personagem para perceber */
+  /** Bônus do personagem para perceber: skill + óculos */
   playerPerception(): number {
-    return this.skill("perception");
+    return (
+      this.skill("perception") +
+      gearBonuses(this.player.inventory.equipment).perception
+    );
   }
 
   /** Bônus do inimigo para perceber o personagem */
   enemyPerception(): number {
     const b = coreBalance().encounter;
-    const visibility =
-      this.player.inventory.equipment.get("backpack")?.def.stats?.visibility ??
-      0;
+    const gear = gearBonuses(this.player.inventory.equipment);
     const safe = this.strategy === "safe" ? b.safeStealth : 0;
     return (
       this.map.difficulty * b.enemyPerDifficulty +
-      visibility -
+      gear.visibility -
+      gear.stealth -
       this.skill("stealth") -
       safe
     );

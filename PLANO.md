@@ -49,7 +49,7 @@ Como trabalhamos:
 
 O motor atual (passos sorteados) é substituído. A raid passa a ser um mapa em matriz que o personagem atravessa célula por célula, da esquerda para a direita. O motor novo é construído ao lado do atual (12A a 12G) e assume no 12H, quando o antigo sai.
 
-- **12A — Mapa em matriz:** cada mapa tem uma matriz fixa (`MapDef`), maior conforme a dificuldade.
+- ✅ **12A — Mapa em matriz:** cada mapa tem uma matriz fixa (`MapDef`), maior conforme a dificuldade.
   - Spawn dos personagens na coluna da esquerda; extrações na ponta direita, e as que têm requisito (chave, pagamento, sem mochila) ficam mais perto do spawn que a extração livre.
   - Pontos fixos de spawn de Scavs e de PMCs inimigos (os de PMC mais raros).
   - **Spawn de inimigos:** a cada turno rola-se um d10, e aparece um inimigo num ponto de spawn com `d10 ≥ 11 − ⌈1,5 × dificuldade⌉`. Os inimigos voltam a aparecer durante a raid, e um ponto pode juntar mais de um.

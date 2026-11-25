@@ -78,7 +78,26 @@ O motor atual (passos sorteados) é substituído. A raid passa a ser um mapa em 
       - Anda devagar (mais turnos por célula), sem fazer barulho, o que deixa a raid mais demorada e rende menos por tempo.
       - Bônus enorme de furtividade: os inimigos só o percebem se estiverem na mesma célula.
       - Desesperado: tem desvantagem na rolagem de fuga e nas rolagens de acerto dos tiros.
-    - **Seguro, Neutro, Agressivo e Psicopata:** a definir.
+    - **Seguro:**
+      - Caminho mais curto até a extração, desviando dos pontos de spawn que conhece.
+      - Nunca fica mais de 4 turnos numa célula.
+      - Anda em silêncio, com bônus para não ser encontrado, mas acha menos loot (desvantagem na chance de achar) e a raid demora um pouco mais.
+      - Briga e fuga padrão: mata os inimigos que aparecem no caminho quando está em vantagem; sem vantagem, tenta fugir.
+      - Não consegue avançar muitas quests de uma vez.
+    - **Neutro:** tudo no padrão.
+    - **Agressivo:**
+      - Vai atrás dos loots mais raros.
+      - Gasta menos turnos para achar loot e para andar.
+      - Os inimigos o ouvem de 1 célula mais longe.
+      - Toma a iniciativa nas brigas: bônus de percepção para começar com vantagem.
+    - **Psicopata:**
+      - Só extrai com o inventário completamente cheio ou depois de passar por todos os pontos de interesse e contêineres conhecidos.
+      - Caça inimigos e briga o máximo possível, atrás do XP de abate.
+      - Só começa a tentar fugir quando os remédios ou a munição estão perto do fim. Nunca foge quando um inimigo entra na percepção dele: cai atirando.
+      - Anda pelo mapa extremamente rápido, mas faz mais barulho em células de mato ou de metal (obras, ferro-velho).
+      - Bônus de iniciativa ainda maior que o do Agressivo.
+      - Os inimigos o ouvem de 2 células mais longe.
+      - **Vantagem contra vários inimigos:** com mais de 1 inimigo na briga, depois do turno de cada inimigo (menos o último antes da vez dele) ele rola um d20 e, passando, ganha um turno extra. Ex.: com 3 inimigos, em vez de "ele, inimigo 1, inimigo 2, inimigo 3", fica "ele, inimigo 1, d20 (passou: ele), inimigo 2, d20 (passou: ele), inimigo 3". Na vez normal dele não precisa rolar: ataca direto.
   - As opções escolhidas (estratégia, regra de loot) ficam guardadas **por mapa**.
 - **12C — Conhecimento do mapa:** uma habilidade por mapa, que sobe com a exploração.
   - XP por raid = células percorridas + um fixo se sobreviveu + um fixo na primeira vez que acha cada contêiner do mapa.
@@ -162,7 +181,9 @@ O motor atual (passos sorteados) é substituído. A raid passa a ser um mapa em 
 
 ## Pendências do plano (decidir antes da sub-fase)
 
-- **Estratégias Seguro, Neutro, Agressivo e Psicopata (12B):** caminho, revista, briga e fuga, e modificadores de cada uma.
+- **Seguro e as quests (12B):** proposta: com a estratégia Seguro, só 1 quest avança por raid (a primeira da lista que avançaria).
+- **Turno extra do Psicopata (12F):** proposta: passa com d20 ≥ 11 (50%), sem modificadores.
+- **"Velocidade" das estratégias (12B):** proposta de custo de movimento por célula: Rato × 2, Seguro × 1,25, Neutro × 1, Agressivo × 0,75, Psicopata × 0,5 (arredondado para cima, mínimo 1 turno).
 
 ## Regras já decididas
 

@@ -276,4 +276,6 @@ export interface RaidProfile {
   /** Seed da próxima raid; muda a cada raid (recarregar não muda o sorteio) */
   seed: number;
   active: ActiveRaid | null;
+  /** Raid em matriz: estratégia escolhida em cada mapa (id do mapa → id) */
+  mapStrategies?: Record<string, string>;
 }

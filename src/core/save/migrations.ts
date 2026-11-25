@@ -53,6 +53,8 @@ export const MIGRATIONS: Record<number, Migration> = {
   13: ({ loader: _loader, ...data }) => data,
   // v14 → v15: skills novas (categorias); as que faltam começam em 0
   14: (data) => data,
+  // v15 → v16: estratégia da raid em matriz por mapa (sem = a padrão)
+  15: (data) => data,
 };
 
 export class SaveError extends Error {}

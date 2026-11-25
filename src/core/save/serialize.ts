@@ -18,6 +18,7 @@ import {
 } from "../inventory/magazine.ts";
 import { autoPlace } from "../inventory/operations.ts";
 import type { Loadout, LoadoutItem } from "../loadout/types.ts";
+import { isMatrixStrategy } from "../matrix/strategy.ts";
 import { createPmc } from "../pmc/pmc.ts";
 import type { PmcState } from "../pmc/pmc.ts";
 import { createSkills } from "../pmc/skills.ts";
@@ -451,9 +452,10 @@ function loadScav(saved: ScavProfile | undefined): ScavProfile {
 function loadRaid(saved: RaidProfile | undefined, seed: number): RaidProfile {
   const base = createRaidProfile(seed);
   if (!saved) return base;
+  const { mapStrategies, ...rest } = saved;
   return {
     ...base,
-    ...saved,
+    ...rest,
     stats: {
       ...base.stats,
       ...saved.stats,
@@ -463,7 +465,17 @@ function loadRaid(saved: RaidProfile | undefined, seed: number): RaidProfile {
       ? saved.lootRule
       : base.lootRule,
     active: loadActive(saved.active),
+    ...loadMapStrategies(mapStrategies),
   };
+}
+
+/** Estratégias por mapa: só textos de estratégias conhecidas */
+function loadMapStrategies(saved: unknown): Pick<RaidProfile, "mapStrategies"> {
+  if (typeof saved !== "object" || saved === null) return {};
+  const entries = Object.entries(saved).filter(([, v]) => isMatrixStrategy(v));
+  return entries.length > 0
+    ? { mapStrategies: Object.fromEntries(entries) }
+    : {};
 }
 
 /**

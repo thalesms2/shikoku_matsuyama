@@ -34,6 +34,33 @@ export interface CoreBalance {
     qualityPerKarma: number;
     cooldownPerKarma: number;
   };
+  matrix: {
+    /** Turnos para atravessar cada terreno (antes da estratégia) */
+    roadTurns: number;
+    grassTurns: number;
+    metalTurns: number;
+    rubbleTurns: number;
+    buildingTurns: number;
+    /** Multiplicador dos turnos por célula de cada estratégia */
+    ratMove: number;
+    safeMove: number;
+    neutralMove: number;
+    aggressiveMove: number;
+    psychoMove: number;
+    /** Custo extra (em turnos) para o Rato e o Seguro passarem perto de um spawn conhecido */
+    spawnAvoidCost: number;
+    /** Custo extra para o Rato andar fora das bordas do mapa */
+    ratInteriorCost: number;
+    /** Desvio máximo do Neutro para visitar um ponto de interesse (0,3 = 30%) */
+    neutralDetour: number;
+    /** Gasto por turno (antes das skills) */
+    energyPerTurn: number;
+    hydrationPerTurn: number;
+    /** XP de Resistência por turno */
+    enduranceXpPerTurn: number;
+    /** Ritmo do log na tela (ms por turno, em x1) */
+    msPerTurn: number;
+  };
   hideout: {
     /** Multiplicador da duração das obras */
     buildTime: number;
@@ -57,6 +84,25 @@ export const CORE_DEFAULTS: CoreBalance = {
     lootPerKarma: 0.03,
     qualityPerKarma: 0.05,
     cooldownPerKarma: 0.025,
+  },
+  matrix: {
+    roadTurns: 1,
+    grassTurns: 1,
+    metalTurns: 1,
+    rubbleTurns: 2,
+    buildingTurns: 1,
+    ratMove: 2,
+    safeMove: 1.25,
+    neutralMove: 1,
+    aggressiveMove: 0.75,
+    psychoMove: 0.5,
+    spawnAvoidCost: 6,
+    ratInteriorCost: 2,
+    neutralDetour: 0.3,
+    energyPerTurn: 0.4,
+    hydrationPerTurn: 0.5,
+    enduranceXpPerTurn: 0.25,
+    msPerTurn: 1000,
   },
   hideout: { buildTime: 1, productionTime: 1, income: 1 },
 };

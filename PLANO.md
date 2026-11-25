@@ -66,7 +66,7 @@ O motor atual (passos sorteados) é substituído. A raid passa a ser um mapa em 
   - Cada tipo tem a sua tabela de loot (ex.: gabinete de PC nunca tem munição), a sua chance de item raro e um **nível de raridade** (usado pelas estratégias para escolher o que pegar, já que o personagem não sabe o valor dos itens).
   - **Tipo de terreno** de cada célula (rua, mato, metal/obra, escombros...), que define o custo de movimento e o barulho.
   - **Pontos de interesse:** locais fixos do mapa com mais de um contêiner (ex.: enfermaria, hospital, base militar). Precisam ser descobertos; os óbvios já são conhecidos desde o começo.
-- **12B — Movimento e estratégia:** o personagem anda só para células vizinhas (de 0,0 para 0,1 e depois 1,1; nunca na diagonal).
+- ✅ **12B — Movimento e estratégia:** o personagem anda só para células vizinhas (de 0,0 para 0,1 e depois 1,1; nunca na diagonal).
   - **Turnos e ações:** em cada célula, o personagem escolhe uma ação pela estratégia e pelo objetivo (andar, revistar um contêiner, se cuidar, operar...). Cada ação gasta turnos:
     - andar gasta 1 turno ou mais, conforme a parte do mapa (cada célula tem um custo de movimento: rua livre, escombros, mato...);
     - revistar um contêiner gasta de 2 a 5 turnos, conforme o tipo de contêiner e o quanto ele conhece aquele contêiner (conhecer deixa mais rápido);

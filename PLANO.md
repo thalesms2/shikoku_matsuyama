@@ -73,11 +73,14 @@ O motor atual (passos sorteados) é substituído. A raid passa a ser um mapa em 
   - **Turnos viram tempo real:** cada turno tem uma duração no ritmo do log, então gastar mais turnos faz a raid demorar mais para terminar, e o rendimento por tempo (loot e dinheiro por hora) cai.
   - **Cinco estratégias** (substituem furtivo, equilibrado e agressivo): Rato, Seguro, Neutro, Agressivo e Psicopata. Cada uma define o caminho (reto para a extração ou por pontos de interesse), quando revistar, quando brigar ou fugir e os seus modificadores.
     - **Rato:** a prioridade é sair vivo, com qualquer loot, mesmo pouco.
-      - Revista só o que está no caminho.
+      - Revista só o que está no caminho e enche o inventário com as primeiras coisas que vê (sem escolher por valor).
+      - Vai direto para a extração quando o inventário está perto de encher (limite ajustável na janela de admin; proposta: 80% das células de carga ocupadas), quando entra numa briga ou quando entra na percepção de alguém.
+      - Usa a extração conhecida mais próxima que conseguir usar, inclusive as que têm requisito (chave, pagamento, sem mochila).
       - Prefere as rotas pelas bordas do mapa, longe dos pontos de spawn.
       - Anda devagar (mais turnos por célula), sem fazer barulho, o que deixa a raid mais demorada e rende menos por tempo.
       - Bônus enorme de furtividade: os inimigos só o percebem se estiverem na mesma célula.
-      - Desesperado: tem desvantagem na rolagem de fuga e nas rolagens de acerto dos tiros.
+      - Nunca começa uma briga: mesmo vendo o inimigo primeiro, não tenta headshot nem ataca; só atira quando é atacado.
+      - Com medo e desesperado, sempre tenta fugir, seja bom nisso ou não. Tem desvantagem na rolagem de fuga e nas rolagens de acerto dos tiros, mas as skills compensam: Resistência, Percepção e o conhecimento do mapa altos reduzem a desvantagem e podem até virar bônus.
     - **Seguro:**
       - Caminho mais curto até a extração, desviando dos pontos de spawn que conhece.
       - Nunca fica mais de 4 turnos numa célula.

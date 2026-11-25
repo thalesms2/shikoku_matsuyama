@@ -1,6 +1,10 @@
 import { fleaTick } from "./flea/flea.ts";
 import type { FleaConfig } from "./flea/types.ts";
-import { hideoutTick, incomeAvailable } from "./hideout/hideout.ts";
+import {
+  constructions as allConstructions,
+  hideoutTick,
+  incomeAvailable,
+} from "./hideout/hideout.ts";
 import type { HideoutData } from "./hideout/types.ts";
 import { totalHealth } from "./pmc/pmc.ts";
 import type { PlayerState } from "./state.ts";
@@ -49,12 +53,14 @@ export function catchUp(
   const since = player.hideout.lastTick;
   const within = (t: number) => t > since && t <= now;
   const { hideout, pmc } = player;
-  const job = hideout.construction;
-  const constructions =
-    job && job.endsAt <= now ? [{ module: job.module, level: job.level }] : [];
-  const productions = Object.values(hideout.productions)
-    .filter((p) => within(p.endsAt))
-    .map((p) => p.recipe);
+  const constructions = allConstructions(hideout)
+    .filter((job) => job.endsAt <= now)
+    .sort((a, b) => a.endsAt - b.endsAt)
+    .map(({ module, level }) => ({ module, level }));
+  // Sem combustível as produções param: confere o fim depois do cálculo
+  const pending = Object.values(hideout.productions).filter(
+    (p) => p.endsAt > since,
+  );
   const incomeBefore = incomeAvailable(hideout, data.hideout, since);
   const before = {
     health: totalHealth(pmc),
@@ -65,6 +71,9 @@ export function catchUp(
   hideoutTick(player, data.hideout, now);
   const results = fleaTick(player, data.flea, now);
 
+  const productions = pending
+    .filter((p) => p.endsAt <= now)
+    .map((p) => p.recipe);
   const sold = results.flatMap((r) => (r.kind === "sold" ? [r] : []));
   return {
     awayMs: Math.max(0, now - since),

@@ -452,6 +452,17 @@
     "image": "assets/items/barter_coin.webp"
   },
   {
+    "id": "barter_fuel",
+    "name": "Galão de combustível",
+    "shortName": "Galão",
+    "category": "barter",
+    "width": 2,
+    "height": 2,
+    "basePrice": 18000,
+    "description": "Galão de diesel lacrado, cheiro forte e tampa amassada. Mantém o gerador do esconderijo funcionando por horas.",
+    "image": "assets/items/barter_fuel.webp"
+  },
+  {
     "id": "barter_goldchain",
     "name": "Corrente de ouro",
     "shortName": "Ouro",

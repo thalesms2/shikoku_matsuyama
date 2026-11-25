@@ -175,9 +175,9 @@ Botão **Quests** no inventário. Os vendedores dão quests com recompensas em d
 
 ### Esconderijo
 
-Botão **Esconderijo** no inventário. Construa e melhore módulos pagando com dinheiro e itens do estoque; cada obra leva um tempo real (e continua com o jogo fechado), uma de cada vez.
+Botão **Esconderijo** no inventário. Construa e melhore módulos pagando com dinheiro e itens do estoque; cada obra leva um tempo real (e continua com o jogo fechado). Vários módulos podem estar em obra ao mesmo tempo, mas cada módulo melhora um nível por vez.
 
-- **Gerador** — deixa as produções mais rápidas e é necessário para vários módulos.
+- **Gerador** — deixa as produções mais rápidas e é necessário para vários módulos. Depois de construído, ele queima combustível o tempo todo (1 por hora; cada **Galão de combustível** põe 10, até 30). Abasteça com **Abastecer**, usando galões do estoque (o Sucateiro Nico vende). Sem combustível, as produções param de contar e a central para de juntar renda até você abastecer.
 - **Depósito** — aumenta o estoque.
 - **Enfermaria** — cura o PMC aos poucos entre as raids.
 - **Cozinha** — recupera energia e hidratação entre as raids e ferve água.

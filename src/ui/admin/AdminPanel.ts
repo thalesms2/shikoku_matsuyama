@@ -18,6 +18,7 @@ export const CORE_SECTION_NAMES: Record<keyof CoreBalance, string> = {
   knowledge: "Conhecimento do mapa",
   encounter: "Inimigos e percepção",
   hideout: "Esconderijo",
+  fuel: "Combustível do gerador",
 };
 
 /** Nomes dos dados técnicos dos itens na janela */

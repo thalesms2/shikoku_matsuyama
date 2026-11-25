@@ -21,6 +21,8 @@ describe("Equipment", () => {
       "rig",
       "backpack",
       "secure",
+      "eyewear",
+      "face",
     ]);
     expect(SLOTS.primary).toBe("longWeapon");
     expect(SLOTS.holster).toBe("pistol");

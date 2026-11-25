@@ -129,6 +129,7 @@ O motor atual (passos sorteados) é substituído. A raid passa a ser um mapa em 
     - Se o personagem nota antes, pode lutar ou fugir, pela estratégia.
     - Para fugir, os dois rolam d20, e o do personagem precisa ser pelo menos o dobro do do inimigo. Conseguindo, o inimigo perde o rastro, e o personagem escolhe seguir fugindo ou atacar com a chance de headshot e a vantagem de começar a briga.
   - Itens novos pelo pipeline (óculos, balaclava, mochilas com penalidade) e slots novos de equipamento para óculos e cobertura do rosto.
+- ✅ **12E2 — Óculos e balaclava:** slots de óculos e de cobertura do rosto, 5 itens novos com bônus de Percepção/Furtividade (d20) e `gearBonuses` pronto para a disputa de percepção.
 - ✅ **12F — Combate d20:**
   - Quem ataca primeiro (12E) pode tentar um **headshot** (chance pelas skills), que mata na hora. Errando, a briga continua.
   - A cada turno, começando por quem atacou primeiro, cada lado rola **d20 + bônus**:

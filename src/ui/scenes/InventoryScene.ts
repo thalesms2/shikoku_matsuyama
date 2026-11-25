@@ -48,10 +48,11 @@ export const DOUBLE_CLICK_MS = 350;
 const GAP = 12;
 const LABEL = 18;
 const ROW_TOP = 40;
-const SLOT_ROWS: SlotName[][] = [
+/** Linhas de slots; uma lista dentro da linha empilha os slots numa coluna */
+const SLOT_ROWS: (SlotName | SlotName[])[][] = [
   ["helmet", "armor", "rig", "backpack", "secure"],
   ["primary", "secondary"],
-  ["holster"],
+  ["holster", ["eyewear", "face"]],
 ];
 const CONTAINER_SECTIONS: [SlotName, string][] = [
   ["rig", "Colete tático"],
@@ -186,23 +187,31 @@ export class InventoryScene implements Scene {
 
     // Slots de equipamento em linhas
     let y = ROW_TOP + LABEL;
+    let rowEnd = 0;
     for (const row of SLOT_ROWS) {
       let x = 0;
       let rowHeight = 0;
-      for (const slot of row) {
-        const view = new SlotView(state.equipment, slot);
-        view.position.set(x, y);
-        this.slotViews.set(slot, view);
-        this.content.addChild(view);
-        x += view.pixelWidth + GAP;
-        rowHeight = Math.max(rowHeight, view.pixelHeight);
+      for (const entry of row) {
+        let colY = y;
+        let colWidth = 0;
+        for (const slot of [entry].flat()) {
+          const view = new SlotView(state.equipment, slot);
+          view.position.set(x, colY);
+          this.slotViews.set(slot, view);
+          this.content.addChild(view);
+          colY += view.pixelHeight + LABEL;
+          colWidth = Math.max(colWidth, view.pixelWidth);
+        }
+        x += colWidth + GAP;
+        rowHeight = Math.max(rowHeight, colY - LABEL - y);
       }
       y += rowHeight + LABEL + GAP;
+      rowEnd = x - GAP;
     }
 
-    // Bolsos ao lado do coldre
+    // Bolsos depois do último slot da linha do coldre
     const holster = this.slotViews.get("holster")!;
-    const pocketsX = holster.x + holster.pixelWidth + GAP * 2;
+    const pocketsX = rowEnd + GAP * 2;
     this.content.addChild(this.label("Bolsos", pocketsX, holster.y - 2));
     this.pocketViews = state.equipment.pockets.map((pocket, i) => {
       const view = new GridView(pocket);

@@ -145,6 +145,12 @@ export function itemSheet(item: Item): string[] {
   if (stats.visibility !== undefined && stats.visibility > 0) {
     lines.push(`Chama atenção: +${stats.visibility}`);
   }
+  if (stats.perceptionBonus !== undefined) {
+    lines.push(`Percepção: ${signed(stats.perceptionBonus)}`);
+  }
+  if (stats.stealthBonus !== undefined) {
+    lines.push(`Furtividade: ${signed(stats.stealthBonus)}`);
+  }
   return [...lines, ...ammoSheet(item)];
 }
 

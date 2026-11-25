@@ -608,6 +608,88 @@
     }
   },
   {
+    "id": "eyewear_shooting",
+    "name": "Óculos de tiro",
+    "shortName": "Tiro",
+    "category": "accessory",
+    "width": 2,
+    "height": 1,
+    "basePrice": 9000,
+    "equipSlot": "eyewear",
+    "description": "Óculos de estande com lentes amarelas. Aumentam o contraste e protegem os olhos dos estilhaços.",
+    "image": "assets/items/eyewear_shooting.webp",
+    "stats": {
+      "armorClass": 1,
+      "durability": 25,
+      "perceptionBonus": 2
+    }
+  },
+  {
+    "id": "eyewear_sun",
+    "name": "Óculos escuros",
+    "shortName": "Escuros",
+    "category": "accessory",
+    "width": 2,
+    "height": 1,
+    "basePrice": 3500,
+    "equipSlot": "eyewear",
+    "description": "Lentes escuras de camelô. Cortam o sol e deixam ver um pouco mais longe nos dias claros.",
+    "image": "assets/items/eyewear_sun.webp",
+    "stats": {
+      "armorClass": 0,
+      "durability": 0,
+      "perceptionBonus": 1
+    }
+  },
+  {
+    "id": "eyewear_tactical",
+    "name": "Óculos táticos",
+    "shortName": "Táticos",
+    "category": "accessory",
+    "width": 2,
+    "height": 1,
+    "basePrice": 24000,
+    "equipSlot": "eyewear",
+    "description": "Armação militar com lentes antirreflexo. Nada brilha no rosto, e cada movimento no mato fica mais fácil de notar.",
+    "image": "assets/items/eyewear_tactical.webp",
+    "stats": {
+      "armorClass": 0,
+      "durability": 0,
+      "perceptionBonus": 3,
+      "stealthBonus": 1
+    }
+  },
+  {
+    "id": "face_balaclava",
+    "name": "Balaclava",
+    "shortName": "Balacl.",
+    "category": "accessory",
+    "width": 1,
+    "height": 1,
+    "basePrice": 4500,
+    "equipSlot": "face",
+    "description": "Gorro de malha preta que cobre o rosto todo. No escuro, sobra só o brilho dos olhos.",
+    "image": "assets/items/face_balaclava.webp",
+    "stats": {
+      "stealthBonus": 2
+    }
+  },
+  {
+    "id": "face_scarf",
+    "name": "Lenço de rosto",
+    "shortName": "Lenço",
+    "category": "accessory",
+    "width": 1,
+    "height": 1,
+    "basePrice": 2500,
+    "equipSlot": "face",
+    "description": "Pano de algodão cor de areia amarrado sobre o nariz. Esconde o rosto e segura a poeira.",
+    "image": "assets/items/face_scarf.webp",
+    "stats": {
+      "stealthBonus": 1
+    }
+  },
+  {
     "id": "food_can",
     "name": "Lata de carne",
     "shortName": "Lata",

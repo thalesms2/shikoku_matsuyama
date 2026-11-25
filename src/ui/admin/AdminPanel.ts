@@ -37,6 +37,8 @@ export const STAT_NAMES: Record<BalanceStatKey, string> = {
   damageDie: "Dado de dano (lados)",
   damageBonus: "Bônus de dano",
   visibility: "Chama atenção",
+  perceptionBonus: "Percepção (d20)",
+  stealthBonus: "Furtividade (d20)",
 };
 
 const PANEL_STYLE = [

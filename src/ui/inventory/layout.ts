@@ -18,6 +18,7 @@ export const CATEGORY_COLORS: Record<ItemCategory, number> = {
   key: 0x4a4a2a,
   money: 0x2d4a33,
   magazine: 0x44402f,
+  accessory: 0x3a3f4a,
 };
 
 /** Nome de cada categoria mostrado ao jogador */
@@ -35,6 +36,7 @@ export const CATEGORY_LABELS: Record<ItemCategory, string> = {
   key: "Chave",
   money: "Dinheiro",
   magazine: "Carregador",
+  accessory: "Acessório",
 };
 
 /**

@@ -1,8 +1,11 @@
-// Registra o loader de arquivos de som
-import "@pixi/sound";
 import { Application, Assets } from "pixi.js";
 
 import { assets } from "./assets.ts";
+// Registra o loader de arquivos de som
+import "@pixi/sound";
+
+import { BALANCE_CACHE_KEY, BalanceSync } from "./balanceSync.ts";
+import type { BalanceRoomLike } from "./balanceSync.ts";
 import { autoTick } from "./core/auto/auto.ts";
 import type { AutoContext } from "./core/auto/types.ts";
 import { systemClock } from "./core/clock.ts";
@@ -61,13 +64,24 @@ export const HIDEOUT_TICK_MS = 1000;
 /** Inicia a aplicação PixiJS dentro de `container` e mostra a tela inicial */
 export async function startGame(
   container: HTMLElement,
-  options: { clock?: Clock; storage?: Storage } = {},
+  options: {
+    clock?: Clock;
+    storage?: Storage;
+    /** Entra na sala do balanceamento do servidor (sem isto, não conecta) */
+    joinBalance?: () => Promise<BalanceRoomLike>;
+  } = {},
 ) {
   const clock = options.clock ?? systemClock;
   const storage = browserStorage(SAVE_KEY, options.storage);
   const backup = browserStorage(`${SAVE_KEY}:backup`, options.storage);
   const settingsStorage = browserStorage(SETTINGS_KEY, options.storage);
   const settings = loadSettings(settingsStorage);
+  // Balanceamento: a cópia local na hora; o do servidor quando conectar
+  const balance = new BalanceSync(
+    browserStorage(BALANCE_CACHE_KEY, options.storage),
+  );
+  balance.loadCache();
+  if (options.joinBalance) void balance.connect(options.joinBalance);
   await initPlatform();
 
   const app = new Application();
@@ -324,5 +338,5 @@ export async function startGame(
 
   gameReady(app);
 
-  return { app, scenes, player, save };
+  return { app, scenes, player, save, balance };
 }

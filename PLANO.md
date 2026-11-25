@@ -33,7 +33,7 @@ Como trabalhamos:
   - A tela de Skills (11G) mostra as skills agrupadas pela categoria, com nível e barra de XP.
   - Save: as skills novas começam em 0 (versão nova do save com migração).
 - ✅ **11I — Valores de balanceamento centralizados:** todos os números de balanceamento (chances de drop, dano das armas, chances de spawn, fórmulas de combate, karma, preços, tempos do esconderijo...) saem das constantes espalhadas e vão para um objeto `Balance` com os padrões. O core recebe o `Balance` injetado e continua puro e testável.
-- **11J — Balanceamento no servidor:** os valores ficam num banco no servidor Colyseus (`server/`, SQLite com `node:sqlite`).
+- ✅ **11J — Balanceamento no servidor:** os valores ficam num banco no servidor Colyseus (`server/`, SQLite com `node:sqlite`).
   - O cliente conecta ao abrir o jogo, recebe os valores e passa a usá-los. Sem servidor, usa o último valor recebido (guardado no navegador) ou os padrões.
   - Quando um valor muda no banco, o servidor avisa todos os clientes conectados, e eles atualizam na hora.
   - Uma raid já resolvida não muda: ela usa os valores do momento em que começou.

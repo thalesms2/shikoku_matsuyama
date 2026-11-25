@@ -28,3 +28,6 @@ coverage
 
 # Imagens placeholder baixadas do tarkov.dev (não redistribuir)
 public/assets/items/
+
+# Banco do servidor (balanceamento salvo pela janela de admin)
+data/server.db

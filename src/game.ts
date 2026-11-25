@@ -27,13 +27,14 @@ import { SETTINGS_KEY, loadSettings, saveSettings } from "./core/settings.ts";
 import type { Settings } from "./core/settings.ts";
 import { FLEA } from "./data/flea.ts";
 import { HIDEOUT } from "./data/hideout.ts";
-import { ITEM_DEFS } from "./data/items.ts";
+import { ITEM_DEFS, catalog } from "./data/items.ts";
 import { ENEMIES, MAPS, mapById } from "./data/maps.ts";
 import { loadOrCreatePlayer } from "./data/newGame.ts";
 import { QUESTS } from "./data/quests.ts";
 import { TRADERS } from "./data/traders.ts";
 import { TUTORIAL } from "./data/tutorial.ts";
 import { gameReady, initPlatform, setLoadingProgress } from "./platform.ts";
+import { AdminPanel } from "./ui/admin/AdminPanel.ts";
 import { playSound, setVolume } from "./ui/audio.ts";
 import { Button } from "./ui/components/Button.ts";
 import { TutorialPanel } from "./ui/components/TutorialPanel.ts";
@@ -69,6 +70,8 @@ export async function startGame(
     storage?: Storage;
     /** Entra na sala do balanceamento do servidor (sem isto, não conecta) */
     joinBalance?: () => Promise<BalanceRoomLike>;
+    /** Janela de admin (F10); por padrão, só em desenvolvimento */
+    admin?: boolean;
   } = {},
 ) {
   const clock = options.clock ?? systemClock;
@@ -154,10 +157,20 @@ export async function startGame(
   };
   const offline = catchUp(player, offlineData, clock.now());
   let pendingReport = hasNews(offline) || autoRaids.length > 0 ? offline : null;
+  // Janela de admin: não abre durante uma raid, e fecha se uma começar
+  const admin =
+    (options.admin ?? import.meta.env.DEV)
+      ? new AdminPanel(document.body, {
+          sync: balance,
+          catalog,
+          canOpen: () => player.raid.active === null,
+        })
+      : null;
   const tick = () => {
     autoTick(player, autoContext, clock.now());
     hideoutTick(player, HIDEOUT, clock.now());
     fleaTick(player, FLEA, clock.now());
+    if (player.raid.active) admin?.close();
   };
   let hideoutElapsed = 0;
   app.ticker.add((ticker) => {
@@ -338,5 +351,5 @@ export async function startGame(
 
   gameReady(app);
 
-  return { app, scenes, player, save, balance };
+  return { app, scenes, player, save, balance, admin };
 }

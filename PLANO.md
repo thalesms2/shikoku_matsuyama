@@ -37,7 +37,7 @@ Como trabalhamos:
   - O cliente conecta ao abrir o jogo, recebe os valores e passa a usá-los. Sem servidor, usa o último valor recebido (guardado no navegador) ou os padrões.
   - Quando um valor muda no banco, o servidor avisa todos os clientes conectados, e eles atualizam na hora.
   - Uma raid já resolvida não muda: ela usa os valores do momento em que começou.
-- **11K — Janela de admin (só em desenvolvimento):** uma janela no jogo, que só existe com `import.meta.env.DEV`, para editar em tempo de execução todos os valores do `Balance`, agrupados (loot, armas, inimigos, combate, economia...).
+- ✅ **11K — Janela de admin (só em desenvolvimento):** uma janela no jogo, que só existe com `import.meta.env.DEV`, para editar em tempo de execução todos os valores do `Balance`, agrupados (loot, armas, inimigos, combate, economia...).
   - Salvar grava no banco do servidor, que avisa os clientes (11J). Tem um botão para restaurar os padrões.
   - A janela não aparece durante uma raid.
   - O servidor só aceita alterações em modo de desenvolvimento; em produção os valores são só lidos.

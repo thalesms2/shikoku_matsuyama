@@ -64,6 +64,10 @@ Todo item ocupa um retângulo de células (por exemplo, 1x1 para uma atadura, 5x
 - **Menu do item:** clique com o botão direito em um item para ver as ações dele: abrir contêiner, descarregar carregador, remover o carregador da arma ou separar uma pilha pela metade.
 - **Imagens:** cada item mostra sua imagem ocupando as células dele, e ela gira junto quando você gira o item.
 
+### Janela de admin (desenvolvimento)
+
+Rodando com `npm run dev`, a tecla **F10** abre a janela de admin, que edita os valores de balanceamento do jogo: XP, durabilidade, reputação, raid Scav, esconderijo, mercado e o preço e os dados de cada item. "Salvar" grava no servidor e atualiza na hora todos os jogos abertos; "Restaurar padrões" volta aos valores originais. Ela não abre durante uma raid.
+
 ### Personagem (PMC)
 
 - **Painel do PMC** no inventário, ao lado das armas: nível e XP, uma silhueta com a vida de cada parte do corpo (verde, amarelo, vermelho; parte destruída marcada com X), vida total, energia e hidratação. Atualiza na hora.

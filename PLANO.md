@@ -116,7 +116,7 @@ O motor atual (passos sorteados) é substituído. A raid passa a ser um mapa em 
   - XP por raid = células percorridas + um fixo se sobreviveu + um fixo na primeira vez que acha cada contêiner do mapa.
   - No começo o personagem não sabe onde é a extração: anda até a ponta direita e precisa procurar.
   - Conforme a habilidade sobe, ele "lembra" de pontos (extrações, contêineres, spawns), e o caminho passa a usar o que ele conhece.
-- **12D — Loot nos contêineres:** numa célula com contêiner, há uma chance de achar o loot (Percepção ajuda). Achando, sorteia o item pela tabela daquele tipo de contêiner, com a chance de raro do tipo. O item precisa caber no equipamento (regras de loot atuais).
+- ✅ **12D — Loot nos contêineres:** numa célula com contêiner, há uma chance de achar o loot (Percepção ajuda). Achando, sorteia o item pela tabela daquele tipo de contêiner, com a chance de raro do tipo. O item precisa caber no equipamento (regras de loot atuais).
 - **12E — Inimigos andando e percepção:**
   - **Movimento:** a cada turno, cada inimigo rola um d6 para andar uma célula numa direção aleatória (nunca na diagonal). Quanto maior a dificuldade, maior a chance de andar.
   - **Perto (2 células ou menos):** os dois rolam d20 de percepção, com os modificadores:

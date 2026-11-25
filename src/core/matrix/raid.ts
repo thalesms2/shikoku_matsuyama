@@ -5,7 +5,16 @@ import { changeEnergy, changeHydration } from "../pmc/pmc.ts";
 import { addSkillXp, skillBonus } from "../pmc/skills.ts";
 import type { Rng } from "../rng.ts";
 import type { PlayerState } from "../state.ts";
-import { cellAt } from "./matrix.ts";
+import {
+  fillRatio,
+  findChance,
+  fullThreshold,
+  leavesWhenFull,
+  searchTurns,
+  stashFound,
+  wantsSearch,
+} from "./loot.ts";
+import { cellAt, rollContainer } from "./matrix.ts";
 import { findPath, stepTurns } from "./path.ts";
 import type { Cell } from "./path.ts";
 import { cellPenalty, fullKnowledge, planRoute } from "./plan.ts";
@@ -22,9 +31,11 @@ import type {
 /** Tipos de evento do log da raid em matriz */
 export type MatrixEventKind =
   | "start"
-  | "move"
   | "target"
   | "search"
+  | "loot"
+  | "lootSwap"
+  | "lootLeft"
   | "extract";
 
 export interface MatrixEvent {
@@ -52,6 +63,8 @@ export interface MatrixRaidResult {
   readonly extract: MatrixExtract;
   /** Células percorridas, na ordem (inclui a de entrada) */
   readonly path: readonly Cell[];
+  /** Itens achados nesta raid que ficaram com o personagem */
+  readonly found: readonly Item[];
 }
 
 /** Itens do equipamento que contam para os requisitos (inclui o seguro) */
@@ -91,18 +104,31 @@ function pay(player: PlayerState, item: string, amount: number): void {
 }
 
 /**
- * Raid em matriz (12B: só o movimento). Entra numa linha sorteada da coluna
- * da esquerda, planeja a rota da estratégia (`planRoute`), anda célula por
- * célula gastando `stepTurns` turnos em cada uma (com energia, hidratação e
- * XP de Resistência por turno) e sai pela extração escolhida. Sem extração
- * conhecida, vai até a coluna da direita e procura a mais próxima.
+ * Raid em matriz (12B movimento, 12D loot). Entra numa linha sorteada da
+ * coluna da esquerda, planeja a rota da estratégia (`planRoute`) e anda
+ * célula por célula gastando `stepTurns` turnos (com energia, hidratação e
+ * XP de Resistência por turno). Em cada célula com contêiner ainda não
+ * revistado, a estratégia decide se revista (`wantsSearch`): gasta
+ * `searchTurns`, acha com `findChance` e guarda com `stashFound`. Inventário
+ * cheio (`fullThreshold`, ou item que não coube em `leavesWhenFull`) larga o
+ * resto da rota e vai para a extração. Sem extração conhecida, vai até a
+ * coluna da direita e procura a mais próxima.
  */
 export function runMatrixRaid(setup: MatrixRaidSetup): MatrixRaidResult {
   const { player, map, strategy, rng, containers } = setup;
   const knowledge = setup.knowledge ?? fullKnowledge(map);
   const b = coreBalance().matrix;
   const events: MatrixEvent[] = [];
+  const found: Item[] = [];
+  const origin = new Map<Item, number>();
+  const searched = new Set<string>();
+  const grids = [
+    ...player.inventory.equipment.carryGrids(),
+    ...(player.inventory.equipment.get("secure")?.grids ?? []),
+  ];
+  const carry = player.inventory.equipment.carryGrids();
   let turn = 0;
+  let leaving = false;
   let at: Cell = [0, rng.int(0, map.height - 1)];
   const path: Cell[] = [at];
   const log = (kind: MatrixEventKind, text: string) =>
@@ -120,14 +146,52 @@ export function runMatrixRaid(setup: MatrixRaidSetup): MatrixRaidResult {
     );
     addSkillXp(skills, "endurance", b.enduranceXpPerTurn * turns);
   };
+  const search = () => {
+    const kind = cellAt(map, ...at).container;
+    const k = `${at[0]},${at[1]}`;
+    if (!kind || searched.has(k) || leaving) return;
+    const def = containers[kind];
+    const turns = searchTurns(def, strategy, knowledge.containers.has(k));
+    if (!wantsSearch(strategy, turns)) return;
+    searched.add(k);
+    spend(turns);
+    if (!rng.chance(findChance(def, strategy, player.skills))) {
+      log("search", `Revistou ${def.name} e não achou nada`);
+      return;
+    }
+    const item = rollContainer(def, rng, player.factory);
+    const name = item.def.name;
+    const count = item.count;
+    addSkillXp(player.skills, "perception", b.perceptionXpPerLoot);
+    const result = stashFound(item, def.rarity, grids, origin, strategy);
+    for (const old of result.dropped) {
+      log("lootSwap", `Largou ${old.def.name} para levar algo melhor`);
+    }
+    if (result.stored) {
+      found.push(item);
+      log(
+        "loot",
+        `Achou ${count > 1 ? `${name} x${count}` : name} em ${def.name}`,
+      );
+    } else {
+      log("lootLeft", `Sem espaço: deixou ${name}`);
+      if (leavesWhenFull(strategy)) leaving = true;
+    }
+    const full = fullThreshold(strategy);
+    if (full !== null && fillRatio(carry) >= full) leaving = true;
+    if (leaving) log("extract", "Inventário cheio: indo para a extração");
+  };
   const extra = cellPenalty(map, strategy, knowledge);
   const walkTo = (to: Cell) => {
     for (const cell of findPath(map, at, to, strategy, extra)) {
       spend(stepTurns(map, cell, strategy));
       at = cell;
       path.push(cell);
+      search();
+      if (leaving && !extracting) return;
     }
   };
+  let extracting = false;
 
   log("start", `Entrou em ${map.name} (${MATRIX_STRATEGY_NAMES[strategy]})`);
   const usable = (e: MatrixExtract) => canUseExtract(e, player);
@@ -136,15 +200,17 @@ export function runMatrixRaid(setup: MatrixRaidSetup): MatrixRaidResult {
   const plan = planRoute(map, at, strategy, knowledge, usable, rarity);
   for (const target of plan.targets) {
     walkTo(target);
-    const kind = cellAt(map, ...target).container!;
+    if (leaving) break;
     const poi = map.pois.find(
       (p) => p.cells[0][0] === target[0] && p.cells[0][1] === target[1],
     );
+    const kind = cellAt(map, ...target).container!;
     log(
       "target",
       poi ? `Chegou em ${poi.name}` : `Chegou a: ${containers[kind].name}`,
     );
   }
+  extracting = true;
   let extract = plan.extract;
   if (!extract) {
     // Não conhece nenhuma: vai para a borda direita e procura
@@ -163,5 +229,5 @@ export function runMatrixRaid(setup: MatrixRaidSetup): MatrixRaidResult {
   const req = extract.requirement;
   if (req?.kind === "payment") pay(player, req.item, req.amount);
   log("extract", `Extraiu por ${extract.name}`);
-  return { events, turns: turn, outcome: "extracted", extract, path };
+  return { events, turns: turn, outcome: "extracted", extract, path, found };
 }

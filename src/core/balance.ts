@@ -60,6 +60,19 @@ export interface CoreBalance {
     enduranceXpPerTurn: number;
     /** Ritmo do log na tela (ms por turno, em x1) */
     msPerTurn: number;
+    /** Turnos a menos para revistar um contêiner conhecido */
+    knownSearchDiscount: number;
+    /** Turnos a menos para o Agressivo e o Psicopata revistarem */
+    fastSearchDiscount: number;
+    /** O Seguro pula contêineres que levariam mais turnos que isto */
+    safeMaxSearchTurns: number;
+    /** Chance de achar do Seguro × isto (anda em silêncio, acha menos) */
+    safeFindFactor: number;
+    /** Fração das células de carga ocupadas que manda para a extração */
+    ratFullAt: number;
+    neutralFullAt: number;
+    /** XP de Percepção por item achado */
+    perceptionXpPerLoot: number;
   };
   knowledge: {
     /** XP por célula percorrida */
@@ -115,6 +128,13 @@ export const CORE_DEFAULTS: CoreBalance = {
     hydrationPerTurn: 0.5,
     enduranceXpPerTurn: 0.25,
     msPerTurn: 1000,
+    knownSearchDiscount: 1,
+    fastSearchDiscount: 1,
+    safeMaxSearchTurns: 4,
+    safeFindFactor: 0.8,
+    ratFullAt: 0.8,
+    neutralFullAt: 0.9,
+    perceptionXpPerLoot: 2,
   },
   knowledge: {
     cellXp: 1,

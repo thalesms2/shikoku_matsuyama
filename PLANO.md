@@ -179,13 +179,13 @@ O motor atual (passos sorteados) é substituído. A raid passa a ser um mapa em 
 
 - Substituir as imagens placeholder dos itens (`npm run items -- final <id>`), músicas e efeitos sonoros, animações nas telas de raid e inventário.
 
-## Pendências do plano (decidir antes da sub-fase)
-
-- **Seguro e as quests (12B):** proposta: com a estratégia Seguro, só 1 quest avança por raid (a primeira da lista que avançaria).
-- **Turno extra do Psicopata (12F):** proposta: passa com d20 ≥ 11 (50%), sem modificadores.
-- **"Velocidade" das estratégias (12B):** proposta de custo de movimento por célula: Rato × 2, Seguro × 1,25, Neutro × 1, Agressivo × 0,75, Psicopata × 0,5 (arredondado para cima, mínimo 1 turno).
-
 ## Regras já decididas
+
+- **Números das estratégias (12B e 12F), todos ajustáveis na janela de admin:**
+  - Seguro: só 1 quest avança por raid (a primeira que avançaria);
+  - turno extra do Psicopata: d20 ≥ 11 (50%), sem modificadores;
+  - custo de movimento por célula: Rato × 2, Seguro × 1,25, Neutro × 1, Agressivo × 0,75, Psicopata × 0,5 (arredondado para cima, mínimo 1 turno).
+- **Valores da raid nova na janela de admin:** todo número da Fase 12 (chances, dados, limiares, multiplicadores das estratégias, turnos, XP) entra no `CoreBalance` e aparece na janela de admin.
 
 - **Rotas do Centro de inteligência (12K):**
   - a rota só passa por células que o personagem conhece (pela habilidade do mapa ou por já ter passado por elas);

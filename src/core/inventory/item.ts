@@ -17,6 +17,7 @@ export const ITEM_CATEGORIES = [
   "key",
   "money",
   "magazine",
+  "accessory",
 ] as const;
 
 export type ItemCategory = (typeof ITEM_CATEGORIES)[number];
@@ -29,6 +30,8 @@ export const EQUIP_SLOT_TYPES = [
   "rig",
   "backpack",
   "secure",
+  "eyewear",
+  "face",
 ] as const;
 
 /** Tipo de slot de equipamento em que um item pode ser equipado */
@@ -76,6 +79,10 @@ export interface ItemStats {
   readonly vestType?: "light" | "heavy";
   /** Quanto o item chama atenção (mochilas coloridas ou enormes) */
   readonly visibility?: number;
+  /** Óculos e cobertura do rosto: pontos de d20 somados à percepção */
+  readonly perceptionBonus?: number;
+  /** Óculos e cobertura do rosto: pontos de d20 somados à furtividade */
+  readonly stealthBonus?: number;
 }
 
 /** Definição estática de um tipo de item */
@@ -172,6 +179,8 @@ export const BALANCE_STAT_KEYS = [
   "damageDie",
   "damageBonus",
   "visibility",
+  "perceptionBonus",
+  "stealthBonus",
 ] as const;
 
 export type BalanceStatKey = (typeof BALANCE_STAT_KEYS)[number];

@@ -11,6 +11,8 @@ export const SLOTS = {
   rig: "rig",
   backpack: "backpack",
   secure: "secure",
+  eyewear: "eyewear",
+  face: "face",
 } as const satisfies Record<string, EquipSlotType>;
 
 export type SlotName = keyof typeof SLOTS;

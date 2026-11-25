@@ -16,6 +16,8 @@ export const SLOT_BOX: Record<SlotName, { w: number; h: number }> = {
   rig: { w: 2, h: 2 },
   backpack: { w: 2, h: 2 },
   secure: { w: 2, h: 2 },
+  eyewear: { w: 2, h: 1 },
+  face: { w: 2, h: 1 },
 };
 
 export const SLOT_LABELS: Record<SlotName, string> = {
@@ -27,6 +29,8 @@ export const SLOT_LABELS: Record<SlotName, string> = {
   rig: "Colete tático",
   backpack: "Mochila",
   secure: "Contêiner seguro",
+  eyewear: "Óculos",
+  face: "Cobertura do rosto",
 };
 
 /** Caixa de um slot de equipamento, com o item equipado reduzido para caber */

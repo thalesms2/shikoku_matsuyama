@@ -53,7 +53,7 @@ Todo item ocupa um retângulo de células (por exemplo, 1x1 para uma atadura, 5x
 - **Girar:** aperte **R** enquanto arrasta para girar o item. **Esc** cancela o arraste.
 - **Pilhas:** munição, dinheiro e outros itens empilháveis se juntam quando você solta um sobre o outro, até o limite da pilha.
 - **Contêineres:** mochilas, coletes táticos e caixas têm espaço interno. Solte um item sobre o contêiner para guardá-lo dentro, ou dê **duplo clique** para abrir e organizar o conteúdo. Alguns só aceitam certos itens (a caixa de munição só aceita munição) e mochilas não entram em outras mochilas.
-- **Equipamento:** arraste itens para os slots: arma primária e secundária, coldre, capacete, colete balístico, colete tático, mochila e contêiner seguro. Cada slot só aceita o tipo certo de item.
+- **Equipamento:** arraste itens para os slots: arma primária e secundária, coldre, capacete, óculos, cobertura do rosto, colete balístico, colete tático, mochila e contêiner seguro. Cada slot só aceita o tipo certo de item.
 - **Bolsos:** 4 espaços 1x1 que vão com você para a raid.
 - **Contêiner seguro:** o que estiver nele não é perdido quando o PMC morre na raid.
 - **Rolagem:** com o Depósito, o estoque passa de 14 linhas e ganha uma barra de rolagem. Use a roda do mouse sobre o estoque, ou arraste um item até a borda de cima ou de baixo para ele rolar sozinho.
@@ -66,7 +66,7 @@ Todo item ocupa um retângulo de células (por exemplo, 1x1 para uma atadura, 5x
 
 ### Itens
 
-O catálogo tem armas de vários tipos (pistola, revólver, submetralhadora, escopeta, fuzis de assalto, de precisão e de ferrolho, metralhadora leve), munições comuns e perfurantes, coletes leves e pesados, capacetes, mochilas, remédios, comida, permutas, chaves e itens raros. O quadro de informações mostra o tipo da arma, o dado de dano, o bônus de dano da munição, se o colete é leve ou pesado e se a mochila chama atenção. Muitos desses itens vão aparecer no loot da raid nova.
+O catálogo tem armas de vários tipos (pistola, revólver, submetralhadora, escopeta, fuzis de assalto, de precisão e de ferrolho, metralhadora leve), munições comuns e perfurantes, coletes leves e pesados, capacetes, mochilas, remédios, comida, permutas, chaves e itens raros. O quadro de informações mostra o tipo da arma, o dado de dano, o bônus de dano da munição, se o colete é leve ou pesado e se a mochila chama atenção. Óculos (escuros, de tiro e táticos) dão bônus de Percepção, e a balaclava e o lenço de rosto dão bônus de Furtividade: na raid nova, eles ajudam a notar o inimigo antes e a passar despercebido. Muitos desses itens vão aparecer no loot da raid nova.
 
 ### Janela de admin (desenvolvimento)
 
@@ -141,7 +141,7 @@ Botão **Vendedores** no inventário. Cada vendedor tem uma especialidade, uma m
 
 - **Coronel Brás** — armas e munição, em rublos.
 - **Doutora Iara** — remédios e comida, em rublos.
-- **Mercador Tito** — coletes, capacetes, mochilas e coletes táticos, em dólares (o Capacete fechado K-3 no nível 2 e o Colete de placas Muralha, classe 4, no nível 3). Ele também troca rublos por dólares e euros.
+- **Mercador Tito** — coletes, capacetes, mochilas e coletes táticos, em dólares (o Capacete fechado K-3 no nível 2 e o Colete de placas Muralha, classe 4, no nível 3), além de óculos escuros e lenço de rosto (nível 1), balaclava e óculos de tiro (nível 2). Ele também troca rublos por dólares e euros.
 - **Sucateiro Nico** — compra quase tudo (pagando menos) e faz trocas de itens.
 
 - **Comprar:** o item vai para o estoque e o pagamento sai do estoque (dinheiro ou, nas trocas, os itens pedidos). Precisa haver espaço no estoque.

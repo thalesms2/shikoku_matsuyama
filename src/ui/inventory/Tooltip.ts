@@ -9,6 +9,8 @@ import {
   loadedRounds,
 } from "../../core/inventory/magazine.ts";
 import { maxStack } from "../../core/inventory/size.ts";
+import { SKILL_INFO } from "../../core/pmc/skills.ts";
+import type { SkillId } from "../../core/pmc/skills.ts";
 import { theme } from "../theme.ts";
 import { CATEGORY_LABELS, fitScale, formatPrice } from "./layout.ts";
 import { itemTexture } from "./textures.ts";
@@ -54,6 +56,7 @@ const CALIBERS: Record<string, string> = {
   Caliber1143x23ACP: ".45 ACP",
   Caliber12g: "12 gauge",
   Caliber20g: "20 gauge",
+  Caliber357Magnum: ".357 Magnum",
 };
 
 /** Nome legível do calibre: "Caliber545x39" -> "5.45x39" */
@@ -126,6 +129,21 @@ export function itemSheet(item: Item): string[] {
   }
   if (stats.surgery !== undefined) {
     lines.push(`Cirurgia na raid: ${stats.surgery} min`);
+  }
+  if (stats.weaponClass && stats.weaponClass in SKILL_INFO) {
+    lines.push(`Tipo: ${SKILL_INFO[stats.weaponClass as SkillId].name}`);
+  }
+  if (stats.damageDie !== undefined) {
+    lines.push(`Dado de dano: d${stats.damageDie}`);
+  }
+  if (stats.damageBonus !== undefined) {
+    lines.push(`Bônus de dano: ${signed(stats.damageBonus)}`);
+  }
+  if (stats.vestType) {
+    lines.push(stats.vestType === "heavy" ? "Colete pesado" : "Colete leve");
+  }
+  if (stats.visibility !== undefined && stats.visibility > 0) {
+    lines.push(`Chama atenção: +${stats.visibility}`);
   }
   return [...lines, ...ammoSheet(item)];
 }

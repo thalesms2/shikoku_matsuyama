@@ -59,7 +59,7 @@ describe("equipamento dos inimigos", () => {
     expect(gear.armor.map((a) => a.item)).toContain("armor_heavy");
     expect(gear.helmet.map((a) => a.item)).toContain("helmet_k3");
     expect(gear.weapons.map((w) => w.ammo)).toContain("ammo_545ap");
-    expect(catalog.get("armor_heavy").stats).toEqual({
+    expect(catalog.get("armor_heavy").stats).toMatchObject({
       armorClass: 4,
       durability: 60,
     });

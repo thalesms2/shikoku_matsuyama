@@ -13,7 +13,44 @@
     "stats": {
       "caliber": "Caliber12g",
       "damage": 200,
-      "penetration": 3
+      "penetration": 3,
+      "damageBonus": 3
+    }
+  },
+  {
+    "id": "ammo_12g_slug",
+    "name": "Balote calibre 12",
+    "shortName": "12 Bal.",
+    "category": "ammo",
+    "width": 1,
+    "height": 1,
+    "maxStack": 20,
+    "basePrice": 180,
+    "description": "Um projétil só, pesado, que troca o espalhamento por penetração.",
+    "image": "assets/items/ammo_12g_slug.webp",
+    "stats": {
+      "caliber": "Caliber12g",
+      "damage": 140,
+      "penetration": 20,
+      "damageBonus": 4
+    }
+  },
+  {
+    "id": "ammo_357",
+    "name": "Cartucho .357",
+    "shortName": ".357",
+    "category": "ammo",
+    "width": 1,
+    "height": 1,
+    "maxStack": 30,
+    "basePrice": 160,
+    "description": "Munição de revólver com ponta oca, devastadora sem colete pela frente.",
+    "image": "assets/items/ammo_357.webp",
+    "stats": {
+      "caliber": "Caliber357Magnum",
+      "damage": 70,
+      "penetration": 20,
+      "damageBonus": 2
     }
   },
   {
@@ -30,7 +67,8 @@
     "stats": {
       "caliber": "Caliber545x39",
       "damage": 45,
-      "penetration": 25
+      "penetration": 25,
+      "damageBonus": 2
     }
   },
   {
@@ -47,7 +85,80 @@
     "stats": {
       "caliber": "Caliber545x39",
       "damage": 40,
-      "penetration": 38
+      "penetration": 38,
+      "damageBonus": 4
+    }
+  },
+  {
+    "id": "ammo_762x39",
+    "name": "Cartucho 7.62x39 comum",
+    "shortName": "7.62",
+    "category": "ammo",
+    "width": 1,
+    "height": 1,
+    "maxStack": 60,
+    "basePrice": 120,
+    "description": "Munição barata e pesada, a mais vista nas mãos dos Scavs.",
+    "image": "assets/items/ammo_762x39.webp",
+    "stats": {
+      "caliber": "Caliber762x39",
+      "damage": 50,
+      "penetration": 30,
+      "damageBonus": 3
+    }
+  },
+  {
+    "id": "ammo_762x39ap",
+    "name": "Cartucho 7.62x39 perfurante",
+    "shortName": "7.62 PF",
+    "category": "ammo",
+    "width": 1,
+    "height": 1,
+    "maxStack": 60,
+    "basePrice": 380,
+    "description": "Núcleo endurecido que atravessa a maioria dos coletes médios.",
+    "image": "assets/items/ammo_762x39ap.webp",
+    "stats": {
+      "caliber": "Caliber762x39",
+      "damage": 47,
+      "penetration": 42,
+      "damageBonus": 5
+    }
+  },
+  {
+    "id": "ammo_762x54",
+    "name": "Cartucho 7.62x54R comum",
+    "shortName": "7.62R",
+    "category": "ammo",
+    "width": 1,
+    "height": 1,
+    "maxStack": 40,
+    "basePrice": 250,
+    "description": "Cartucho longo de fuzil, feito para alcance e impacto.",
+    "image": "assets/items/ammo_762x54.webp",
+    "stats": {
+      "caliber": "Caliber762x54R",
+      "damage": 78,
+      "penetration": 40,
+      "damageBonus": 6
+    }
+  },
+  {
+    "id": "ammo_762x54ap",
+    "name": "Cartucho 7.62x54R perfurante",
+    "shortName": "7.62RPF",
+    "category": "ammo",
+    "width": 1,
+    "height": 1,
+    "maxStack": 40,
+    "basePrice": 900,
+    "description": "Munição de atirador com núcleo de aço. Rara e cara.",
+    "image": "assets/items/ammo_762x54ap.webp",
+    "stats": {
+      "caliber": "Caliber762x54R",
+      "damage": 75,
+      "penetration": 55,
+      "damageBonus": 8
     }
   },
   {
@@ -64,7 +175,26 @@
     "stats": {
       "caliber": "Caliber9x19PARA",
       "damage": 54,
-      "penetration": 18
+      "penetration": 18,
+      "damageBonus": 0
+    }
+  },
+  {
+    "id": "ammo_9mm_ap",
+    "name": "Cartucho 9mm perfurante",
+    "shortName": "9mm PF",
+    "category": "ammo",
+    "width": 1,
+    "height": 1,
+    "maxStack": 50,
+    "basePrice": 140,
+    "description": "Ponta de aço que dá ao 9mm alguma chance contra coletes.",
+    "image": "assets/items/ammo_9mm_ap.webp",
+    "stats": {
+      "caliber": "Caliber9x19PARA",
+      "damage": 50,
+      "penetration": 30,
+      "damageBonus": 2
     }
   },
   {
@@ -88,6 +218,23 @@
     "image": "assets/items/ammo_case.webp"
   },
   {
+    "id": "armor_assault",
+    "name": "Colete de assalto Bastião",
+    "shortName": "Bastião",
+    "category": "armor",
+    "width": 4,
+    "height": 4,
+    "basePrice": 95000,
+    "equipSlot": "armor",
+    "description": "Placas grossas na frente e nas costas. Quase nada passa, mas cansa só de vestir.",
+    "image": "assets/items/armor_assault.webp",
+    "stats": {
+      "armorClass": 5,
+      "durability": 80,
+      "vestType": "heavy"
+    }
+  },
+  {
     "id": "armor_civil",
     "name": "Colete balístico civil",
     "shortName": "Civil",
@@ -100,7 +247,8 @@
     "image": "assets/items/armor_civil.webp",
     "stats": {
       "armorClass": 2,
-      "durability": 40
+      "durability": 40,
+      "vestType": "light"
     }
   },
   {
@@ -116,7 +264,70 @@
     "image": "assets/items/armor_heavy.webp",
     "stats": {
       "armorClass": 4,
-      "durability": 60
+      "durability": 60,
+      "vestType": "heavy"
+    }
+  },
+  {
+    "id": "armor_patrol",
+    "name": "Colete de patrulha",
+    "shortName": "Patrulha",
+    "category": "armor",
+    "width": 3,
+    "height": 3,
+    "basePrice": 26000,
+    "equipSlot": "armor",
+    "description": "Colete de policiamento com placas leves. Segura pistola e o 5.45 comum de longe.",
+    "image": "assets/items/armor_patrol.webp",
+    "stats": {
+      "armorClass": 3,
+      "durability": 50,
+      "vestType": "light"
+    }
+  },
+  {
+    "id": "backpack_assault",
+    "name": "Mochila de assalto",
+    "shortName": "Assalto",
+    "category": "backpack",
+    "width": 5,
+    "height": 6,
+    "basePrice": 24000,
+    "equipSlot": "backpack",
+    "grids": [
+      {
+        "width": 5,
+        "height": 5,
+        "deny": [
+          "backpack"
+        ]
+      }
+    ],
+    "description": "Discreta e firme no corpo, feita para quem precisa correr.",
+    "image": "assets/items/backpack_assault.webp"
+  },
+  {
+    "id": "backpack_expedition",
+    "name": "Mochila de expedição",
+    "shortName": "Expedição",
+    "category": "backpack",
+    "width": 5,
+    "height": 7,
+    "basePrice": 32000,
+    "equipSlot": "backpack",
+    "grids": [
+      {
+        "width": 6,
+        "height": 7,
+        "deny": [
+          "backpack"
+        ]
+      }
+    ],
+    "description": "Enorme, para viagens longas. Cabe uma casa inteira, e qualquer um nota o volume.",
+    "image": "assets/items/backpack_expedition.webp",
+    "stats": {
+      "visibility": 2
     }
   },
   {
@@ -162,6 +373,52 @@
     "image": "assets/items/backpack_sack.webp"
   },
   {
+    "id": "backpack_school",
+    "name": "Mochila escolar colorida",
+    "shortName": "Escolar",
+    "category": "backpack",
+    "width": 4,
+    "height": 4,
+    "basePrice": 3000,
+    "equipSlot": "backpack",
+    "grids": [
+      {
+        "width": 4,
+        "height": 4,
+        "deny": [
+          "backpack"
+        ]
+      }
+    ],
+    "description": "Cores vivas e zíper barulhento. Cabe bastante, mas todo mundo vê você chegando.",
+    "image": "assets/items/backpack_school.webp",
+    "stats": {
+      "visibility": 2
+    }
+  },
+  {
+    "id": "barter_analyzer",
+    "name": "Analisador de gás",
+    "shortName": "Analis.",
+    "category": "barter",
+    "width": 1,
+    "height": 2,
+    "basePrice": 16000,
+    "description": "Aparelho de fábrica que mede gases no ar. As peças valem mais que ele.",
+    "image": "assets/items/barter_analyzer.webp"
+  },
+  {
+    "id": "barter_battery",
+    "name": "Bateria de carro",
+    "shortName": "Bateria",
+    "category": "barter",
+    "width": 3,
+    "height": 2,
+    "basePrice": 22000,
+    "description": "Pesada e ainda com carga. Alimenta rádios e geradores.",
+    "image": "assets/items/barter_battery.webp"
+  },
+  {
     "id": "barter_bolts",
     "name": "Parafusos",
     "shortName": "Paraf.",
@@ -171,6 +428,28 @@
     "basePrice": 2500,
     "description": "Punhado de parafusos e porcas variados. Mecânicos e artesãos sempre pagam por eles.",
     "image": "assets/items/barter_bolts.webp"
+  },
+  {
+    "id": "barter_capacitors",
+    "name": "Capacitores",
+    "shortName": "Capac.",
+    "category": "barter",
+    "width": 1,
+    "height": 1,
+    "basePrice": 12000,
+    "description": "Peças eletrônicas para quem ainda conserta rádios.",
+    "image": "assets/items/barter_capacitors.webp"
+  },
+  {
+    "id": "barter_coin",
+    "name": "Moeda de ouro antiga",
+    "shortName": "Moeda",
+    "category": "barter",
+    "width": 1,
+    "height": 1,
+    "basePrice": 150000,
+    "description": "Moeda de colecionador, pesada e brilhante. Vale uma fortuna.",
+    "image": "assets/items/barter_coin.webp"
   },
   {
     "id": "barter_goldchain",
@@ -195,6 +474,140 @@
     "image": "assets/items/barter_gpu.webp"
   },
   {
+    "id": "barter_ledx",
+    "name": "Transiluminador de veias",
+    "shortName": "Transil",
+    "category": "barter",
+    "width": 1,
+    "height": 1,
+    "basePrice": 300000,
+    "description": "Aparelho médico raro, o item mais procurado da cidade.",
+    "image": "assets/items/barter_ledx.webp"
+  },
+  {
+    "id": "barter_lighter",
+    "name": "Isqueiro de metal",
+    "shortName": "Isqueir",
+    "category": "barter",
+    "width": 1,
+    "height": 1,
+    "basePrice": 6000,
+    "description": "Isqueiro de fluido com a tampa amassada.",
+    "image": "assets/items/barter_lighter.webp"
+  },
+  {
+    "id": "barter_lion",
+    "name": "Estatueta de leão de bronze",
+    "shortName": "Leão",
+    "category": "barter",
+    "width": 3,
+    "height": 2,
+    "basePrice": 90000,
+    "description": "Peça de decoração pesada que os colecionadores disputam.",
+    "image": "assets/items/barter_lion.webp"
+  },
+  {
+    "id": "barter_matches",
+    "name": "Fósforos de caça",
+    "shortName": "Fósforo",
+    "category": "barter",
+    "width": 1,
+    "height": 1,
+    "basePrice": 4000,
+    "description": "Acendem até no vento e na chuva.",
+    "image": "assets/items/barter_matches.webp"
+  },
+  {
+    "id": "barter_nails",
+    "name": "Caixa de pregos",
+    "shortName": "Pregos",
+    "category": "barter",
+    "width": 1,
+    "height": 1,
+    "basePrice": 8000,
+    "description": "Pregos de vários tamanhos, para barricadas.",
+    "image": "assets/items/barter_nails.webp"
+  },
+  {
+    "id": "barter_tape",
+    "name": "Fita isolante",
+    "shortName": "Fita",
+    "category": "barter",
+    "width": 1,
+    "height": 1,
+    "basePrice": 7000,
+    "description": "Conserta quase tudo, pelo menos por um tempo.",
+    "image": "assets/items/barter_tape.webp"
+  },
+  {
+    "id": "barter_toolset",
+    "name": "Jogo de ferramentas",
+    "shortName": "Ferram.",
+    "category": "barter",
+    "width": 2,
+    "height": 2,
+    "basePrice": 24000,
+    "description": "Maleta com chaves e alicates, quase completa.",
+    "image": "assets/items/barter_toolset.webp"
+  },
+  {
+    "id": "barter_watch",
+    "name": "Relógio de ouro",
+    "shortName": "Relógio",
+    "category": "barter",
+    "width": 1,
+    "height": 1,
+    "basePrice": 48000,
+    "description": "Relógio de pulso pesado, de ouro de verdade.",
+    "image": "assets/items/barter_watch.webp"
+  },
+  {
+    "id": "barter_wires",
+    "name": "Feixe de fios",
+    "shortName": "Fios",
+    "category": "barter",
+    "width": 1,
+    "height": 1,
+    "basePrice": 9000,
+    "description": "Fios de cobre arrancados de alguma parede. Sempre há quem pague.",
+    "image": "assets/items/barter_wires.webp"
+  },
+  {
+    "id": "bolt_m91",
+    "name": "Fuzil de ferrolho M-91",
+    "shortName": "M-91",
+    "category": "weapon",
+    "width": 6,
+    "height": 1,
+    "basePrice": 18000,
+    "equipSlot": "longWeapon",
+    "description": "Relíquia de outra guerra que ainda derruba qualquer um com um tiro bem colocado. Leva cinco cartuchos direto na arma.",
+    "image": "assets/items/bolt_m91.webp",
+    "stats": {
+      "caliber": "Caliber762x54R",
+      "capacity": 5,
+      "damageDie": 20,
+      "weaponClass": "boltActionRifles"
+    }
+  },
+  {
+    "id": "dmr_sd7",
+    "name": "Fuzil de precisão SD-7",
+    "shortName": "SD-7",
+    "category": "weapon",
+    "width": 6,
+    "height": 2,
+    "basePrice": 68000,
+    "equipSlot": "longWeapon",
+    "description": "Semiautomático de cano longo, para quem prefere resolver antes de ser visto.",
+    "image": "assets/items/dmr_sd7.webp",
+    "stats": {
+      "caliber": "Caliber762x54R",
+      "damageDie": 20,
+      "weaponClass": "dmrs"
+    }
+  },
+  {
     "id": "food_can",
     "name": "Lata de carne",
     "shortName": "Lata",
@@ -207,6 +620,51 @@
     "stats": {
       "energy": 45,
       "hydration": -5
+    }
+  },
+  {
+    "id": "food_crackers",
+    "name": "Bolachas do exército",
+    "shortName": "Bolacha",
+    "category": "food",
+    "width": 1,
+    "height": 1,
+    "basePrice": 900,
+    "description": "Secas e sem gosto, mas dão energia.",
+    "image": "assets/items/food_crackers.webp",
+    "stats": {
+      "energy": 25,
+      "hydration": -5
+    }
+  },
+  {
+    "id": "food_juice",
+    "name": "Suco de caixinha",
+    "shortName": "Suco",
+    "category": "food",
+    "width": 1,
+    "height": 2,
+    "basePrice": 1400,
+    "description": "Doce demais, mas hidrata e anima.",
+    "image": "assets/items/food_juice.webp",
+    "stats": {
+      "energy": 10,
+      "hydration": 40
+    }
+  },
+  {
+    "id": "food_ration",
+    "name": "Ração militar",
+    "shortName": "Ração",
+    "category": "food",
+    "width": 1,
+    "height": 2,
+    "basePrice": 6000,
+    "description": "Refeição completa numa embalagem. Segura o dia inteiro.",
+    "image": "assets/items/food_ration.webp",
+    "stats": {
+      "energy": 75,
+      "hydration": 15
     }
   },
   {
@@ -240,6 +698,54 @@
     }
   },
   {
+    "id": "helmet_riot",
+    "name": "Capacete antimotim",
+    "shortName": "Antimotim",
+    "category": "helmet",
+    "width": 2,
+    "height": 2,
+    "basePrice": 4500,
+    "equipSlot": "helmet",
+    "description": "Feito para pedras e cassetetes. Contra bala, ajuda pouco.",
+    "image": "assets/items/helmet_riot.webp",
+    "stats": {
+      "armorClass": 1,
+      "durability": 25
+    }
+  },
+  {
+    "id": "helmet_rock",
+    "name": "Capacete de assalto Rochedo",
+    "shortName": "Rochedo",
+    "category": "helmet",
+    "width": 2,
+    "height": 2,
+    "basePrice": 70000,
+    "equipSlot": "helmet",
+    "description": "Titânio grosso com viseira opcional. Para fuzil a curta distância.",
+    "image": "assets/items/helmet_rock.webp",
+    "stats": {
+      "armorClass": 5,
+      "durability": 50
+    }
+  },
+  {
+    "id": "helmet_steel",
+    "name": "Capacete de aço antigo",
+    "shortName": "Aço",
+    "category": "helmet",
+    "width": 2,
+    "height": 2,
+    "basePrice": 5000,
+    "equipSlot": "helmet",
+    "description": "Casco de aço de um depósito militar esquecido. Pesado, mas melhor que nada.",
+    "image": "assets/items/helmet_steel.webp",
+    "stats": {
+      "armorClass": 2,
+      "durability": 25
+    }
+  },
+  {
     "id": "helmet_tk1",
     "name": "Capacete TK-1",
     "shortName": "TK-1",
@@ -256,6 +762,50 @@
     }
   },
   {
+    "id": "intel_flash",
+    "name": "Pen drive criptografado",
+    "shortName": "Pen drv",
+    "category": "barter",
+    "width": 1,
+    "height": 1,
+    "basePrice": 40000,
+    "description": "Arquivos protegidos por senha. Alguém quer muito o que há aqui.",
+    "image": "assets/items/intel_flash.webp"
+  },
+  {
+    "id": "intel_folder",
+    "name": "Pasta de documentos",
+    "shortName": "Pasta",
+    "category": "barter",
+    "width": 2,
+    "height": 1,
+    "basePrice": 65000,
+    "description": "Relatórios carimbados, mapas e listas de nomes.",
+    "image": "assets/items/intel_folder.webp"
+  },
+  {
+    "id": "intel_military",
+    "name": "Pen drive militar",
+    "shortName": "Pen mil",
+    "category": "barter",
+    "width": 1,
+    "height": 1,
+    "basePrice": 120000,
+    "description": "Pen drive blindado com a marca do exército. Raríssimo.",
+    "image": "assets/items/intel_military.webp"
+  },
+  {
+    "id": "key_dorm",
+    "name": "Chave do alojamento 114",
+    "shortName": "Aloj114",
+    "category": "key",
+    "width": 1,
+    "height": 1,
+    "basePrice": 15000,
+    "description": "Chave com etiqueta de um alojamento de operários.",
+    "image": "assets/items/key_dorm.webp"
+  },
+  {
     "id": "key_garage",
     "name": "Chave da garagem",
     "shortName": "Garagem",
@@ -265,6 +815,49 @@
     "basePrice": 5000,
     "description": "Chave de uma garagem trancada na zona industrial. Ninguém sabe ao certo o que ficou lá dentro.",
     "image": "assets/items/key_garage.webp"
+  },
+  {
+    "id": "key_machinery",
+    "name": "Chave da casa de máquinas",
+    "shortName": "Máquina",
+    "category": "key",
+    "width": 1,
+    "height": 1,
+    "basePrice": 12000,
+    "description": "Abre a sala das máquinas de algum prédio da cidade.",
+    "image": "assets/items/key_machinery.webp"
+  },
+  {
+    "id": "lmg_rk16",
+    "name": "Metralhadora leve RK-16",
+    "shortName": "RK-16",
+    "category": "weapon",
+    "width": 5,
+    "height": 2,
+    "basePrice": 52000,
+    "equipSlot": "longWeapon",
+    "description": "Prima pesada do VK-74, com cano longo e bipé. Usa os mesmos carregadores.",
+    "image": "assets/items/lmg_rk16.webp",
+    "stats": {
+      "caliber": "Caliber545x39",
+      "damageDie": 20,
+      "weaponClass": "lightMachineGuns"
+    }
+  },
+  {
+    "id": "mag_kr47",
+    "name": "Carregador KR-47 (30)",
+    "shortName": "KR47 30",
+    "category": "magazine",
+    "width": 1,
+    "height": 2,
+    "basePrice": 1600,
+    "description": "Carregador de baquelite curvo, para trinta cartuchos 7.62x39.",
+    "image": "assets/items/mag_kr47.webp",
+    "stats": {
+      "capacity": 30,
+      "caliber": "Caliber762x39"
+    }
   },
   {
     "id": "mag_pk9",
@@ -279,6 +872,36 @@
     "stats": {
       "capacity": 12,
       "caliber": "Caliber9x19PARA"
+    }
+  },
+  {
+    "id": "mag_rk95",
+    "name": "Tambor RK (95)",
+    "shortName": "RK 95",
+    "category": "magazine",
+    "width": 2,
+    "height": 2,
+    "basePrice": 9000,
+    "description": "Tambor de noventa e cinco cartuchos 5.45. Pesado e lento de encher, mas dura a briga inteira.",
+    "image": "assets/items/mag_rk95.webp",
+    "stats": {
+      "capacity": 95,
+      "caliber": "Caliber545x39"
+    }
+  },
+  {
+    "id": "mag_sd7",
+    "name": "Carregador SD-7 (10)",
+    "shortName": "SD-7 10",
+    "category": "magazine",
+    "width": 1,
+    "height": 1,
+    "basePrice": 2500,
+    "description": "Dez cartuchos de 7.62x54R para o fuzil de precisão.",
+    "image": "assets/items/mag_sd7.webp",
+    "stats": {
+      "capacity": 10,
+      "caliber": "Caliber762x54R"
     }
   },
   {
@@ -297,6 +920,21 @@
     }
   },
   {
+    "id": "mag_vr9",
+    "name": "Carregador VR-9 (30)",
+    "shortName": "VR-9 30",
+    "category": "magazine",
+    "width": 1,
+    "height": 2,
+    "basePrice": 1800,
+    "description": "Carregador reto de trinta cartuchos de 9mm.",
+    "image": "assets/items/mag_vr9.webp",
+    "stats": {
+      "capacity": 30,
+      "caliber": "Caliber9x19PARA"
+    }
+  },
+  {
     "id": "med_bandage",
     "name": "Atadura",
     "shortName": "Atadura",
@@ -308,6 +946,20 @@
     "image": "assets/items/med_bandage.webp",
     "stats": {
       "heal": 15
+    }
+  },
+  {
+    "id": "med_ifak",
+    "name": "Kit individual de primeiros socorros",
+    "shortName": "IFAK",
+    "category": "medical",
+    "width": 1,
+    "height": 1,
+    "basePrice": 18000,
+    "description": "Kit militar compacto com gaze, ataduras e hemostático.",
+    "image": "assets/items/med_ifak.webp",
+    "stats": {
+      "heal": 200
     }
   },
   {
@@ -325,6 +977,34 @@
     }
   },
   {
+    "id": "med_painkiller",
+    "name": "Analgésicos",
+    "shortName": "Analg.",
+    "category": "medical",
+    "width": 1,
+    "height": 1,
+    "basePrice": 3000,
+    "description": "Comprimidos que deixam continuar andando com a dor.",
+    "image": "assets/items/med_painkiller.webp",
+    "stats": {
+      "heal": 25
+    }
+  },
+  {
+    "id": "med_splint",
+    "name": "Tala imobilizadora",
+    "shortName": "Tala",
+    "category": "medical",
+    "width": 1,
+    "height": 1,
+    "basePrice": 1500,
+    "description": "Prende um braço ou uma perna machucados para o corpo seguir em frente.",
+    "image": "assets/items/med_splint.webp",
+    "stats": {
+      "heal": 15
+    }
+  },
+  {
     "id": "med_surgery",
     "name": "Kit cirúrgico de campo",
     "shortName": "Cirurg.",
@@ -336,6 +1016,20 @@
     "image": "assets/items/med_surgery.webp",
     "stats": {
       "surgery": 6
+    }
+  },
+  {
+    "id": "med_tourniquet",
+    "name": "Torniquete",
+    "shortName": "Torniq.",
+    "category": "medical",
+    "width": 1,
+    "height": 1,
+    "basePrice": 2500,
+    "description": "Faixa de compressão para segurar um sangramento forte.",
+    "image": "assets/items/med_tourniquet.webp",
+    "stats": {
+      "heal": 10
     }
   },
   {
@@ -386,7 +1080,44 @@
     "description": "Pistola compacta de uso policial. Leve, confiável e fácil de esconder no coldre.",
     "image": "assets/items/pistol_pk9.webp",
     "stats": {
-      "caliber": "Caliber9x19PARA"
+      "caliber": "Caliber9x19PARA",
+      "damageDie": 6,
+      "weaponClass": "pistols"
+    }
+  },
+  {
+    "id": "revolver_r50",
+    "name": "Revólver R-50",
+    "shortName": "R-50",
+    "category": "weapon",
+    "width": 2,
+    "height": 1,
+    "basePrice": 15000,
+    "equipSlot": "pistol",
+    "description": "Seis tiros de .357 num tambor que nunca engasga.",
+    "image": "assets/items/revolver_r50.webp",
+    "stats": {
+      "caliber": "Caliber357Magnum",
+      "capacity": 6,
+      "damageDie": 8,
+      "weaponClass": "revolvers"
+    }
+  },
+  {
+    "id": "rifle_kr47",
+    "name": "Fuzil KR-47",
+    "shortName": "KR-47",
+    "category": "weapon",
+    "width": 5,
+    "height": 2,
+    "basePrice": 36000,
+    "equipSlot": "longWeapon",
+    "description": "O fuzil mais comum da região: pesado, barulhento e confiável. O 7.62 passa onde o 5.45 para.",
+    "image": "assets/items/rifle_kr47.webp",
+    "stats": {
+      "caliber": "Caliber762x39",
+      "damageDie": 20,
+      "weaponClass": "assaultRifles"
     }
   },
   {
@@ -401,7 +1132,9 @@
     "description": "Fuzil de assalto robusto, sobra dos arsenais do exército. Pesado e barulhento, mas raramente trava, mesmo coberto de lama.",
     "image": "assets/items/rifle_vk74.webp",
     "stats": {
-      "caliber": "Caliber545x39"
+      "caliber": "Caliber545x39",
+      "damageDie": 20,
+      "weaponClass": "assaultRifles"
     }
   },
   {
@@ -455,6 +1188,56 @@
     "image": "assets/items/rig_cargo.webp"
   },
   {
+    "id": "rig_harness",
+    "name": "Colete tático de peito",
+    "shortName": "Peitoral",
+    "category": "rig",
+    "width": 4,
+    "height": 3,
+    "basePrice": 14000,
+    "equipSlot": "rig",
+    "grids": [
+      {
+        "width": 2,
+        "height": 2,
+        "deny": [
+          "backpack",
+          "rig",
+          "armor"
+        ]
+      },
+      {
+        "width": 2,
+        "height": 2,
+        "deny": [
+          "backpack",
+          "rig",
+          "armor"
+        ]
+      },
+      {
+        "width": 1,
+        "height": 2,
+        "deny": [
+          "backpack",
+          "rig",
+          "armor"
+        ]
+      },
+      {
+        "width": 1,
+        "height": 2,
+        "deny": [
+          "backpack",
+          "rig",
+          "armor"
+        ]
+      }
+    ],
+    "description": "Bolsos para carregadores e remédios bem à mão.",
+    "image": "assets/items/rig_harness.webp"
+  },
+  {
     "id": "secure_pouch",
     "name": "Bolsa segura",
     "shortName": "Segura",
@@ -490,7 +1273,26 @@
     "image": "assets/items/shotgun_m12.webp",
     "stats": {
       "caliber": "Caliber12g",
-      "capacity": 6
+      "capacity": 6,
+      "damageDie": 12,
+      "weaponClass": "shotguns"
+    }
+  },
+  {
+    "id": "smg_vr9",
+    "name": "Submetralhadora VR-9",
+    "shortName": "VR-9",
+    "category": "weapon",
+    "width": 3,
+    "height": 2,
+    "basePrice": 21000,
+    "equipSlot": "longWeapon",
+    "description": "Compacta e rápida, feita para corredores apertados. Cospe 9mm sem parar, mas perde força de longe.",
+    "image": "assets/items/smg_vr9.webp",
+    "stats": {
+      "caliber": "Caliber9x19PARA",
+      "damageDie": 8,
+      "weaponClass": "submachineGuns"
     }
   }
 ]

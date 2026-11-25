@@ -128,9 +128,10 @@ describe("TradersScene", () => {
     expect(scene.traderButtons.get("doctor")!.alpha).toBeLessThan(1);
     expect(scene.buyTab.alpha).toBe(1);
     expect(scene.moneyText.text).toBe("Seu dinheiro: 150.000 ₽ · 0 € · 0 $");
-    expect(labels()).toHaveLength(TRADERS[0].offers.length);
+    // 10 ofertas por página; com mais, aparecem as setas da paginação
+    expect(labels()).toHaveLength(Math.min(TRADERS[0].offers.length, 10));
     expect(scene.infoText.text).toContain("Lealdade: nível 1/3");
-    expect(scene.prevButton.visible).toBe(false);
+    expect(scene.prevButton.visible).toBe(TRADERS[0].offers.length > 10);
     // oferta bloqueada fica apagada
     const locked = TRADERS[0].offers.findIndex((o) => o.level > 1);
     expect(scene.rowButtons[locked].alpha).toBeLessThan(1);

@@ -12,7 +12,7 @@ Como trabalhamos:
 
 ---
 
-## Fase 11 — Inventário e carregadores
+## Fase 11 — Inventário e carregadores ✅
 
 - ✅ **11A — Carregamento instantâneo:** soltar munição sobre um carregador carrega na hora (até encher ou acabar a pilha). Descarregar também é instantâneo. O carregamento progressivo (`MagazineLoader`, barra de progresso, tempo por cartucho) sai.
   - Fora da raid, a skill Manuseio de carregador deixa de ter efeito. Ela passa a valer dentro da raid (12F): quando a munição acaba em combate, ela define quão rápido o PMC recarrega e volta a atirar.
@@ -41,7 +41,7 @@ Como trabalhamos:
   - Salvar grava no banco do servidor, que avisa os clientes (11J). Tem um botão para restaurar os padrões.
   - A janela não aparece durante uma raid.
   - O servidor só aceita alterações em modo de desenvolvimento; em produção os valores são só lidos.
-- **11L — Catálogo ampliado:** muitos itens novos, de todas as categorias (armas e calibres, munições de várias qualidades, carregadores, coletes e capacetes de várias classes, coletes táticos, mochilas, óculos e balaclavas, remédios, comida e bebida, permutas, chaves, itens de inteligência e itens raros), para alimentar as tabelas de loot dos contêineres (12A e 12D) e dos inimigos.
+- ✅ **11L — Catálogo ampliado:** muitos itens novos, de todas as categorias (armas e calibres, munições de várias qualidades, carregadores, coletes e capacetes de várias classes, coletes táticos, mochilas, óculos e balaclavas, remédios, comida e bebida, permutas, chaves, itens de inteligência e itens raros), para alimentar as tabelas de loot dos contêineres (12A e 12D) e dos inimigos.
   - Todos pelo pipeline, com nomes e descrições próprios e imagem placeholder; dados de dano, dado de dano, penetração e classe já no formato da raid nova.
   - Os vendedores ganham parte deles. As ofertas passam de uma página (10 linhas), e o teste antigo que espera todas as ofertas do primeiro vendedor numa página (`TradersScene.test.ts`) passa a aceitar a paginação (autorizado).
 

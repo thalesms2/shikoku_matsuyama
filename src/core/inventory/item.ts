@@ -66,6 +66,16 @@ export interface ItemStats {
   readonly hydration?: number;
   /** Kit cirúrgico: minutos de raid que a cirurgia leva */
   readonly surgery?: number;
+  /** Raid nova (Fase 12): lados do dado de dano da arma (6 = d6) */
+  readonly damageDie?: number;
+  /** Raid nova: dano fixo somado pela munição */
+  readonly damageBonus?: number;
+  /** Tipo da arma = id da skill de combate que treina (ex.: "pistols") */
+  readonly weaponClass?: string;
+  /** Coletes: leve ou pesado (skills Coletes leves/pesados) */
+  readonly vestType?: "light" | "heavy";
+  /** Quanto o item chama atenção (mochilas coloridas ou enormes) */
+  readonly visibility?: number;
 }
 
 /** Definição estática de um tipo de item */
@@ -159,6 +169,9 @@ export const BALANCE_STAT_KEYS = [
   "energy",
   "hydration",
   "surgery",
+  "damageDie",
+  "damageBonus",
+  "visibility",
 ] as const;
 
 export type BalanceStatKey = (typeof BALANCE_STAT_KEYS)[number];

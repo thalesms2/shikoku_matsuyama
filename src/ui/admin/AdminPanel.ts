@@ -28,6 +28,9 @@ export const STAT_NAMES: Record<BalanceStatKey, string> = {
   energy: "Energia",
   hydration: "Hidratação",
   surgery: "Cirurgia (min)",
+  damageDie: "Dado de dano (lados)",
+  damageBonus: "Bônus de dano",
+  visibility: "Chama atenção",
 };
 
 const PANEL_STYLE = [

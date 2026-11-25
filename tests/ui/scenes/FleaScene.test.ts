@@ -123,7 +123,7 @@ describe("FleaScene", () => {
     expect(scene.prevButton.visible).toBe(true);
     expect(scene.lessButton.visible).toBe(false);
     expect(scene.rowButtons[0].alpha).toBeLessThan(1);
-    scene.changePage(5);
+    scene.changePage(99);
     expect(scene.pageText.text).toBe(
       `${Math.ceil(defs.length / FLEA_ROWS_PER_PAGE)}/${Math.ceil(defs.length / FLEA_ROWS_PER_PAGE)}`,
     );

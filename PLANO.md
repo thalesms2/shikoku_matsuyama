@@ -142,7 +142,7 @@ O motor atual (passos sorteados) é substituído. A raid passa a ser um mapa em 
   - **Skills de armadura:** Coletes leves e Coletes pesados ganham XP quando o PMC toma dano vestindo a armadura e quando ela segura um tiro.
   - **Conserto da armadura:** o Mercador Tito continua consertando por dinheiro, e a Oficina do esconderijo passa a consertar também.
   - A briga vai até um dos dois morrer. Vencendo, o PMC revista o corpo, que deixa o equipamento do inimigo (como na 10D).
-- **12G — Sangramento:** todo dano rola uma chance de sangramento, nos dois lados. Sangrando, perde vida a cada célula até tratar (atadura e kits). Os cuidados automáticos tratam sangramento.
+- ✅ **12G — Sangramento:** todo dano rola uma chance de sangramento, nos dois lados. Sangrando, perde vida a cada célula até tratar (atadura e kits). Os cuidados automáticos tratam sangramento.
 - **12H — Troca do motor:** a raid nova assume `startRaid` e o motor antigo sai.
   - Passam a usar a raid nova: raid Scav, raids automáticas, quests (abates, extração, itens achados), cirurgia (com o encontro surpresa), durabilidade da armadura, avisos antes da raid e resumo.
   - Os testes de balanceamento são reescritos para a raid nova.

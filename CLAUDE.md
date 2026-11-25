@@ -500,3 +500,8 @@ O motor novo é construído ao lado do atual e só assume na 12H.
   - **Fuga na briga:** o Rato tenta fugir em todo turno dele, e as outras estratégias quando `wantsToFlee` manda (`fleeRoll`).
   - **XP:** Mira e a skill da arma por acerto (`aimXpPerHit`, 1); Coletes leves/pesados (pelo `vestType` do colete) por tiro segurado (`vestXpPerBlock`, 1) e por dano tomado vestindo (`vestXpPerDamage`, 0,1); Vitalidade 0,05 por dano.
   - **Corpo** (`bodyItems`, menos para o Rato): arma com o carregador (ou o tubo) e de 0 à capacidade em cartuchos, as proteções com a durabilidade que sobrou e `ammoCount` cartuchos soltos, guardados por `MatrixRaid.store` como loot de raridade 3.
+- **12G, sangramento e cuidados** (`MatrixRaid.bleed`, `tickBleeding`, `selfCare`; números em `coreBalance().bleed`):
+  - Todo dano rola sangramento com `chance` (0,3): no personagem, na parte atingida (`bleeding`, uma vez por parte); no inimigo, uma marca `bleeding`.
+  - A cada turno da raid (e a cada troca de tiros), cada parte sangrando perde `damagePerTurn` (1); cabeça ou tórax a 0 mata ("Morreu sangrando"). O inimigo sangrando perde `foeDamagePerRound` (2) por troca.
+  - **Cuidados automáticos** (a cada turno, sem gastar turnos): estanca cada sangramento com um remédio do equipamento (torniquete primeiro, depois o de menor cura); cura com o remédio de maior cura enquanto a vida total ou de cabeça/tórax estiver abaixo de `healBelow` (60%) e o remédio curar algo; come ou bebe o item que mais rende abaixo de `eatBelow` (35).
+  - O Seguro sangrando ou abaixo de `safeRetreatBelow` (50%) da vida vai para a extração.

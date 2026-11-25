@@ -138,6 +138,20 @@ export interface CoreBalance {
     /** XP de Mira e da skill da arma por acerto */
     aimXpPerHit: number;
   };
+  bleed: {
+    /** Chance de cada dano causar sangramento (no personagem e no inimigo) */
+    chance: number;
+    /** Vida perdida por turno em cada parte sangrando */
+    damagePerTurn: number;
+    /** Vida do inimigo perdida por troca de tiros sangrando */
+    foeDamagePerRound: number;
+    /** Cura quando a vida total ou de cabeça/tórax cai abaixo disto */
+    healBelow: number;
+    /** Come ou bebe abaixo disto (energia, hidratação) */
+    eatBelow: number;
+    /** O Seguro vai para a extração abaixo desta fração da vida */
+    safeRetreatBelow: number;
+  };
   knowledge: {
     /** XP por célula percorrida */
     cellXp: number;
@@ -237,6 +251,14 @@ export const CORE_DEFAULTS: CoreBalance = {
     vestXpPerDamage: 0.1,
     vestXpPerBlock: 1,
     aimXpPerHit: 1,
+  },
+  bleed: {
+    chance: 0.3,
+    damagePerTurn: 1,
+    foeDamagePerRound: 2,
+    healBelow: 0.6,
+    eatBelow: 35,
+    safeRetreatBelow: 0.5,
   },
   knowledge: {
     cellXp: 1,

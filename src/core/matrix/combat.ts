@@ -51,6 +51,8 @@ export interface Foe {
   readonly ammoCount: readonly [number, number];
   readonly armor: FoeArmor | null;
   readonly helmet: FoeArmor | null;
+  /** Sangrando: perde `foeDamagePerRound` por troca */
+  bleeding: boolean;
 }
 
 const NAMES: Record<EnemyKind, string> = {
@@ -88,6 +90,7 @@ export function armFoe(
     ammoCount: weapon.ammoCount,
     armor: piece(armorId),
     helmet: piece(helmetId),
+    bleeding: false,
   };
 }
 
@@ -240,6 +243,10 @@ function playerAttack(raid: MatrixRaid, foe: Foe, weapon: Item): void {
       active.durability - armorWear(dmgRoll, pen, armorClass),
     );
   foe.health -= dealt;
+  if (!foe.bleeding && raid.rng.chance(coreBalance().bleed.chance)) {
+    foe.bleeding = true;
+    raid.log("fight", `${foe.name} está sangrando`);
+  }
   addSkillXp(raid.player.skills, "aim", b.aimXpPerHit);
   addSkillXp(raid.player.skills, weaponSkill(weapon.def), b.aimXpPerHit);
   raid.log("fight", `Acertou ${foe.name} (−${Math.round(dealt)})`);
@@ -277,6 +284,7 @@ function enemyAttack(raid: MatrixRaid, foe: Foe): void {
     : 1;
   const dealt = dmgRoll * factor * vitalityFactor(skills);
   damage(raid.player.pmc, zone, dealt);
+  raid.bleed(zone);
   addSkillXp(skills, "vitality", dealt * 0.05);
   if (active) {
     wear(active, armorWear(dmgRoll, pen, armorClass));
@@ -396,6 +404,13 @@ export function createD20Fight(enemies: Readonly<Record<EnemyKind, EnemyDef>>) {
     let playerNext = start.playerFirst;
     for (let round = 0; round < b.maxRounds && alive().length > 0; round++) {
       raid.turn += 1;
+      // sangramento dos dois lados a cada troca
+      for (const foe of alive()) {
+        if (foe.bleeding) foe.health -= coreBalance().bleed.foeDamagePerRound;
+      }
+      raid.tickBleeding();
+      if (raid.dead) return "died";
+      if (alive().length === 0) break;
       const order: ("player" | Foe | "extra")[] = [];
       const living = alive();
       if (playerNext) order.push("player");

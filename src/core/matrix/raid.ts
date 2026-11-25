@@ -2,13 +2,19 @@ import { coreBalance } from "../balance.ts";
 import type { Item } from "../inventory/item.ts";
 import { weaponRounds } from "../inventory/magazine.ts";
 import { detach } from "../inventory/operations.ts";
-import { isConsumable } from "../pmc/consumables.ts";
+import { isConsumable, useConsumable } from "../pmc/consumables.ts";
 import {
+  BODY_PART_LABELS,
+  MAX_HEALTH,
+  VITAL_PARTS,
   changeEnergy,
   changeHydration,
+  damage,
+  isDead,
   totalHealth,
   totalMaxHealth,
 } from "../pmc/pmc.ts";
+import type { BodyPart } from "../pmc/pmc.ts";
 import { addSkillXp, skillBonus } from "../pmc/skills.ts";
 import type { Rng } from "../rng.ts";
 import type { PlayerState } from "../state.ts";
@@ -57,6 +63,9 @@ export type MatrixEventKind =
   | "chased"
   | "flee"
   | "fight"
+  | "bleed"
+  | "heal"
+  | "eat"
   | "death"
   | "extract";
 
@@ -158,6 +167,8 @@ export class MatrixRaid {
   readonly found: Item[] = [];
   readonly enemies: MatrixEnemy[] = [];
   readonly path: Cell[];
+  /** Partes do corpo sangrando */
+  readonly bleeding: BodyPart[] = [];
   turn = 0;
   kills = 0;
   dead = false;
@@ -218,7 +229,93 @@ export class MatrixRaid {
         -b.hydrationPerTurn * (1 - skillBonus(skills, "metabolism")),
       );
       addSkillXp(skills, "endurance", b.enduranceXpPerTurn);
+      this.tickBleeding();
+      if (this.dead) return;
+      this.selfCare();
       this.enemyTurn();
+    }
+  }
+
+  // ------------------------------------------------------ sangramento e cuidados
+
+  /** Rola o sangramento de um dano na parte (`chance` do balanceamento) */
+  bleed(part: BodyPart): void {
+    if (this.bleeding.includes(part)) return;
+    if (!this.rng.chance(coreBalance().bleed.chance)) return;
+    this.bleeding.push(part);
+    this.log("bleed", `Começou a sangrar: ${BODY_PART_LABELS[part]}`);
+  }
+
+  /** Um turno de sangramento: cada parte perde `damagePerTurn`; pode matar */
+  tickBleeding(): void {
+    const { pmc } = this.player;
+    for (const part of this.bleeding) {
+      damage(pmc, part, coreBalance().bleed.damagePerTurn);
+    }
+    if (this.bleeding.length > 0 && isDead(pmc)) {
+      this.dead = true;
+      this.log("death", "Morreu sangrando");
+    }
+  }
+
+  /** Itens de cura do equipamento, do torniquete para o kit maior */
+  private medicines(): Item[] {
+    return carried(this.player)
+      .filter((i) => isConsumable(i) && (i.def.stats!.heal ?? 0) > 0)
+      .sort(
+        (a, b) =>
+          Number(b.def.id === "med_tourniquet") -
+            Number(a.def.id === "med_tourniquet") ||
+          a.def.stats!.heal! - b.def.stats!.heal!,
+      );
+  }
+
+  /**
+   * Cuidados automáticos: estanca cada sangramento com um remédio (torniquete
+   * primeiro, depois o de menor cura); cura com o remédio de maior cura
+   * quando a vida total ou de cabeça/tórax cai abaixo de `healBelow`; come ou
+   * bebe abaixo de `eatBelow`. O Seguro, sangrando ou abaixo de
+   * `safeRetreatBelow`, vai para a extração.
+   */
+  selfCare(): void {
+    const { pmc, skills } = this.player;
+    const b = coreBalance().bleed;
+    while (this.bleeding.length > 0) {
+      const med = this.medicines()[0];
+      if (!med) break;
+      const part = this.bleeding.shift()!;
+      this.log(
+        "heal",
+        `Estancou ${BODY_PART_LABELS[part]} com ${med.def.name}`,
+      );
+      useConsumable(med, pmc, skills);
+    }
+    const low = () =>
+      totalHealth(pmc) / totalMaxHealth() < b.healBelow ||
+      VITAL_PARTS.some((p) => pmc.health[p] / MAX_HEALTH[p] < b.healBelow);
+    while (low()) {
+      const med = this.medicines().at(-1);
+      if (!med) break;
+      const name = med.def.name;
+      const used = useConsumable(med, pmc, skills)!;
+      if (used.healed <= 0) break;
+      this.log("heal", `Usou ${name} (+${Math.round(used.healed)} PV)`);
+    }
+    for (const stat of ["energy", "hydration"] as const) {
+      if (pmc[stat] >= b.eatBelow) continue;
+      const food = carried(this.player)
+        .filter((i) => isConsumable(i) && (i.def.stats![stat] ?? 0) > 0)
+        .sort((x, y) => y.def.stats![stat]! - x.def.stats![stat]!)[0];
+      if (!food) continue;
+      this.log("eat", `Consumiu ${food.def.name}`);
+      useConsumable(food, pmc, skills);
+    }
+    const hurt =
+      this.bleeding.length > 0 ||
+      totalHealth(pmc) / totalMaxHealth() < b.safeRetreatBelow;
+    if (this.strategy === "safe" && hurt && !this.leaving) {
+      this.leaving = true;
+      this.log("extract", "Ferido: indo para a extração");
     }
   }
 

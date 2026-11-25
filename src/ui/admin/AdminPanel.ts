@@ -18,6 +18,7 @@ export const CORE_SECTION_NAMES: Record<keyof CoreBalance, string> = {
   knowledge: "Conhecimento do mapa",
   encounter: "Inimigos e percepção",
   combat: "Combate d20",
+  bleed: "Sangramento e cuidados",
   hideout: "Esconderijo",
 };
 
